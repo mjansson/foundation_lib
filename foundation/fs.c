@@ -1386,7 +1386,7 @@ _fs_file_flush(stream_t* stream) {
 }
 
 static size_t
-_fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
+_fs_file_read(stream_t* stream, void* buffer, size_t size) {
 	stream_file_t* file;
 	size_t was_read;
 	size_t beforepos;
@@ -1397,7 +1397,7 @@ _fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
 	file = GET_FILE(stream);
 
 	beforepos = _fs_file_tell(stream);
-	was_read = fread(buffer, 1, num_bytes, file->fd);
+	was_read = fread(buffer, 1, size, file->fd);
 	if (was_read > 0)
 		return was_read;
 
@@ -1411,7 +1411,7 @@ _fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
 }
 
 static size_t
-_fs_file_write(stream_t* stream, const void* buffer, size_t num_bytes) {
+_fs_file_write(stream_t* stream, const void* buffer, size_t size) {
 	stream_file_t* file;
 	size_t was_written;
 	size_t beforepos;
@@ -1422,7 +1422,7 @@ _fs_file_write(stream_t* stream, const void* buffer, size_t num_bytes) {
 	file = GET_FILE(stream);
 
 	beforepos = _fs_file_tell(stream);
-	was_written = fwrite(buffer, 1, num_bytes, file->fd);
+	was_written = fwrite(buffer, 1, size, file->fd);
 	if (was_written > 0)
 		return was_written;
 

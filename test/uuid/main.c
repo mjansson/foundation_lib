@@ -189,15 +189,15 @@ DECLARE_TEST(uuid, generate) {
 	return 0;
 }
 
-#define NUM_UUIDS 4096
-static uuid_t uuid_thread_store[32][NUM_UUIDS];
+#define UUIDS_COUNT 4096
+static uuid_t uuid_thread_store[32][UUIDS_COUNT];
 
 static void*
 uuid_thread_time(void* arg) {
 	int i;
 	int ithread = (int)(uintptr_t)arg;
 
-	for (i = 0; i < NUM_UUIDS; ++i)
+	for (i = 0; i < UUIDS_COUNT; ++i)
 		uuid_thread_store[ithread][i] = uuid_generate_time();
 
 	return 0;
@@ -206,28 +206,28 @@ uuid_thread_time(void* arg) {
 DECLARE_TEST(uuid, threaded) {
 	thread_t thread[32];
 	size_t ith, i, jth, j;
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 8);
+	size_t threads_count = math_clamp(system_hardware_threads() * 2, 4, 8);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_initialize(&thread[ith], uuid_thread_time, (void*)(uintptr_t)ith, STRING_CONST("uuid_thread"),
 		                  THREAD_PRIORITY_NORMAL, 0);
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_start(&thread[ith]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_finalize(&thread[ith]);
 
-	for (ith = 0; ith < num_threads; ++ith) {
-		for (i = 0; i < NUM_UUIDS; ++i) {
-			for (jth = ith + 1; jth < num_threads; ++jth) {
-				for (j = 0; j < NUM_UUIDS; ++j) {
+	for (ith = 0; ith < threads_count; ++ith) {
+		for (i = 0; i < UUIDS_COUNT; ++i) {
+			for (jth = ith + 1; jth < threads_count; ++jth) {
+				for (j = 0; j < UUIDS_COUNT; ++j) {
 					EXPECT_FALSE(uuid_equal(uuid_thread_store[ith][i], uuid_thread_store[jth][j]));
 				}
 			}
-			for (j = i + 1; j < NUM_UUIDS; ++j) {
+			for (j = i + 1; j < UUIDS_COUNT; ++j) {
 				EXPECT_FALSE(uuid_equal(uuid_thread_store[ith][i], uuid_thread_store[ith][j]));
 			}
 		}

@@ -263,12 +263,12 @@ DECLARE_TEST(event, immediate_threaded) {
 	size_t read[32];
 	unsigned int i;
 	bool running = true;
-	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 4, 4, 32);
 	size_t max_payload = 256 + EXPECTED_EVENT_SIZE - sizeof(event_t);
 
 	stream = event_stream_allocate(0);
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		args[i].stream = stream;
 		args[i].end_time = time_current() + (time_ticks_per_second() * 5);
 		args[i].max_delay = 0;
@@ -279,15 +279,15 @@ DECLARE_TEST(event, immediate_threaded) {
 		thread_initialize(&thread[i], producer_thread, args + i, STRING_CONST("event_producer"), THREAD_PRIORITY_NORMAL,
 		                  0);
 	}
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_start(&thread[i]);
 
-	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
 
 	while (running) {
 		running = false;
 
-		for (i = 0; i < num_threads; ++i) {
+		for (i = 0; i < threads_count; ++i) {
 			if (thread_is_running(&thread[i])) {
 				running = true;
 				break;
@@ -315,7 +315,7 @@ DECLARE_TEST(event, immediate_threaded) {
 		event = event_next(block, event);
 	}
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		void* result = thread[i].result;
 		size_t should_have_read = (uintptr_t)result;
 		EXPECT_EQ(read[i], should_have_read);
@@ -467,14 +467,14 @@ DECLARE_TEST(event, delay_threaded) {
 	size_t read[32];
 	unsigned int i;
 	bool running = true;
-	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 4, 4, 32);
 
 	stream = event_stream_allocate(0);
 	begintime = time_current();
 
 	thread_yield();
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		args[i].stream = stream;
 		args[i].end_time = time_current() + (time_ticks_per_second() * 5);
 		args[i].max_delay = time_ticks_per_second() * 5;
@@ -485,15 +485,15 @@ DECLARE_TEST(event, delay_threaded) {
 		thread_initialize(&thread[i], producer_thread, args + i, STRING_CONST("event_producer"), THREAD_PRIORITY_NORMAL,
 		                  0);
 	}
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_start(&thread[i]);
 
-	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
 
 	while (running) {
 		running = false;
 
-		for (i = 0; i < num_threads; ++i) {
+		for (i = 0; i < threads_count; ++i) {
 			if (thread_is_running(&thread[i])) {
 				running = true;
 				break;
@@ -555,7 +555,7 @@ DECLARE_TEST(event, delay_threaded) {
 
 	} while (time_current() < endtime);
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		void* result = thread[i].result;
 		size_t should_have_read = (size_t)((uintptr_t)result);
 		EXPECT_EQ(read[i], should_have_read);

@@ -172,14 +172,14 @@ DECLARE_TEST(hashtable, 32bit_threaded) {
 	thread_t thread[32];
 	producer32_arg_t args[32];
 	unsigned int i, j;
-	size_t num_threads = 32;
+	size_t threads_count = 32;
 
 	hashtable32_t* table = hashtable32_allocate(32 * 16789 + 65536);
 
 	EXPECT_EQ(hashtable32_size(table), 0);
 
-	num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
-	for (i = 0; i < num_threads; ++i) {
+	threads_count = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
+	for (i = 0; i < threads_count; ++i) {
 		args[i].table = table;
 		args[i].key_offset = i * 16789;
 		args[i].key_num = 65535;
@@ -187,16 +187,16 @@ DECLARE_TEST(hashtable, 32bit_threaded) {
 		thread_initialize(&thread[i], producer32_thread, args + i, STRING_CONST("table_producer"),
 		                  THREAD_PRIORITY_NORMAL, 0);
 	}
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_start(&thread[i]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_finalize(&thread[i]);
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		for (j = 1; j < 65535; ++j) {
 			uint32_t key = (i * 16789) + j;
 			EXPECT_EQ(hashtable32_get(table, 1 + key), 1 + (key % 17));
@@ -204,11 +204,11 @@ DECLARE_TEST(hashtable, 32bit_threaded) {
 	}
 
 	// Size is potentially greater due to threading, see comment in hashtable_set
-	EXPECT_SIZEGE(hashtable32_size(table), (num_threads - 1) * 16789 + 65535);
+	EXPECT_SIZEGE(hashtable32_size(table), (threads_count - 1) * 16789 + 65535);
 	hashtable32_clear(table);
 	EXPECT_SIZEEQ(hashtable32_size(table), 0);
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		for (j = 1; j < 65535; ++j) {
 			uint32_t key = (1 + (i * 16789)) + j;
 			EXPECT_EQ(hashtable32_get(table, 1 + key), 0);
@@ -281,14 +281,14 @@ DECLARE_TEST(hashtable, 64bit_threaded) {
 	thread_t thread[32];
 	producer64_arg_t args[32];
 	unsigned int i, j;
-	size_t num_threads = 0;
+	size_t threads_count = 0;
 
 	hashtable64_t* table = hashtable64_allocate(32 * 16789 + 65536);
 
 	EXPECT_EQ(hashtable64_size(table), 0);
 
-	num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 32U);
-	for (i = 0; i < num_threads; ++i) {
+	threads_count = math_clamp(system_hardware_threads() * 2U, 4U, 32U);
+	for (i = 0; i < threads_count; ++i) {
 		args[i].table = table;
 		args[i].key_offset = (i * 16789);
 		args[i].key_num = 65535;
@@ -296,16 +296,16 @@ DECLARE_TEST(hashtable, 64bit_threaded) {
 		thread_initialize(&thread[i], producer64_thread, args + i, STRING_CONST("table_producer"),
 		                  THREAD_PRIORITY_NORMAL, 0);
 	}
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_start(&thread[i]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_finalize(&thread[i]);
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		for (j = 1; j < 65535; ++j) {
 			uint32_t key = (i * 16789) + j;
 			EXPECT_EQ(hashtable64_get(table, 1 + key), 1 + (key % 17));
@@ -313,11 +313,11 @@ DECLARE_TEST(hashtable, 64bit_threaded) {
 	}
 
 	// Size is potentially greater due to threading, see comment in hashtable_set
-	EXPECT_SIZEGE(hashtable64_size(table), (num_threads - 1) * 16789 + 65535);
+	EXPECT_SIZEGE(hashtable64_size(table), (threads_count - 1) * 16789 + 65535);
 	hashtable64_clear(table);
 	EXPECT_SIZEEQ(hashtable64_size(table), 0);
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		for (j = 1; j < 65535; ++j) {
 			uint32_t key = (1 + (i * 16789)) + j;
 			EXPECT_EQ(hashtable64_get(table, key), 0);

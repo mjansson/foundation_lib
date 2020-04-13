@@ -146,23 +146,23 @@ cas_thread(void* arg) {
 }
 
 DECLARE_TEST(atomic, incdec) {
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 2, 4, 32);
 	size_t ithread;
 	thread_t threads[32];
 
 	atomic_store32(&val_32, 0, memory_order_release);
 	atomic_store64(&val_64, 0, memory_order_release);
 
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_initialize(&threads[ithread], ithread % 2 ? dec_thread : inc_thread, 0, ithread % 2 ? "dec" : "inc", 3,
 		                  THREAD_PRIORITY_NORMAL, 0);
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_start(&threads[ithread]);
 
-	test_wait_for_threads_startup(threads, num_threads);
-	test_wait_for_threads_finish(threads, num_threads);
+	test_wait_for_threads_startup(threads, threads_count);
+	test_wait_for_threads_finish(threads, threads_count);
 
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_finalize(&threads[ithread]);
 
 	EXPECT_INTEQ(atomic_load32(&val_32, memory_order_acquire), 0);
@@ -172,22 +172,22 @@ DECLARE_TEST(atomic, incdec) {
 }
 
 DECLARE_TEST(atomic, add) {
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 2, 4, 32);
 	size_t ithread;
 	thread_t threads[32];
 
 	atomic_store32(&val_32, 0, memory_order_release);
 	atomic_store64(&val_64, 0, memory_order_release);
 
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_initialize(&threads[ithread], add_thread, 0, STRING_CONST("add"), THREAD_PRIORITY_NORMAL, 0);
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_start(&threads[ithread]);
 
-	test_wait_for_threads_startup(threads, num_threads);
-	test_wait_for_threads_finish(threads, num_threads);
+	test_wait_for_threads_startup(threads, threads_count);
+	test_wait_for_threads_finish(threads, threads_count);
 
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_finalize(&threads[ithread]);
 
 	EXPECT_INTEQ(atomic_load32(&val_32, memory_order_acquire), 0);
@@ -197,7 +197,7 @@ DECLARE_TEST(atomic, add) {
 }
 
 DECLARE_TEST(atomic, cas) {
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 2, 4, 32);
 	size_t ithread;
 	thread_t threads[32];
 	cas_value_t cas_values[32];
@@ -206,20 +206,20 @@ DECLARE_TEST(atomic, cas) {
 	atomic_store64(&val_64, REFVAL64, memory_order_release);
 	atomic_store_ptr(&val_ptr, REFVALPTR, memory_order_release);
 
-	for (ithread = 0; ithread < num_threads; ++ithread) {
+	for (ithread = 0; ithread < threads_count; ++ithread) {
 		cas_values[ithread].val_32 = (int32_t)ithread + 1;
 		cas_values[ithread].val_64 = (int64_t)ithread + 1;
 		cas_values[ithread].val_ptr = (void*)((uintptr_t)ithread + 1);
 		thread_initialize(&threads[ithread], cas_thread, &cas_values[ithread], STRING_CONST("cas"),
 		                  THREAD_PRIORITY_NORMAL, 0);
 	}
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_start(&threads[ithread]);
 
-	test_wait_for_threads_startup(threads, num_threads);
-	test_wait_for_threads_finish(threads, num_threads);
+	test_wait_for_threads_startup(threads, threads_count);
+	test_wait_for_threads_finish(threads, threads_count);
 
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_finalize(&threads[ithread]);
 
 	EXPECT_INTEQ(atomic_load32(&val_32, memory_order_acquire), REFVAL32);

@@ -71,33 +71,34 @@ _buffer_stream_finalize(stream_t* stream) {
 }
 
 static size_t
-_buffer_stream_read(stream_t* stream, void* dest, size_t num) {
-	size_t available, num_read;
+_buffer_stream_read(stream_t* stream, void* dest, size_t size) {
+	size_t available;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
 	FOUNDATION_ASSERT(buffer_stream->size >= buffer_stream->current);
 
 	available = buffer_stream->size - buffer_stream->current;
-	num_read = (num < available) ? num : available;
+	if (available < size)
+		size = available;
 
-	if (num_read > 0) {
-		memcpy(dest, pointer_offset(buffer_stream->buffer, buffer_stream->current), num_read);
-		buffer_stream->current += num_read;
-		return num_read;
+	if (size > 0) {
+		memcpy(dest, pointer_offset(buffer_stream->buffer, buffer_stream->current), size);
+		buffer_stream->current += size;
+		return size;
 	}
 
 	return 0;
 }
 
 static size_t
-_buffer_stream_write(stream_t* stream, const void* source, size_t num) {
-	size_t available, want, num_write;
+_buffer_stream_write(stream_t* stream, const void* source, size_t size) {
+	size_t available, want;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
 	FOUNDATION_ASSERT(buffer_stream->size >= buffer_stream->current);
 
 	available = buffer_stream->size - buffer_stream->current;
-	want = num;
+	want = size;
 
 	if (want > available) {
 		if (buffer_stream->capacity >= (buffer_stream->current + want)) {
@@ -119,11 +120,11 @@ _buffer_stream_write(stream_t* stream, const void* source, size_t num) {
 
 	buffer_stream->lastmod = time_current();
 
-	num_write = (want < available) ? want : available;
-	if (num_write > 0) {
-		memcpy(pointer_offset(buffer_stream->buffer, buffer_stream->current), source, num_write);
-		buffer_stream->current += num_write;
-		return num_write;
+	size = (want < available) ? want : available;
+	if (size > 0) {
+		memcpy(pointer_offset(buffer_stream->buffer, buffer_stream->current), source, size);
+		buffer_stream->current += size;
+		return size;
 	}
 
 	return 0;

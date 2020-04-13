@@ -112,7 +112,7 @@ memory_dump(const void* addr, size_t size, void* const* trace, size_t depth) {
 DECLARE_TEST(app, memory) {
 	thread_t thread[16];
 	size_t ith;
-	size_t num_threads = math_clamp(system_hardware_threads() + 1, 2, 16);
+	size_t threads_count = math_clamp(system_hardware_threads() + 1, 2, 16);
 
 	log_set_suppress(HASH_MEMORY, ERRORLEVEL_NONE);
 
@@ -129,19 +129,19 @@ DECLARE_TEST(app, memory) {
 	EXPECT_SIZEGT(_memory_dump_size, 1);
 #endif
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_initialize(&thread[ith], memory_thread, 0, STRING_CONST("memory_thread"), THREAD_PRIORITY_NORMAL, 0);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_start(&thread[ith]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		EXPECT_EQ(thread[ith].result, 0);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_finalize(&thread[ith]);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS && BUILD_ENABLE_MEMORY_TRACKER
@@ -227,7 +227,7 @@ DECLARE_TEST(app, thread) {
 	thread_t* testthread = 0;
 	thread_t thread[32];
 	size_t ithread;
-	size_t num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
+	size_t threads_count = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
 	semaphore_t sync;
 
 	EXPECT_TRUE(thread_is_main());
@@ -242,15 +242,15 @@ DECLARE_TEST(app, thread) {
 	EXPECT_EQ(thread_join(testthread), nullptr);
 	thread_deallocate(testthread);
 
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_initialize(&thread[ithread], test_thread, &sync, STRING_CONST("test_thread"), THREAD_PRIORITY_NORMAL, 0);
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_start(&thread[ithread]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (ithread = 0; ithread < num_threads; ++ithread) {
+	for (ithread = 0; ithread < threads_count; ++ithread) {
 		EXPECT_EQ(thread_join(&thread[ithread]), nullptr);
 		thread_finalize(&thread[ithread]);
 	}

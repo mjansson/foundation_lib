@@ -14,18 +14,18 @@
 
 #include "errorcodes.h"
 
-//Use fixed-size buffers since the data format is very restricted
-#define HASHIFY_LINEBUFFER_LENGTH           512
+// Use fixed-size buffers since the data format is very restricted
+#define HASHIFY_LINEBUFFER_LENGTH 512
 
 typedef struct {
-	bool         check_only;
-	string_t*    strings;
-	string_t*    files;
+	bool check_only;
+	string_t* strings;
+	string_t* files;
 } hashify_input_t;
 
 typedef struct {
-	string_t     string;
-	hash_t       hash;
+	string_t string;
+	hash_t hash;
 } hashify_string_t;
 
 static hashify_string_t* all_hashes;
@@ -43,8 +43,8 @@ static int
 hashify_process_files(string_t* files, bool check_only);
 
 static int
-hashify_process_file(stream_t* input_file, stream_t* output_file, string_t output_filename,
-                     bool check_only, hashify_string_t** history);
+hashify_process_file(stream_t* input_file, stream_t* output_file, string_t output_filename, bool check_only,
+                     hashify_string_t** history);
 
 static int
 hashify_generate_preamble(stream_t* output_file, string_t output_filename);
@@ -56,12 +56,10 @@ static int
 hashify_write_file(stream_t* generated_file, string_t output_filename);
 
 static int
-hashify_check_local_consistency(string_const_t string, hash_t hash_value,
-                                const hashify_string_t* local_hashes);
+hashify_check_local_consistency(string_const_t string, hash_t hash_value, const hashify_string_t* local_hashes);
 
 static int
-hashify_check_collisions(string_const_t string, hash_t hash_value,
-                         const hashify_string_t* history);
+hashify_check_collisions(string_const_t string, hash_t hash_value, const hashify_string_t* history);
 
 static int
 hashify_check_match(const hashify_string_t* hashes, const hashify_string_t* generated);
@@ -132,26 +130,22 @@ hashify_parse_command_line(const string_const_t* cmdline) {
 		if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--help"))) {
 			hashify_print_usage();
 			continue;
-		}
-		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--validate"))) {
+		} else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--validate"))) {
 			input.check_only = true;
 			continue;
-		}
-		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--generate-string"))) {
+		} else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--generate-string"))) {
 			if (arg < asize - 1) {
 				++arg;
 				array_push(input.strings, string_clone(STRING_ARGS(cmdline[arg])));
 			}
 			continue;
-		}
-		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--debug"))) {
+		} else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--debug"))) {
 			log_set_suppress(0, ERRORLEVEL_NONE);
 			continue;
-		}
-		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--")))
-			break; //Stop parsing cmdline options
+		} else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--")))
+			break;  // Stop parsing cmdline options
 		else if ((cmdline[arg].length > 2) && string_equal(cmdline[arg].str, 2, STRING_CONST("--")))
-			continue; //Cmdline argument not parsed here
+			continue;  // Cmdline argument not parsed here
 
 		array_push(input.files, string_clone(STRING_ARGS(cmdline[arg])));
 	}
@@ -168,8 +162,7 @@ hashify_process_strings(string_t* strings) {
 	size_t istr, strings_size;
 	for (istr = 0, strings_size = array_size(strings); istr < strings_size; ++istr) {
 		uint64_t hash_value = hash(STRING_ARGS(strings[istr]));
-		log_infof(0, STRING_CONST("String '%.*s' hash: 0x%" PRIx64), STRING_FORMAT(strings[istr]),
-		          hash_value);
+		log_infof(0, STRING_CONST("String '%.*s' hash: 0x%" PRIx64), STRING_FORMAT(strings[istr]), hash_value);
 	}
 	return 0;
 }
@@ -179,8 +172,7 @@ hashify_process_files(string_t* files, bool check_only) {
 	int result = HASHIFY_RESULT_OK;
 	hashify_string_t* history = 0;
 	size_t ifile, files_size;
-	for (ifile = 0, files_size = array_size(files); (result == HASHIFY_RESULT_OK) &&
-	        (ifile < files_size); ++ifile) {
+	for (ifile = 0, files_size = array_size(files); (result == HASHIFY_RESULT_OK) && (ifile < files_size); ++ifile) {
 		string_t input_filename;
 		string_t output_filename;
 		string_const_t base_filename;
@@ -199,9 +191,9 @@ hashify_process_files(string_t* files, bool check_only) {
 		log_infof(0, STRING_CONST("Hashifying %.*s -> %.*s"), STRING_FORMAT(input_filename),
 		          STRING_FORMAT(output_filename));
 
-		input_file  = stream_open(STRING_ARGS(input_filename), STREAM_IN);
+		input_file = stream_open(STRING_ARGS(input_filename), STREAM_IN);
 
-		//If only validating, open the final output file. If generating, make a memory buffer as intermediate storage
+		// If only validating, open the final output file. If generating, make a memory buffer as intermediate storage
 		if (check_only)
 			output_file = stream_open(STRING_ARGS(output_filename), STREAM_IN);
 		else
@@ -212,8 +204,7 @@ hashify_process_files(string_t* files, bool check_only) {
 			log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("Unable to open input file: %.*s"),
 			          STRING_FORMAT(input_filename));
 			result = HASHIFY_RESULT_MISSING_INPUT_FILE;
-		}
-		else if (!output_file) {
+		} else if (!output_file) {
 			log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("Unable to open output file: %.*s"),
 			          STRING_FORMAT(output_filename));
 			result = HASHIFY_RESULT_MISSING_OUTPUT_FILE;
@@ -247,8 +238,8 @@ hashify_process_files(string_t* files, bool check_only) {
 }
 
 int
-hashify_process_file(stream_t* input_file, stream_t* output_file, string_t output_filename,
-                     bool check_only, hashify_string_t** history) {
+hashify_process_file(stream_t* input_file, stream_t* output_file, string_t output_filename, bool check_only,
+                     hashify_string_t** history) {
 	int result = HASHIFY_RESULT_OK;
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
 	hashify_string_t* local_hashes = 0;
@@ -271,8 +262,7 @@ hashify_process_file(stream_t* input_file, stream_t* output_file, string_t outpu
 		def_string = string_strip(STRING_ARGS(def_string), STRING_CONST(STRING_WHITESPACE));
 		value_string = string_strip(STRING_ARGS(value_string), STRING_CONST(STRING_WHITESPACE));
 
-		if (value_string.length && (value_string.str[0] == '"') &&
-		        (value_string.str[ value_string.length - 1 ] == '"')) {
+		if (value_string.length && (value_string.str[0] == '"') && (value_string.str[value_string.length - 1] == '"')) {
 			++value_string.str;
 			value_string.length -= 2;
 		}
@@ -284,22 +274,22 @@ hashify_process_file(stream_t* input_file, stream_t* output_file, string_t outpu
 			          STRING_FORMAT(value_string), hash_value);
 
 			if (check_only) {
-				//Check local consistency
+				// Check local consistency
 				result = hashify_check_local_consistency(value_string, hash_value, local_hashes);
-			}
-			else {
-				stream_write_format(output_file,
-				                    STRING_CONST("#define %.*s static_hash_string(\"%.*s\", %" PRIsize ", 0x%" PRIx64 "ULL)\n"),
-				                    STRING_FORMAT(def_string), STRING_FORMAT(value_string), value_string.length, hash_value);
+			} else {
+				stream_write_format(
+				    output_file,
+				    STRING_CONST("#define %.*s static_hash_string(\"%.*s\", %" PRIsize ", 0x%" PRIx64 "ULL)\n"),
+				    STRING_FORMAT(def_string), STRING_FORMAT(value_string), value_string.length, hash_value);
 			}
 
 			if (result == HASHIFY_RESULT_OK) {
 				hashify_string_t hash_string;
 
-				//Check history
+				// Check history
 				result = hashify_check_collisions(value_string, hash_value, *history);
 
-				//Add to history
+				// Add to history
 				hash_string.string = string_clone(STRING_ARGS(value_string));
 				hash_string.hash = hash_value;
 				array_push_memcpy(*history, &hash_string);
@@ -310,7 +300,7 @@ hashify_process_file(stream_t* input_file, stream_t* output_file, string_t outpu
 	}
 
 	if (check_only) {
-		//Check local consistency
+		// Check local consistency
 		result = hashify_check_match(local_hashes, local_generated);
 	}
 
@@ -322,7 +312,7 @@ hashify_process_file(stream_t* input_file, stream_t* output_file, string_t outpu
 
 int
 hashify_generate_preamble(stream_t* output_file, string_t output_filename) {
-	//Read and preserve everything before #pragma once in case it contains header comments to be preserved
+	// Read and preserve everything before #pragma once in case it contains header comments to be preserved
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
 	size_t capacity = 1024;
 	string_t preamble = string_allocate(0, capacity);
@@ -337,7 +327,7 @@ hashify_generate_preamble(stream_t* output_file, string_t output_filename) {
 		stripped_line = string_strip(STRING_ARGS(line), STRING_CONST("\n\r"));
 
 		if ((string_find_string(STRING_ARGS(stripped_line), STRING_CONST("pragma"), 0) != STRING_NPOS) &&
-		        (string_find_string(STRING_ARGS(stripped_line), STRING_CONST("once"), 0) != STRING_NPOS))
+		    (string_find_string(STRING_ARGS(stripped_line), STRING_CONST("once"), 0) != STRING_NPOS))
 			break;
 
 		if (preamble.length + stripped_line.length + 1 >= capacity) {
@@ -355,13 +345,11 @@ hashify_generate_preamble(stream_t* output_file, string_t output_filename) {
 	stream_seek(output_file, 0, STREAM_SEEK_BEGIN);
 	if (preamble.length)
 		stream_write_string(output_file, STRING_ARGS(preamble));
-	stream_write_string(output_file, STRING_CONST(
-	                        "#pragma once\n\n"
-	                        "#include <foundation/hash.h>\n\n"
-	                        "/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******\n"
-	                        "    Edit corresponding definitions file and rerun\n"
-	                        "    the foundation hashify tool to update this file */\n\n"
-	                    ));
+	stream_write_string(output_file, STRING_CONST("#pragma once\n\n"
+	                                              "#include <foundation/hash.h>\n\n"
+	                                              "/* ****** AUTOMATICALLY GENERATED, DO NOT EDIT ******\n"
+	                                              "    Edit corresponding definitions file and rerun\n"
+	                                              "    the foundation hashify tool to update this file */\n\n"));
 
 	string_deallocate(preamble.str);
 
@@ -370,7 +358,7 @@ hashify_generate_preamble(stream_t* output_file, string_t output_filename) {
 
 int
 hashify_read_hashes(stream_t* file, hashify_string_t** hashes) {
-	//Read in hashes in file
+	// Read in hashes in file
 	char line_buffer[HASHIFY_LINEBUFFER_LENGTH];
 	string_const_t tokens[32];
 
@@ -379,12 +367,11 @@ hashify_read_hashes(stream_t* file, hashify_string_t** hashes) {
 		string_t line = stream_read_line_buffer(file, line_buffer, sizeof(line_buffer), '\n');
 		string_const_t stripped_line = string_strip(STRING_ARGS(line), STRING_CONST("\n\r"));
 		if ((string_find_string(STRING_ARGS(stripped_line), STRING_CONST("define"), 0) != STRING_NPOS) &&
-		        (string_find_string(STRING_ARGS(stripped_line), STRING_CONST("static_hash"), 0) != STRING_NPOS)) {
-			//Format is: #define HASH_<hashstring> static_hash_string( "<string>", 0x<hashvalue>ULL )
-			size_t num_tokens = string_explode(STRING_ARGS(stripped_line), STRING_CONST(" \t"), tokens, 32,
-			                                   false);
+		    (string_find_string(STRING_ARGS(stripped_line), STRING_CONST("static_hash"), 0) != STRING_NPOS)) {
+			// Format is: #define HASH_<hashstring> static_hash_string( "<string>", 0x<hashvalue>ULL )
+			size_t tokens_count = string_explode(STRING_ARGS(stripped_line), STRING_CONST(" \t"), tokens, 32, false);
 
-			if (num_tokens >= 6) {
+			if (tokens_count >= 6) {
 				hashify_string_t hash_string;
 				string_const_t stripped = string_strip(STRING_ARGS(tokens[3]), STRING_CONST(","));
 				stripped = string_strip(STRING_ARGS(stripped), STRING_CONST("\""));
@@ -393,9 +380,10 @@ hashify_read_hashes(stream_t* file, hashify_string_t** hashes) {
 
 				if (hash(STRING_ARGS(hash_string.string)) != hash_string.hash) {
 					log_errorf(0, ERROR_INVALID_VALUE,
-					           STRING_CONST("  hash output file is out of date, %.*s is set to 0x%" PRIx64 " but should be 0x%"
-					                        PRIx64),
-					           STRING_FORMAT(hash_string.string), hash_string.hash, hash(STRING_ARGS(hash_string.string)));
+					           STRING_CONST("  hash output file is out of date, %.*s is set to 0x%" PRIx64
+					                        " but should be 0x%" PRIx64),
+					           STRING_FORMAT(hash_string.string), hash_string.hash,
+					           hash(STRING_ARGS(hash_string.string)));
 					return HASHIFY_RESULT_OUTPUT_FILE_OUT_OF_DATE;
 				}
 
@@ -403,8 +391,7 @@ hashify_read_hashes(stream_t* file, hashify_string_t** hashes) {
 				array_push_memcpy(all_hashes, &hash_string);
 			}
 		}
-	}
-	while (!stream_eos(file));
+	} while (!stream_eos(file));
 
 	return 0;
 }
@@ -447,9 +434,10 @@ hashify_write_file(stream_t* generated_file, string_t output_filename) {
 			total_written += written;
 
 			if (written != read) {
-				log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-				           STRING_CONST("Unable to write to output file '%.*s': %" PRIsize " of %" PRIsize " bytes written"),
-				           STRING_FORMAT(output_filename), written, read);
+				log_errorf(
+				    0, ERROR_SYSTEM_CALL_FAIL,
+				    STRING_CONST("Unable to write to output file '%.*s': %" PRIsize " of %" PRIsize " bytes written"),
+				    STRING_FORMAT(output_filename), written, read);
 				result = HASHIFY_RESULT_OUTPUT_FILE_WRITE_FAIL;
 				break;
 			}
@@ -460,8 +448,7 @@ hashify_write_file(stream_t* generated_file, string_t output_filename) {
 			log_infof(0, STRING_CONST("  wrote %.*s : %" PRIu64 " bytes"), STRING_FORMAT(output_filename),
 			          total_written);
 		}
-	}
-	else {
+	} else {
 		log_info(0, STRING_CONST("  hash file already up to date"));
 	}
 
@@ -471,8 +458,7 @@ hashify_write_file(stream_t* generated_file, string_t output_filename) {
 }
 
 int
-hashify_check_local_consistency(string_const_t string, hash_t hash_value,
-                                const hashify_string_t* local_hashes) {
+hashify_check_local_consistency(string_const_t string, hash_t hash_value, const hashify_string_t* local_hashes) {
 	size_t ilocal, localsize;
 	for (ilocal = 0, localsize = array_size(local_hashes); ilocal < localsize; ++ilocal) {
 		if (local_hashes[ilocal].hash == hash_value) {
@@ -481,13 +467,13 @@ hashify_check_local_consistency(string_const_t string, hash_t hash_value,
 				log_errorf(0, ERROR_INVALID_VALUE,
 				           STRING_CONST("  hash string mismatch, \"%.*s\" with hash 0x%" PRIx64
 				                        " stored in output file, read \"%.*s\" from input file"),
-				           STRING_FORMAT(local_hashes[ilocal].string), local_hashes[ilocal].hash, STRING_FORMAT(string));
+				           STRING_FORMAT(local_hashes[ilocal].string), local_hashes[ilocal].hash,
+				           STRING_FORMAT(string));
 				return HASHIFY_RESULT_HASH_STRING_MISMATCH;
 			}
 			break;
-		}
-		else if (string_equal(local_hashes[ilocal].string.str, local_hashes[ilocal].string.length,
-		                      string.str, string.length)) {
+		} else if (string_equal(local_hashes[ilocal].string.str, local_hashes[ilocal].string.length, string.str,
+		                        string.length)) {
 			log_errorf(0, ERROR_INVALID_VALUE,
 			           STRING_CONST("  hash mismatch, \"%.*s\" with hash 0x%" PRIx64
 			                        " stored in output file, read \"%.*s\" with hash 0x%" PRIx64 " from input file"),
@@ -497,9 +483,8 @@ hashify_check_local_consistency(string_const_t string, hash_t hash_value,
 		}
 	}
 	if (ilocal == localsize) {
-		log_errorf(0, ERROR_INVALID_VALUE,
-		           STRING_CONST("  hash missing in output file, \"%.*s\" with hash 0x%" PRIx64), STRING_FORMAT(string),
-		           hash_value);
+		log_errorf(0, ERROR_INVALID_VALUE, STRING_CONST("  hash missing in output file, \"%.*s\" with hash 0x%" PRIx64),
+		           STRING_FORMAT(string), hash_value);
 		return HASHIFY_RESULT_HASH_MISSING;
 	}
 
@@ -507,18 +492,15 @@ hashify_check_local_consistency(string_const_t string, hash_t hash_value,
 }
 
 int
-hashify_check_collisions(string_const_t string, hash_t hash_value,
-                         const hashify_string_t* history) {
+hashify_check_collisions(string_const_t string, hash_t hash_value, const hashify_string_t* history) {
 	size_t ihist, history_size;
 	for (ihist = 0, history_size = array_size(history); ihist < history_size; ++ihist) {
 		if (history[ihist].hash == hash_value) {
-			if (string_equal(history[ihist].string.str, history[ihist].string.length, string.str,
-			                 string.length)) {
+			if (string_equal(history[ihist].string.str, history[ihist].string.length, string.str, string.length)) {
 				log_errorf(0, ERROR_INVALID_VALUE, STRING_CONST("  global string duplication, \"%.*s\""),
 				           STRING_FORMAT(string));
 				return HASHIFY_RESULT_STRING_COLLISION;
-			}
-			else {
+			} else {
 				log_errorf(0, ERROR_INVALID_VALUE,
 				           STRING_CONST("  global hash collision, 0x%" PRIx64 " between: \"%.*s\" and \"%.*s\" "),
 				           hash_value, STRING_FORMAT(string), STRING_FORMAT(history[ihist].string));
@@ -532,8 +514,8 @@ hashify_check_collisions(string_const_t string, hash_t hash_value,
 
 int
 hashify_check_match(const hashify_string_t* hashes, const hashify_string_t* generated) {
-	//From hashify_check_local_consistency we know that generated array already is a subset of hashes
-	//This test checks that hashes is a subset of generated, i.e sets are equal
+	// From hashify_check_local_consistency we know that generated array already is a subset of hashes
+	// This test checks that hashes is a subset of generated, i.e sets are equal
 	size_t ihash, hashes_size, igen, generated_size;
 	for (ihash = 0, hashes_size = array_size(hashes); ihash < hashes_size; ++ihash) {
 		for (igen = 0, generated_size = array_size(generated); igen < generated_size; ++igen) {
@@ -543,18 +525,19 @@ hashify_check_match(const hashify_string_t* hashes, const hashify_string_t* gene
 					log_errorf(0, ERROR_INVALID_VALUE,
 					           STRING_CONST("  hash string mismatch, \"%.*s\" with hash 0x%" PRIx64
 					                        " stored in output file, generated by \"%.*s\" from input file"),
-					           STRING_FORMAT(hashes[ihash].string), hashes[ihash].hash, STRING_FORMAT(generated[igen].string));
+					           STRING_FORMAT(hashes[ihash].string), hashes[ihash].hash,
+					           STRING_FORMAT(generated[igen].string));
 					return HASHIFY_RESULT_HASH_STRING_MISMATCH;
 				}
 				break;
-			}
-			else if (string_equal(hashes[ihash].string.str, hashes[ihash].string.length,
-			                      generated[igen].string.str, generated[igen].string.length)) {
-				log_errorf(0, ERROR_INVALID_VALUE,
-				           STRING_CONST("  hash mismatch, \"%.*s\" with hash 0x%" PRIx64
-				                        " stored in output file, \"%.*s\" generated hash 0x%" PRIx64 " from input file"),
-				           STRING_FORMAT(hashes[ihash].string), hashes[ihash].hash, STRING_FORMAT(generated[igen].string),
-				           generated[igen].hash);
+			} else if (string_equal(hashes[ihash].string.str, hashes[ihash].string.length, generated[igen].string.str,
+			                        generated[igen].string.length)) {
+				log_errorf(
+				    0, ERROR_INVALID_VALUE,
+				    STRING_CONST("  hash mismatch, \"%.*s\" with hash 0x%" PRIx64
+				                 " stored in output file, \"%.*s\" generated hash 0x%" PRIx64 " from input file"),
+				    STRING_FORMAT(hashes[ihash].string), hashes[ihash].hash, STRING_FORMAT(generated[igen].string),
+				    generated[igen].hash);
 				return HASHIFY_RESULT_HASH_MISMATCH;
 			}
 		}
@@ -572,18 +555,18 @@ static void
 hashify_print_usage(void) {
 	const error_level_t saved_level = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_DEBUG);
-	log_info(0, STRING_CONST(
-	             "hashify usage:\n"
-	             "  hashify [--validate] [--generate-string <string>] [<filename> <filename> ...] [--debug] [--help] [--]\n"
-	             "    Generated files have the same file name as the input file, with the extension replaced by .h\n"
-	             "    Optional arguments:\n"
-	             "      --validate                   Suppress output and only validate existing hashes\n"
-	             "      --generate-string <string>   Generate hash of the given string\n"
-	             "      <filename> <filename> ...    Any number of input files\n"
-	             "      --debug                      Enable debug output\n"
-	             "      --help                       Display this help message\n"
-	             "      --                           Stop processing command line arguments"
-	         ));
+	log_info(
+	    0,
+	    STRING_CONST(
+	        "hashify usage:\n"
+	        "  hashify [--validate] [--generate-string <string>] [<filename> <filename> ...] [--debug] [--help] [--]\n"
+	        "    Generated files have the same file name as the input file, with the extension replaced by .h\n"
+	        "    Optional arguments:\n"
+	        "      --validate                   Suppress output and only validate existing hashes\n"
+	        "      --generate-string <string>   Generate hash of the given string\n"
+	        "      <filename> <filename> ...    Any number of input files\n"
+	        "      --debug                      Enable debug output\n"
+	        "      --help                       Display this help message\n"
+	        "      --                           Stop processing command line arguments"));
 	log_set_suppress(0, saved_level);
 }
-

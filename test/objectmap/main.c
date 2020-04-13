@@ -257,23 +257,23 @@ DECLARE_TEST(objectmap, thread) {
 	objectmap_t* map;
 	thread_t thread[32];
 	size_t ith;
-	size_t num_threads = math_clamp(system_hardware_threads() + 2, 2, 8);
+	size_t threads_count = math_clamp(system_hardware_threads() + 2, 2, 8);
 
-	map = objectmap_allocate(num_threads * OBJECTS_PER_THREAD);
+	map = objectmap_allocate(threads_count * OBJECTS_PER_THREAD);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_initialize(&thread[ith], objectmap_thread, map, STRING_CONST("objectmap_thread"), THREAD_PRIORITY_NORMAL,
 		                  0);
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_start(&thread[ith]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		EXPECT_EQ(thread[ith].result, 0);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_finalize(&thread[ith]);
 
 	objectmap_deallocate(map);

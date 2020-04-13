@@ -72,10 +72,10 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	contextstr = error_context_buffer(contextstr.str, contextstr.length);
 
 	if (foundation_is_initialized()) {
-		size_t num_frames =
+		size_t frames_count =
 		    stacktrace_capture(_assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH, ASSERT_STACKTRACE_SKIP_FRAMES);
-		if (num_frames)
-			tracestr = stacktrace_resolve(STRING_ARGS(tracestr), _assert_stacktrace, num_frames, 0U);
+		if (frames_count)
+			tracestr = stacktrace_resolve(STRING_ARGS(tracestr), _assert_stacktrace, frames_count, 0U);
 		else
 			tracestr = string_copy(STRING_ARGS(tracestr), STRING_CONST("<no stacktrace>"));
 	} else {

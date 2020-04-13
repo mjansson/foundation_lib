@@ -49,10 +49,10 @@ test_stacktrace_finalize(void) {
 DECLARE_TEST(stacktrace, capture) {
 #define TEST_DEPTH 64
 	void* trace[TEST_DEPTH];
-	size_t num_frames;
+	size_t frames_count;
 
-	num_frames = stacktrace_capture(trace, TEST_DEPTH, 0);
-	EXPECT_GT(num_frames, 3);
+	frames_count = stacktrace_capture(trace, TEST_DEPTH, 0);
+	EXPECT_GT(frames_count, 3);
 
 	return 0;
 }
@@ -60,15 +60,15 @@ DECLARE_TEST(stacktrace, capture) {
 DECLARE_TEST(stacktrace, resolve) {
 #define TEST_DEPTH 64
 	void* trace[TEST_DEPTH];
-	size_t num_frames;
+	size_t frames_count;
 	char* buffer;
 	string_t resolved;
 
-	num_frames = stacktrace_capture(trace, TEST_DEPTH, 0);
-	EXPECT_GT(num_frames, 3);
+	frames_count = stacktrace_capture(trace, TEST_DEPTH, 0);
+	EXPECT_GT(frames_count, 3);
 
 	buffer = memory_allocate(0, 1024, 0, MEMORY_TEMPORARY);
-	resolved = stacktrace_resolve(buffer, 1024, trace, num_frames, 0);
+	resolved = stacktrace_resolve(buffer, 1024, trace, frames_count, 0);
 	EXPECT_NE(resolved.str, 0);
 	EXPECT_NE(resolved.length, 0);
 

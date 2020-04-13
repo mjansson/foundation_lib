@@ -54,7 +54,7 @@ test_random_finalize(void) {
 }
 
 DECLARE_TEST(random, distribution32) {
-	unsigned int num_passes = 512000 * 16;
+	unsigned int pass_count = 512000 * 16;
 	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
 	unsigned int num;
 	unsigned int i, j;
@@ -65,7 +65,7 @@ DECLARE_TEST(random, distribution32) {
 
 	memset(_test_bits, 0, sizeof(unsigned int) * 32);
 	memset(_test_hist, 0, sizeof(unsigned int) * 32);
-	for (i = 0; i < num_passes; ++i) {
+	for (i = 0; i < pass_count; ++i) {
 		num = random32();
 		for (j = 0; j < 32; ++j) {
 			if (num & (1 << j))
@@ -116,7 +116,7 @@ DECLARE_TEST(random, distribution32) {
 
 	// Verify range distribution
 	memset(_test_bits, 0, sizeof(unsigned int) * 32);
-	for (i = 0; i < num_passes; ++i) {
+	for (i = 0; i < pass_count; ++i) {
 		num = random32_range((j + 1) * 32, j * 32);
 		EXPECT_GE(num, j * 32U);
 		EXPECT_LT(num, (j + 1) * 32U);
@@ -146,7 +146,7 @@ DECLARE_TEST(random, distribution32) {
 }
 
 DECLARE_TEST(random, distribution64) {
-	int num_passes = 512000 * 16;
+	int pass_count = 512000 * 16;
 	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
 	int i;
 	uint64_t j;
@@ -154,7 +154,7 @@ DECLARE_TEST(random, distribution64) {
 
 	memset(_test_bits, 0, sizeof(unsigned int) * 64);
 	memset(_test_hist, 0, sizeof(unsigned int) * 64);
-	for (i = 0; i < num_passes; ++i) {
+	for (i = 0; i < pass_count; ++i) {
 		uint64_t num = random64();
 		for (j = 0; j < 64; ++j) {
 			if (num & (1ULL << j))
@@ -205,7 +205,7 @@ DECLARE_TEST(random, distribution64) {
 
 	// Verify range distribution
 	memset(_test_bits, 0, sizeof(unsigned int) * 64);
-	for (i = 0; i < num_passes; ++i) {
+	for (i = 0; i < pass_count; ++i) {
 		uint64_t num = random64_range((j + 1) * 64, j * 64);
 		uint64_t range = (uint64_t)i;
 		EXPECT_GE(num, j * 64U);
@@ -236,13 +236,13 @@ DECLARE_TEST(random, distribution64) {
 }
 
 DECLARE_TEST(random, distribution_real) {
-	int num_passes = 512000 * 16;
+	int pass_count = 512000 * 16;
 	int i, idx;
 	real diff, num;
 	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
 
 	memset(_test_hist, 0, sizeof(unsigned int) * 64);
-	for (i = 0; i < num_passes; ++i) {
+	for (i = 0; i < pass_count; ++i) {
 		num = random_normalized();
 		EXPECT_GE(num, 0);
 		EXPECT_LT(num, 1);
@@ -275,12 +275,12 @@ DECLARE_TEST(random, distribution_real) {
 
 static void*
 random_thread(void* arg) {
-	unsigned int num_passes = 512000 * 8;
+	unsigned int pass_count = 512000 * 8;
 	unsigned int i, j;
 	unsigned int num;
 	FOUNDATION_UNUSED(arg);
 
-	for (i = 0; i < num_passes; ++i) {
+	for (i = 0; i < pass_count; ++i) {
 		num = random32();
 		for (j = 0; j < 32; ++j) {
 			if (num & (1 << j))
@@ -295,7 +295,7 @@ random_thread(void* arg) {
 DECLARE_TEST(random, threads) {
 	// Launch max 32 threads
 	thread_t thread[32];
-	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 4, 4, 32);
 	int max_num = 0, min_num = 0x7FFFFFFF;
 	size_t i, j;
 	real diff;
@@ -304,15 +304,15 @@ DECLARE_TEST(random, threads) {
 		atomic_store32(&_test_thread_hist[i], 0, memory_order_relaxed);
 	}
 
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_initialize(&thread[i], random_thread, 0, STRING_CONST("random"), THREAD_PRIORITY_NORMAL, 0);
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_start(&thread[i]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_finalize(&thread[i]);
 
 	/*log_debugf( "Bit distribution:" );
@@ -323,7 +323,7 @@ DECLARE_TEST(random, threads) {
 	    log_debugf( "%08x-%08x: %u", ( _test_slice32 * j ), ( _test_slice32 * ( j + 1 ) ) - 1, atomic_load32(
 	&_test_threaD_hist[j] ) );*/
 
-	for (j = 0; j < num_threads; ++j) {
+	for (j = 0; j < threads_count; ++j) {
 		if (atomic_load32(&_test_thread_bits[j], memory_order_acquire) < min_num)
 			min_num = atomic_load32(&_test_thread_bits[j], memory_order_acquire);
 		if (atomic_load32(&_test_thread_bits[j], memory_order_acquire) > max_num)
@@ -331,7 +331,7 @@ DECLARE_TEST(random, threads) {
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
-	for (j = 0; j < num_threads; ++j)
+	for (j = 0; j < threads_count; ++j)
 		EXPECT_GT(atomic_load32(&_test_thread_bits[j], memory_order_acquire), 0);
 	EXPECT_LT(diff,
 	          0.004);  // << "Bits: min " << min_num << " : max " << max_num << " : diff " << diff;
@@ -340,7 +340,7 @@ DECLARE_TEST(random, threads) {
 
 	max_num = 0;
 	min_num = 0x7FFFFFFF;
-	for (j = 0; j < num_threads; ++j) {
+	for (j = 0; j < threads_count; ++j) {
 		if (atomic_load32(&_test_thread_hist[j], memory_order_acquire) < min_num)
 			min_num = atomic_load32(&_test_thread_hist[j], memory_order_acquire);
 		if (atomic_load32(&_test_thread_hist[j], memory_order_acquire) > max_num)
@@ -348,7 +348,7 @@ DECLARE_TEST(random, threads) {
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
-	for (j = 0; j < num_threads; ++j)
+	for (j = 0; j < threads_count; ++j)
 		EXPECT_GT(atomic_load32(&_test_thread_hist[j], memory_order_acquire), 0);
 	EXPECT_LT(diff,
 	          0.02);  // << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
@@ -364,11 +364,11 @@ DECLARE_TEST(random, util) {
 	uint32_t val32;
 	uint64_t val64;
 	real val;
-	int num_passes = 512000;
+	int pass_count = 512000;
 	real weights[] = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
 	real noweights[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-	for (i = 0; i < num_passes; ++i) {
+	for (i = 0; i < pass_count; ++i) {
 		val32 = random32_range(10, 100);
 		EXPECT_GE(val32, 10);
 		EXPECT_LT(val32, 100);

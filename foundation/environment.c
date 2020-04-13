@@ -113,13 +113,13 @@ _environment_initialize(const application_t application) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	int ia;
-	int num_args = 0;
+	int args_count = 0;
 	wchar_t module_filename[BUILD_MAX_PATHLEN];
-	LPWSTR* arg_list = CommandLineToArgvW(GetCommandLineW(), &num_args);
+	LPWSTR* arg_list = CommandLineToArgvW(GetCommandLineW(), &args_count);
 	if (!arg_list)
 		return -1;
 
-	for (ia = 0; ia < num_args; ++ia) {
+	for (ia = 0; ia < args_count; ++ia) {
 		array_push(_environment_argv, string_allocate_from_wstring(arg_list[ia], wstring_length(arg_list[ia])));
 	}
 

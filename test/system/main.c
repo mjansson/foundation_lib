@@ -193,21 +193,21 @@ tls_thread(void* arg) {
 DECLARE_TEST(system, thread) {
 	thread_t thread[32];
 	size_t ith;
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 2, 4, 32);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_initialize(&thread[ith], tls_thread, nullptr, STRING_CONST("tls_thread"), THREAD_PRIORITY_NORMAL, 0);
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_start(&thread[ith]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (ith = 0; ith < num_threads; ++ith) {
+	for (ith = 0; ith < threads_count; ++ith) {
 		EXPECT_EQ(thread_join(&thread[ith]), nullptr);
 	}
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_finalize(&thread[ith]);
 
 	return 0;

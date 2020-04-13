@@ -377,7 +377,7 @@ _finalize_stackwalker(void) {
 
 size_t FOUNDATION_NOINLINE
 stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
-	size_t num_frames = 0;
+	size_t frames_count = 0;
 
 	if (!trace)
 		return 0;
@@ -391,7 +391,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	if (!_stackwalk_initialized) {
 		if (!_initialize_stackwalker()) {
 			memset(trace, 0, sizeof(void*) * max_depth);
-			return num_frames;
+			return frames_count;
 		}
 	}
 
@@ -399,9 +399,9 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	// Add 1 skip frame for this function call
 	++skip_frames;
 	if (CallRtlCaptureStackBackTrace) {
-		num_frames = CallRtlCaptureStackBackTrace((DWORD)skip_frames, (DWORD)max_depth, trace, 0);
-		if (num_frames < max_depth)
-			memset(trace + num_frames, 0, sizeof(void*) * (max_depth - num_frames));
+		frames_count = CallRtlCaptureStackBackTrace((DWORD)skip_frames, (DWORD)max_depth, trace, 0);
+		if (frames_count < max_depth)
+			memset(trace + frames_count, 0, sizeof(void*) * (max_depth - frames_count));
 	} else if (_RtlCaptureContext) {
 		CONTEXT context;
 		_RtlCaptureContext(&context);
@@ -414,7 +414,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 
 	_Unwind_Backtrace(unwind_stack, &stack_trace);
 
-	num_frames = stack_trace.cur_depth;
+	frames_count = stack_trace.cur_depth;
 
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 
@@ -427,7 +427,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 
 	_gcc_barrier_function(fp);
 
-	while (fp && (num_frames < max_depth)) {
+	while (fp && (frames_count < max_depth)) {
 		pc = READ_32BIT_MEMORY(fp);
 		fp = READ_32BIT_MEMORY(fp - 4);
 
@@ -436,7 +436,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 				--skip_frames;
 			} else {
 				void* instruction = (void*)(uintptr_t)(pc & ~3);
-				trace[num_frames++] = instruction;
+				trace[frames_count++] = instruction;
 			}
 		} else {
 			fp = 0;
@@ -451,12 +451,12 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	void* localframes[64];
 	int ret = (int)backtrace(localframes, 64);
 	if (ret > (int)skip_frames) {
-		num_frames = (size_t)ret - skip_frames;
-		if (num_frames > max_depth)
-			num_frames = max_depth;
-		memcpy(trace, localframes + skip_frames, sizeof(void*) * num_frames);
+		frames_count = (size_t)ret - skip_frames;
+		if (frames_count > max_depth)
+			frames_count = max_depth;
+		memcpy(trace, localframes + skip_frames, sizeof(void*) * frames_count);
 	} else {
-		num_frames = 0;
+		frames_count = 0;
 		trace[0] = 0;
 	}
 
@@ -464,7 +464,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	FOUNDATION_UNUSED(skip_frames);
 #endif
 
-	return num_frames;
+	return frames_count;
 }
 
 static bool _symbol_resolve_initialized = false;
@@ -664,7 +664,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t
 
 	string_const_t* args = 0;
 	process_t* proc;
-	unsigned int num_frames = 0;
+	unsigned int frames_count = 0;
 	unsigned int requested_frames = 0;
 	bool last_was_main = false;
 	string_t resolved = (string_t){buffer, 0};
@@ -710,9 +710,9 @@ _resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t
 	procout = process_stdout(proc);
 
 	resolved.length = 0;
-	while (!stream_eos(procout) && (num_frames < requested_frames) && !last_was_main) {
+	while (!stream_eos(procout) && (frames_count < requested_frames) && !last_was_main) {
 		line = string_format(resolved.str + resolved.length, capacity - resolved.length,
-		                     STRING_CONST("[0x%" PRIfixPTR "] "), (uintptr_t)frames[num_frames]);
+		                     STRING_CONST("[0x%" PRIfixPTR "] "), (uintptr_t)frames[frames_count]);
 		resolved.length += line.length;
 
 		function = stream_read_line_buffer(procout, resolved.str + resolved.length, capacity - resolved.length, '\n');
@@ -736,7 +736,7 @@ _resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t
 		if (string_equal(STRING_ARGS(function), STRING_CONST("main")))
 			last_was_main = true;
 
-		++num_frames;
+		++frames_count;
 	}
 
 	process_wait(proc);

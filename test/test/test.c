@@ -282,7 +282,7 @@ main_finalize(void) {
 #endif
 
 void
-test_wait_for_threads_startup(const thread_t* threads, size_t num_threads) {
+test_wait_for_threads_startup(const thread_t* threads, size_t threads_count) {
 	size_t i;
 	bool waiting = true;
 
@@ -291,7 +291,7 @@ test_wait_for_threads_startup(const thread_t* threads, size_t num_threads) {
 
 		atomic_thread_fence_acquire();
 
-		for (i = 0; i < num_threads; ++i) {
+		for (i = 0; i < threads_count; ++i) {
 			if (!thread_is_started(threads + i)) {
 				waiting = true;
 				break;
@@ -304,7 +304,7 @@ test_wait_for_threads_startup(const thread_t* threads, size_t num_threads) {
 }
 
 void
-test_wait_for_threads_finish(const thread_t* threads, size_t num_threads) {
+test_wait_for_threads_finish(const thread_t* threads, size_t threads_count) {
 	size_t i;
 	bool waiting = true;
 
@@ -313,7 +313,7 @@ test_wait_for_threads_finish(const thread_t* threads, size_t num_threads) {
 
 		atomic_thread_fence_acquire();
 
-		for (i = 0; i < num_threads; ++i) {
+		for (i = 0; i < threads_count; ++i) {
 			if (thread_is_running(threads + i)) {
 				waiting = true;
 				break;
@@ -326,12 +326,12 @@ test_wait_for_threads_finish(const thread_t* threads, size_t num_threads) {
 }
 
 void
-test_wait_for_threads_join(thread_t* threads, size_t num_threads) {
+test_wait_for_threads_join(thread_t* threads, size_t threads_count) {
 	size_t i;
 
 	atomic_thread_fence_acquire();
 
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_join(threads + i);
 }
 

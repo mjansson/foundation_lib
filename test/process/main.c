@@ -60,7 +60,7 @@ DECLARE_TEST(process, spawn) {
 	process_t* proc;
 	stream_t* in;
 	stream_t* out;
-	int exit_code, ret, num_lines;
+	int exit_code, ret, lines_count;
 	bool found_expected;
 	bool found_file;
 	char line_buffer[512];
@@ -117,12 +117,12 @@ DECLARE_TEST(process, spawn) {
 
 	found_expected = false;
 	found_file = false;
-	num_lines = 0;
+	lines_count = 0;
 	do {
 		string_t fline = stream_read_line_buffer(out, line_buffer, 512, '\n');
 		string_const_t line = string_strip(STRING_ARGS(fline), STRING_CONST("\n\r"));
 		if (line.length) {
-			++num_lines;
+			++lines_count;
 #if FOUNDATION_PLATFORM_WINDOWS
 			if ((string_find_string(STRING_ARGS(line), STRING_CONST("File(s)"), 0) != STRING_NPOS) &&
 			    (string_find_string(STRING_ARGS(line), STRING_CONST("bytes"), 0) != STRING_NPOS))
@@ -138,7 +138,7 @@ DECLARE_TEST(process, spawn) {
 		}
 	} while (!stream_eos(out));
 
-	EXPECT_INTGE(num_lines, 4);
+	EXPECT_INTGE(lines_count, 4);
 	EXPECT_TRUE(found_expected);
 	EXPECT_TRUE(found_file);
 

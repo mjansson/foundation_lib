@@ -174,20 +174,20 @@ pipe_write_fd(stream_t* stream) {
 }
 
 static size_t
-_pipe_stream_read(stream_t* stream, void* dest, size_t num) {
+_pipe_stream_read(stream_t* stream, void* dest, size_t size) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 	if (pipestream->fd_read && ((pipestream->mode & STREAM_IN) != 0)) {
 		size_t total_read = 0;
 		do {
-			ssize_t num_read =
-			    read(pipestream->fd_read, pointer_offset(dest, total_read), (pipe_size_t)(num - total_read));
-			if (num_read <= 0) {
+			ssize_t was_read =
+			    read(pipestream->fd_read, pointer_offset(dest, total_read), (pipe_size_t)(size - total_read));
+			if (was_read <= 0) {
 				pipestream->eos = true;
 				break;
 			}
-			total_read += (size_t)num_read;
-		} while (total_read < num);
+			total_read += (size_t)was_read;
+		} while (total_read < size);
 		return total_read;
 	}
 
@@ -195,20 +195,20 @@ _pipe_stream_read(stream_t* stream, void* dest, size_t num) {
 }
 
 static size_t
-_pipe_stream_write(stream_t* stream, const void* source, size_t num) {
+_pipe_stream_write(stream_t* stream, const void* source, size_t size) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 	if (pipestream->fd_write && ((pipestream->mode & STREAM_OUT) != 0)) {
 		size_t total_written = 0;
 		do {
-			ssize_t num_written = write(pipestream->fd_write, pointer_offset_const(source, total_written),
-			                            (pipe_size_t)(num - total_written));
-			if (num_written <= 0) {
+			ssize_t was_written = write(pipestream->fd_write, pointer_offset_const(source, total_written),
+			                            (pipe_size_t)(size - total_written));
+			if (was_written <= 0) {
 				pipestream->eos = true;
 				break;
 			}
-			total_written += (size_t)num_written;
-		} while (total_written < num);
+			total_written += (size_t)was_written;
+		} while (total_written < size);
 		return total_written;
 	}
 

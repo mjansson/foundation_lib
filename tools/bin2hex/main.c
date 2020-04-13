@@ -15,10 +15,10 @@
 #include "errorcodes.h"
 
 typedef struct {
-	string_t*    input_files;
-	string_t*    output_files;
-	size_t       columns;
-	bool         display_help;
+	string_t* input_files;
+	string_t* output_files;
+	size_t columns;
+	bool display_help;
 } bin2hex_input_t;
 
 static bin2hex_input_t
@@ -93,24 +93,21 @@ bin2hex_parse_command_line(const string_const_t* cmdline) {
 	for (arg = 1, asize = array_size(cmdline); arg < asize; ++arg) {
 		if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--help"))) {
 			input.display_help = true;
-		}
-		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--columns"))) {
+		} else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--columns"))) {
 			if (arg < (asize - 1)) {
 				++arg;
 				input.columns = string_to_uint(cmdline[arg].str, cmdline[arg].length, false);
 			}
-		}
-		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--debug"))) {
+		} else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--debug"))) {
 			log_set_suppress(0, ERRORLEVEL_NONE);
-		}
-		else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--")))
-			break; //Stop parsing cmdline options
+		} else if (string_equal(STRING_ARGS(cmdline[arg]), STRING_CONST("--")))
+			break;  // Stop parsing cmdline options
 		else if ((cmdline[arg].length > 2) && string_equal(cmdline[arg].str, 2, STRING_CONST("--")))
-			continue; //Cmdline argument not parsed here
+			continue;  // Cmdline argument not parsed here
 		else {
 			array_push(input.input_files, string_clone(cmdline[arg].str, cmdline[arg].length));
-			array_push(input.output_files, string_allocate_format(STRING_CONST("%.*s.hex"),
-			                                                      (int)cmdline[arg].length, cmdline[arg].str));
+			array_push(input.output_files,
+			           string_allocate_format(STRING_CONST("%.*s.hex"), (int)cmdline[arg].length, cmdline[arg].str));
 		}
 	}
 	error_context_pop();
@@ -125,9 +122,8 @@ int
 bin2hex_process_files(string_t* input, string_t* output, size_t columns) {
 	int result = BIN2HEX_RESULT_OK;
 	size_t ifile, files_size;
-	for (ifile = 0, files_size = array_size(input); (result == BIN2HEX_RESULT_OK) &&
-	     (ifile < files_size); ++ifile) {
-		string_t input_filename ;
+	for (ifile = 0, files_size = array_size(input); (result == BIN2HEX_RESULT_OK) && (ifile < files_size); ++ifile) {
+		string_t input_filename;
 		string_t output_filename;
 
 		stream_t* input_file = 0;
@@ -151,8 +147,7 @@ bin2hex_process_files(string_t* input, string_t* output, size_t columns) {
 			log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("Unable to open input file: %.*s"),
 			          STRING_FORMAT(input_filename));
 			result = BIN2HEX_RESULT_MISSING_INPUT_FILE;
-		}
-		else {
+		} else {
 			output_file = stream_open(STRING_ARGS(output_filename), STREAM_OUT);
 			if (!output_file) {
 				log_warnf(0, WARNING_INVALID_VALUE, STRING_CONST("Unable to open output file: %.*s"),
@@ -205,16 +200,15 @@ void
 bin2hex_print_usage(void) {
 	const error_level_t saved_level = log_suppress(0);
 	log_set_suppress(0, ERRORLEVEL_DEBUG);
-	log_info(0, STRING_CONST(
-	           "bin2hex usage:\n"
-	           "  bin2hex [--columns n] [--debug] [--help] <file> <file> <file> <...> [--]\n"
-	           "    Required arguments:\n"
-	           "      <file>                       Input filename (any number of input files allowed). Output will be named \"<file>.hex\"\n"
-	           "    Optional arguments:\n"
-	           "      --columns n                  Print n bytes in each column (default is 32)\n"
-	           "      --debug                      Enable debug output\n"
-	           "      --help                       Display this help message\n"
-	           "      --                           Stop processing command line arguments"
-	         ));
+	log_info(0, STRING_CONST("bin2hex usage:\n"
+	                         "  bin2hex [--columns n] [--debug] [--help] <file> <file> <file> <...> [--]\n"
+	                         "    Required arguments:\n"
+	                         "      <file>                       Input filename (any number of input files allowed). "
+	                         "Output will be named \"<file>.hex\"\n"
+	                         "    Optional arguments:\n"
+	                         "      --columns n                  Print n bytes in each column (default is 32)\n"
+	                         "      --debug                      Enable debug output\n"
+	                         "      --help                       Display this help message\n"
+	                         "      --                           Stop processing command line arguments"));
 	log_set_suppress(0, saved_level);
 }

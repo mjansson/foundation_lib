@@ -983,10 +983,10 @@ string_array_find(const string_const_t* array, size_t haystack_size, const char*
 	return -1;
 }
 
-#define get_bit_mask(numbits) ((1U << (numbits)) - 1)
+#define get_bit_mask(bits) ((1U << (bits)) - 1)
 
 static size_t
-get_num_bytes_utf8(uint8_t lead) {
+get_utf8_bytes_count(uint8_t lead) {
 	if ((lead & 0xFE) == 0xFC)
 		return 6;
 	else if ((lead & 0xFC) == 0xF8)
@@ -1002,7 +1002,7 @@ get_num_bytes_utf8(uint8_t lead) {
 }
 
 static size_t
-get_num_bytes_as_utf8(uint32_t val) {
+get_bytes_count_as_utf8(uint32_t val) {
 	if (val >= 0x04000000)
 		return 6;
 	else if (val >= 0x00200000)
@@ -1026,7 +1026,7 @@ encode_utf8(char* str, uint32_t val) {
 	}
 
 	// Get number of _extra_ bytes
-	num = get_num_bytes_as_utf8(val) - 1;
+	num = get_bytes_count_as_utf8(val) - 1;
 
 	*str++ = (char)((0x80U | (get_bit_mask(num) << (7 - num))) | ((val >> (6 * num)) & get_bit_mask(6U - num)));
 	for (j = 1; j <= num; ++j)
@@ -1058,7 +1058,7 @@ string_glyph(const char* str, size_t length, size_t offset, size_t* consumed) {
 		// Convert through UTF-32
 		end = str + length;
 		ext = (unsigned char)*cur;
-		num = get_num_bytes_utf8(ext) - 1;  // Subtract one to get number of _extra_ bytes
+		num = get_utf8_bytes_count(ext) - 1;  // Subtract one to get number of _extra_ bytes
 		glyph = ((uint32_t)ext & get_bit_mask(6 - num)) << (6 * num);
 		++cur;
 		for (j = 1; (j <= num) && (cur < end); ++j, ++cur) {
@@ -1078,7 +1078,7 @@ string_glyphs(const char* str, size_t length) {
 	while (str && (str < end)) {
 		++num;
 		// Will catch invalid utf-8 sequences by overflowing str < end terminator
-		str += get_num_bytes_utf8((uint8_t)*str);
+		str += get_utf8_bytes_count((uint8_t)*str);
 	}
 	return num;
 }
@@ -1087,7 +1087,7 @@ wchar_t*
 wstring_allocate_from_string(const char* cstr, size_t length) {
 	wchar_t* buffer;
 	wchar_t* dest;
-	size_t num_chars, num_bytes, i, j;
+	size_t chars_count, bytes_count, i, j;
 	uint32_t glyph;
 	unsigned char ext;
 	const char* cur;
@@ -1099,25 +1099,25 @@ wstring_allocate_from_string(const char* cstr, size_t length) {
 	}
 
 	// Count number of wchar_t needed to represent string
-	num_chars = 0;
+	chars_count = 0;
 	cur = cstr;
 	end = cstr + length;
 	for (i = 0; (i < length) && (cur < end);) {
-		num_bytes = get_num_bytes_utf8((uint8_t)(*cur));
+		bytes_count = get_utf8_bytes_count((uint8_t)(*cur));
 #if FOUNDATION_SIZE_WCHAR == 2
-		if (num_bytes >= 4)
-			num_chars += 2;  // final glyph > 0xFFFF
+		if (bytes_count >= 4)
+			chars_count += 2;  // final glyph > 0xFFFF
 		else
-			++num_chars;
+			++chars_count;
 #else
-		++num_chars;  // wchar_t == UTF-32
+		++chars_count;  // wchar_t == UTF-32
 #endif
-		cur += num_bytes;
-		i += num_bytes;
+		cur += bytes_count;
+		i += bytes_count;
 	}
 
-	buffer =
-	    memory_allocate(HASH_STRING, sizeof(wchar_t) * (num_chars + 1), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	buffer = memory_allocate(HASH_STRING, sizeof(wchar_t) * (chars_count + 1), 0,
+	                         MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 
 	dest = buffer;
 	cur = cstr;
@@ -1127,12 +1127,12 @@ wstring_allocate_from_string(const char* cstr, size_t length) {
 		else {
 			// Convert through UTF-32
 			ext = (unsigned char)*cur;
-			num_bytes = get_num_bytes_utf8(ext) - 1;  // Subtract one to get number of _extra_ bytes
-			glyph = ((uint32_t)ext & get_bit_mask(6 - num_bytes)) << (6 * num_bytes);
+			bytes_count = get_utf8_bytes_count(ext) - 1;  // Subtract one to get number of _extra_ bytes
+			glyph = ((uint32_t)ext & get_bit_mask(6 - bytes_count)) << (6 * bytes_count);
 			++cur;
-			for (j = 1; (j <= num_bytes) && (cur < end); ++j, ++cur) {
+			for (j = 1; (j <= bytes_count) && (cur < end); ++j, ++cur) {
 				ext = (unsigned char)*cur;
-				glyph |= ((uint32_t)ext & 0x3F) << (6 * (num_bytes - j));
+				glyph |= ((uint32_t)ext & 0x3F) << (6 * (bytes_count - j));
 			}
 #if FOUNDATION_SIZE_WCHAR == 2
 			FOUNDATION_ASSERT((glyph < 0xD800) || (glyph > 0xDFFF));
@@ -1149,7 +1149,7 @@ wstring_allocate_from_string(const char* cstr, size_t length) {
 #else
 			*dest++ = (wchar_t)glyph;
 #endif
-			i += num_bytes;
+			i += bytes_count;
 		}
 	}
 
@@ -1177,7 +1177,7 @@ wstring_from_string(wchar_t* dest, size_t capacity, const char* source, size_t l
 		else {
 			// Convert through UTF-32
 			ext = (unsigned char)(*cur);
-			num = get_num_bytes_utf8(ext) - 1;  // Subtract one to get number of _extra_ bytes
+			num = get_utf8_bytes_count(ext) - 1;  // Subtract one to get number of _extra_ bytes
 			glyph = ((uint32_t)ext & get_bit_mask(6 - num)) << (6 * num);
 			++cur;
 			for (j = 1; (j <= num) && (cur < end); ++j, ++cur) {
@@ -1260,7 +1260,7 @@ string_allocate_from_utf16(const uint16_t* str, size_t length) {
 			glyph = ((((glyph & 0x3FF) << 10) | (lval & 0x3FF)) + 0x10000);
 		}
 
-		curlen += get_num_bytes_as_utf8(glyph);
+		curlen += get_bytes_count_as_utf8(glyph);
 	}
 
 	buf = memory_allocate(HASH_STRING, (curlen + 1), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
@@ -1289,7 +1289,7 @@ string_allocate_from_utf32(const uint32_t* str, size_t length) {
 		}
 		if (swap)
 			glyph = byteorder_swap32(glyph);
-		curlen += get_num_bytes_as_utf8(glyph);
+		curlen += get_bytes_count_as_utf8(glyph);
 	}
 
 	buf = memory_allocate(HASH_STRING, (curlen + 1), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
@@ -1326,7 +1326,7 @@ string_convert_utf16(char* dst, size_t capacity, const uint16_t* src, size_t len
 			glyph = ((((glyph & 0x3FF) << 10) | (lval & 0x3FF)) + 0x10000);
 		}
 
-		numbytes = get_num_bytes_as_utf8(glyph);
+		numbytes = get_bytes_count_as_utf8(glyph);
 		if ((curlen + numbytes) < capacity)
 			curlen += encode_utf8(dst + curlen, glyph);
 	}
@@ -1353,7 +1353,7 @@ string_convert_utf32(char* dst, size_t capacity, const uint32_t* src, size_t len
 		if (swap)
 			glyph = byteorder_swap32(glyph);
 
-		numbytes = get_num_bytes_as_utf8(glyph);
+		numbytes = get_bytes_count_as_utf8(glyph);
 		if ((curlen + numbytes) < capacity)
 			curlen += encode_utf8(dst + curlen, glyph);
 	}
