@@ -357,14 +357,23 @@ test_error_handler(error_level_t level, error_t err) {
 	return 0;
 }
 
+static void (*_test_fail_hook)(void);
+
 void
 test_prefail(void) {
 	atomic_thread_fence_sequentially_consistent();
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 	log_enable_stdout(true);
+	if (_test_fail_hook)
+		_test_fail_hook();
 }
 
 void*
 test_failed(void) {
 	return FAILED_TEST;
+}
+
+void
+test_set_fail_hook(void (*hook_fn)(void)) {
+	_test_fail_hook = hook_fn;
 }

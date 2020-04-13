@@ -60,6 +60,9 @@ test_prefail(void);
 TEST_API FOUNDATION_NOINLINE void
 test_event(event_t* event);
 
+TEST_API void
+test_set_fail_hook(void (*hook_fn)(void));
+
 #if FOUNDATION_PLATFORM_IOS
 
 TEST_API void
