@@ -694,6 +694,83 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 #define EXPECT_REALLE(var, expect) EXPECT_TYPELE(var, expect, real, ".6" PRIreal)
 #define EXPECT_REALLT(var, expect) EXPECT_TYPELT(var, expect, real, ".6" PRIreal)
 
+#define EXPECT_DBLZERO(var)                                                                  \
+	do {                                                                                     \
+		double rval_ = (double)var;                                                          \
+		if (!math_double_is_zero(rval_)) {                                                   \
+			test_prefail();                                                                  \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                    \
+			           STRING_CONST("Test failed, %s is not zero double (at %s:%u): %.10f"), \
+			           FOUNDATION_PREPROCESSOR_TOSTRING(rval_), __FILE__, __LINE__, rval_);  \
+			RETURN_FAILED_TEST;                                                              \
+		}                                                                                    \
+	} while (0)
+#define EXPECT_DBLEPSILONZERO(var)                                                                     \
+	do {                                                                                               \
+		double rval_ = (double)var;                                                                    \
+		if (!math_double_is_epsilon_zero(rval_)) {                                                     \
+			test_prefail();                                                                            \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                              \
+			           STRING_CONST("Test failed, %s is not zero double (at %s:%u): %.10f (%.10f)"),   \
+			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, rval_, DBL_EPSILON); \
+			RETURN_FAILED_TEST;                                                                        \
+		}                                                                                              \
+	} while (0)
+#define EXPECT_DBLONE(var)                                                                 \
+	do {                                                                                   \
+		double rval_ = (double)var;                                                        \
+		if (!math_double_is_one(rval_)) {                                                  \
+			test_prefail();                                                                \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                  \
+			           STRING_CONST("Test failed, %s is not one double (at %s:%u): %10f"), \
+			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, rval_);  \
+			RETURN_FAILED_TEST;                                                            \
+		}                                                                                  \
+	} while (0)
+#define EXPECT_DBLNE(var, expect)                                                                                 \
+	do {                                                                                                          \
+		double rval_ = (double)var;                                                                               \
+		double eval_ = (double)expect;                                                                            \
+		if (math_double_eq(rval_, eval_, 10)) {                                                                   \
+			test_prefail();                                                                                       \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
+			           STRING_CONST("Test failed, %s == %s double (at %s:%u): %.10f : %.10f"),                    \
+			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
+			           __LINE__, rval_, eval_);                                                                   \
+			RETURN_FAILED_TEST;                                                                                   \
+		}                                                                                                         \
+	} while (0)
+#define EXPECT_DBLEQ(var, expect)                                                                                 \
+	do {                                                                                                          \
+		double rval_ = (double)var;                                                                               \
+		double eval_ = (double)expect;                                                                            \
+		if (!math_double_eq(rval_, eval_, 10)) {                                                                  \
+			test_prefail();                                                                                       \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
+			           STRING_CONST("Test failed, %s != %s double (at %s:%u): %.10f : %.10f"),                    \
+			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
+			           __LINE__, rval_, eval_);                                                                   \
+			RETURN_FAILED_TEST;                                                                                   \
+		}                                                                                                         \
+	} while (0)
+#define EXPECT_DBLEQULPS(var, expect, ulps)                                                                       \
+	do {                                                                                                          \
+		double rval_ = (double)var;                                                                               \
+		double eval_ = (double)expect;                                                                            \
+		if (!math_double_eq(rval_, eval_, (ulps))) {                                                              \
+			test_prefail();                                                                                       \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
+			           STRING_CONST("Test failed, %s != %s double (at %s:%u): %.10f : %.10f"),                    \
+			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
+			           __LINE__, rval_, eval_);                                                                   \
+			RETURN_FAILED_TEST;                                                                                   \
+		}                                                                                                         \
+	} while (0)
+#define EXPECT_DBLGE(var, expect) EXPECT_TYPEGE(var, expect, double, ".10f")
+#define EXPECT_DBLGT(var, expect) EXPECT_TYPEGT(var, expect, double, ".10f")
+#define EXPECT_DBLLE(var, expect) EXPECT_TYPELE(var, expect, double, ".10f")
+#define EXPECT_DBLLT(var, expect) EXPECT_TYPELT(var, expect, double, ".10f")
+
 // No inline to make sure compiler does not inline and reorder instructions
 TEST_API void FOUNDATION_NOINLINE
 test_wait_for_threads_startup(const thread_t* threads, size_t threads_count);
