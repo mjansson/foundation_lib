@@ -14,6 +14,11 @@ import version
 import android
 import xcode
 
+
+def check_output(args):
+  import subprocess
+  return subprocess.check_output(args).decode().strip()
+
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
 
@@ -380,10 +385,10 @@ class Toolchain(object):
     sourcevariables = (variables or {}).copy()
     sourcevariables.update({
                      'includepaths': self.depend_includepaths + self.prefix_includepaths(list(includepaths))})
-    if not libs and dependlibs != None:
+    if not libs:
       libs = []
     if dependlibs != None:
-      libs = (dependlibs or []) + libs
+      libs = [] + (dependlibs or []) + libs
     nodevariables = (variables or {}).copy()
     nodevariables.update({
                      'libs': libs,

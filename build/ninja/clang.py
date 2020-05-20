@@ -48,7 +48,7 @@ class ClangToolchain(toolchain.Toolchain):
     #Base flags
     self.cflags = ['-D' + project.upper() + '_COMPILE=1',
                    '-funit-at-a-time', '-fstrict-aliasing', '-fvisibility=hidden', '-fno-stack-protector',
-                   '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations',
+                   '-fomit-frame-pointer', '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations',
                    '-fno-trapping-math', '-ffast-math']
     self.cwarnflags = ['-W', '-Werror', '-pedantic', '-Wall', '-Weverything',
                        '-Wno-padded', '-Wno-documentation-unknown-command',
@@ -250,15 +250,15 @@ class ClangToolchain(toolchain.Toolchain):
       self.linkflags += ['-isysroot', '$sysroot']
     self.cflags += ['-fembed-bitcode-marker']
 
-    platformpath = subprocess.check_output(['xcrun', '--sdk', sdk, '--show-sdk-platform-path']).strip()
+    platformpath = toolchain.check_output(['xcrun', '--sdk', sdk, '--show-sdk-platform-path'])
     localpath = platformpath + "/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-    self.sysroot = subprocess.check_output(['xcrun', '--sdk', sdk, '--show-sdk-path']).strip()
+    self.sysroot = toolchain.check_output(['xcrun', '--sdk', sdk, '--show-sdk-path'])
 
-    self.ccompiler = "PATH=" + localpath + " " + subprocess.check_output(['xcrun', '--sdk', sdk, '-f', 'clang']).strip()
-    self.archiver = "PATH=" + localpath + " " + subprocess.check_output(['xcrun', '--sdk', sdk, '-f', 'libtool']).strip()
+    self.ccompiler = "PATH=" + localpath + " " + toolchain.check_output(['xcrun', '--sdk', sdk, '-f', 'clang'])
+    self.archiver = "PATH=" + localpath + " " + toolchain.check_output(['xcrun', '--sdk', sdk, '-f', 'libtool'])
     self.linker = deploytarget + " " + self.ccompiler
-    self.lipo = "PATH=" + localpath + " " + subprocess.check_output(['xcrun', '--sdk', sdk, '-f', 'lipo']).strip()
+    self.lipo = "PATH=" + localpath + " " + toolchain.check_output(['xcrun', '--sdk', sdk, '-f', 'lipo'])
 
     self.mflags += list(self.cflags) + ['-fobjc-arc', '-fno-objc-exceptions', '-x', 'objective-c']
     self.cflags += ['-x', 'c']
@@ -345,13 +345,11 @@ class ClangToolchain(toolchain.Toolchain):
     if config == 'debug':
       flags += ['-DBUILD_DEBUG=1']
     elif config == 'release':
-      flags += ['-DBUILD_RELEASE=1']
+      flags += ['-DBUILD_RELEASE=1', '-O3', '-funroll-loops']
     elif config == 'profile':
-      flags += ['-DBUILD_PROFILE=1']
+      flags += ['-DBUILD_PROFILE=1', '-O3', '-funroll-loops']
     elif config == 'deploy':
-      flags += ['-DBUILD_DEPLOY=1']
-    if config != 'debug':
-      flags += ['-O3', '-fomit-frame-pointer', '-funroll-loops', '-flto']
+      flags += ['-DBUILD_DEPLOY=1', '-O3', '-funroll-loops']
     return flags
 
   def make_ararchflags(self, arch, targettype):
@@ -392,6 +390,9 @@ class ClangToolchain(toolchain.Toolchain):
     else:
       if targettype == 'sharedlib':
         flags += ['-shared', '-fPIC']
+    if config != 'debug':
+      if targettype == 'bin' or targettype == 'sharedlib':
+        flags += ['-flto']
     return flags
 
   def make_linkarchlibs(self, arch, targettype):
@@ -479,7 +480,7 @@ class ClangToolchain(toolchain.Toolchain):
       localframeworks += list(variables['frameworks'])
     if len(localframeworks) > 0:
       localvariables += [('frameworks', self.make_frameworks(list(localframeworks)))]
-      
+
     libpaths = []
     if 'libpaths' in variables:
       libpaths = variables['libpaths']
