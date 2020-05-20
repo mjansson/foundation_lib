@@ -40,8 +40,8 @@ hashmap_deallocate(hashmap_t* map);
 count is 13, minimum bucket size is 8. Hash map should be finalized with a call to
 #hashmap_finalize
 \param map Hash map to initialize
-\param buckets Bucket count
-\param bucketsize Bucket size */
+\param bucket_count Bucket count
+\param bucket_size Bucket size */
 FOUNDATION_API void
 hashmap_initialize(hashmap_t* map, size_t bucket_count, size_t bucket_size);
 

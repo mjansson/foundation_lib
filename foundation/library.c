@@ -135,8 +135,8 @@ library_load(const char* name, size_t length) {
 	}
 	if (!dll) {
 		string_const_t errmsg = system_error_message(0);
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load DLL '%.*s': %.*s"), (int)length, name,
-		          STRING_FORMAT(errmsg));
+		log_debugf(0, STRING_CONST("Unable to load DLL '%.*s': %.*s"), (int)length, name,
+		           STRING_FORMAT(errmsg));
 		error_context_pop();
 		return 0;
 	}
@@ -174,8 +174,8 @@ library_load(const char* name, size_t length) {
 #endif
 
 	if (!lib) {
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to load dynamic library '%.*s': %s"), (int)length, name,
-		          dlerror());
+		log_debugf(0, STRING_CONST("Unable to load dynamic library '%.*s': %s"), (int)length, name,
+		           dlerror());
 		error_context_pop();
 		return 0;
 	}
