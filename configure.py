@@ -17,7 +17,7 @@ extrasources = []
 
 foundation_sources = [
   'android.c', 'array.c', 'assert.c', 'assetstream.c', 'atomic.c', 'base64.c', 'beacon.c', 'bitbuffer.c', 'blowfish.c',
-  'bufferstream.c', 'environment.c', 'error.c', 'event.c', 'exception.c', 'foundation.c', 'fs.c',
+  'bucketarray.c', 'bufferstream.c', 'environment.c', 'error.c', 'event.c', 'exception.c', 'foundation.c', 'fs.c',
   'hash.c', 'hashmap.c', 'hashtable.c', 'json.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
   'objectmap.c', 'path.c', 'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'sha.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',

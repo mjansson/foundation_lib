@@ -466,6 +466,8 @@ typedef struct beacon_t beacon_t;
 typedef struct bitbuffer_t bitbuffer_t;
 /*! Blowfish cipher instance */
 typedef struct blowfish_t blowfish_t;
+/*! Bucketized array for POD types */
+typedef struct bucketarray_t bucketarray_t;
 /*! Error frame holding debug data for an entry in the frame stack in the error context */
 typedef struct error_frame_t error_frame_t;
 /*! Error context holding error frame stack for a thread */
@@ -1013,6 +1015,22 @@ struct bitbuffer_t {
 	uint64_t count_read;
 	/*! Total number of written bits */
 	uint64_t count_write;
+};
+
+/*! Bucketized array for POD types that are safe to memcpy/memmove */
+struct bucketarray_t {
+	//! Array of buckets
+	void** bucket;
+	//! Size of data type stored in array
+	size_t element_size;
+	//! Mask for intra-bucket index
+	size_t bucket_mask;
+	//! Bits to shift to get bucket index
+	size_t bucket_shift;
+	//! Number of currently allocated buckets
+	size_t bucket_count;
+	//! Number of elements stored in array
+	size_t count;
 };
 
 /*! Data for a frame in the error context stack */

@@ -43,6 +43,7 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/md5.h>
 #include <foundation/array.h>
 #include <foundation/bitbuffer.h>
+#include <foundation/bucketarray.h>
 #include <foundation/hashmap.h>
 #include <foundation/uuidmap.h>
 #include <foundation/hashtable.h>
