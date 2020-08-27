@@ -30,6 +30,29 @@ bucketarray_initialize(bucketarray_t* array, size_t element_size, size_t bucket_
 }
 
 void
+bucketarray_initialize_copy(bucketarray_t* array, bucketarray_t* source) {
+	array->element_size = source->element_size;
+	array->bucket_mask = source->bucket_mask;
+	array->bucket_shift = source->bucket_shift;
+	array->bucket_count = source->bucket_count;
+	array->count = source->count;
+
+	size_t bucket_element_count = ((size_t)1 << array->bucket_shift);
+	size_t bucket_size = array->element_size << array->bucket_shift;
+	size_t elements_to_copy = array->count;
+
+	array->bucket = memory_allocate(0, sizeof(void*) * array->bucket_count, 0, MEMORY_PERSISTENT);
+	for (size_t ibucket = 0; ibucket < array->bucket_count; ++ibucket) {
+		array->bucket[ibucket] = memory_allocate(0, bucket_size, 0, MEMORY_PERSISTENT);
+		if (elements_to_copy) {
+			size_t this_copy = (elements_to_copy > bucket_element_count) ? bucket_element_count : elements_to_copy;
+			memcpy(array->bucket[ibucket], source->bucket[ibucket], array->element_size * this_copy);
+			elements_to_copy -= this_copy;
+		}
+	}
+}
+
+void
 bucketarray_finalize(bucketarray_t* array) {
 	for (size_t ibucket = 0; ibucket < array->bucket_count; ++ibucket)
 		memory_deallocate(array->bucket[ibucket]);

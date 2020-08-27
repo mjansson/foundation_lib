@@ -25,6 +25,12 @@
 FOUNDATION_API void
 bucketarray_initialize(bucketarray_t* array, size_t element_size, size_t bucket_element_count);
 
+/*! Initialize copy of array
+\param array Array pointer
+\param source Pointer to source array to copy */
+FOUNDATION_API void
+bucketarray_initialize_copy(bucketarray_t* array, bucketarray_t* source);
+
 /*! Deallocate array memory
 \param array Array pointer */
 FOUNDATION_API void
