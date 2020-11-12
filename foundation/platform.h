@@ -804,7 +804,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #define FOUNDATION_ATTRIBUTE3(x, y, z)
 #define FOUNDATION_ATTRIBUTE4(x, y, z, w)
 
-#define FOUNDATION_RESTRICT __restrict
+#define FOUNDATION_RESTRICT restrict
 #define FOUNDATION_THREADLOCAL __declspec(thread)
 
 #define FOUNDATION_DEPRECATED __declspec(deprecated)
@@ -1316,31 +1316,8 @@ uint512_is_null(const uint512_t u0) {
 }
 
 // Format specifiers for 64bit and pointers
-#if FOUNDATION_COMPILER_MSVC
-#define PRId32 "Id"
-#define PRIi32 "Ii"
-#define PRIo32 "Io"
-#define PRIu32 "Iu"
-#define PRIx32 "Ix"
-#define PRIX32 "IX"
-#define PRId64 "I64d"
-#define PRIi64 "I64i"
-#define PRIo64 "I64o"
-#define PRIu64 "I64u"
-#define PRIx64 "I64x"
-#define PRIX64 "I64X"
-#define PRIdPTR "Id"
-#define PRIiPTR "Ii"
-#define PRIoPTR "Io"
-#define PRIuPTR "Iu"
-#define PRIxPTR "Ix"
-#define PRIXPTR "IX"
-#define PRIsize "Iu"
-#else
 #include <inttypes.h>
 #define PRIsize "zu"
-#endif
-
 #define PRItick PRIi64
 #define PRIhash PRIx64
 
@@ -1350,18 +1327,10 @@ uint512_is_null(const uint512_t u0) {
 #define PRIreal "f"
 #endif
 
-#if FOUNDATION_COMPILER_MSVC
-#if FOUNDATION_SIZE_POINTER == 8
-#define PRIfixPTR "016I64X"
-#else
-#define PRIfixPTR "08IX"
-#endif
-#else
 #if FOUNDATION_SIZE_POINTER == 8
 #define PRIfixPTR "016" PRIXPTR
 #else
 #define PRIfixPTR "08" PRIXPTR
-#endif
 #endif
 
 #if defined(FOUNDATION_PLATFORM_DOXYGEN) && FOUNDATION_PLATFORM_DOXYGEN
