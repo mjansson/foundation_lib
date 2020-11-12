@@ -1481,22 +1481,75 @@ string_from_uint512_static(const uint512_t val) {
 
 string_t
 string_from_real(char* buffer, size_t capacity, real val, unsigned int precision, unsigned int width, char fill) {
+#if FOUNDATION_SIZE_REAL == 8
+	return string_from_float64(buffer, capacity, val, precision, width, fill);
+#else
+	return string_from_float32(buffer, capacity, val, precision, width, fill);
+#endif
+}
+
+string_t
+string_from_float32(char* buffer, size_t capacity, float32_t val, unsigned int precision, unsigned int width,
+                    char fill) {
 	unsigned int ulen;
 	size_t end;
 	int len = -1;
 	if (!capacity)
 		return (string_t){buffer, 0};
-#if FOUNDATION_SIZE_REAL == 8
-	if (precision)
-		len = snprintf(buffer, capacity, "%.*lf", precision, val);
-	else
-		len = snprintf(buffer, capacity, "%.16lf", val);
-#else
 	if (precision)
 		len = snprintf(buffer, capacity, "%.*f", precision, (double)val);
 	else
 		len = snprintf(buffer, capacity, "%.7f", (double)val);
-#endif
+
+	ulen = (unsigned int)len;
+	if ((len < 0) || (ulen >= capacity)) {
+		buffer[capacity - 1] = 0;
+		return (string_t){buffer, capacity - 1};
+	}
+	if (width >= capacity)
+		width = (unsigned int)capacity - 1;
+
+	end = string_find_last_not_of(buffer, ulen, STRING_CONST("0"), STRING_NPOS);
+	if (end != STRING_NPOS) {
+		if (buffer[end] == '.')
+			--end;
+		if (end != (ulen - 1)) {
+			++end;
+			ulen = (unsigned int)end;
+			buffer[end] = 0;
+		}
+	}
+
+	// Some cleanups
+	if (string_equal(buffer, ulen, "-0", 2)) {
+		buffer[0] = '0';
+		buffer[1] = 0;
+		ulen = 1;
+	}
+
+	if (ulen < width) {
+		unsigned int ofs = width - ulen;
+		unsigned int copylen = ulen + 1;
+		memmove(buffer + ofs, buffer, copylen);
+		memset(buffer, fill, ofs);
+		ulen = width;
+	}
+
+	return (string_t){buffer, ulen};
+}
+
+string_t
+string_from_float64(char* buffer, size_t capacity, float64_t val, unsigned int precision, unsigned int width,
+                    char fill) {
+	unsigned int ulen;
+	size_t end;
+	int len = -1;
+	if (!capacity)
+		return (string_t){buffer, 0};
+	if (precision)
+		len = snprintf(buffer, capacity, "%.*lf", precision, val);
+	else
+		len = snprintf(buffer, capacity, "%.16lf", val);
 
 	ulen = (unsigned int)len;
 	if ((len < 0) || (ulen >= capacity)) {
@@ -1539,6 +1592,18 @@ string_const_t
 string_from_real_static(real val, unsigned int precision, unsigned int width, char fill) {
 	return string_to_const(
 	    string_from_real(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, precision, width, fill));
+}
+
+string_const_t
+string_from_float32_static(float32_t val, unsigned int precision, unsigned int width, char fill) {
+	return string_to_const(
+	    string_from_float32(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, precision, width, fill));
+}
+
+string_const_t
+string_from_float64_static(float64_t val, unsigned int precision, unsigned int width, char fill) {
+	return string_to_const(
+	    string_from_float64(get_thread_convert_buffer(), THREAD_BUFFER_SIZE, val, precision, width, fill));
 }
 
 string_t

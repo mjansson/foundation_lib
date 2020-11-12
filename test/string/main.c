@@ -13,6 +13,8 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
+#include <locale.h>
+
 static application_t
 test_string_application(void) {
 	application_t app;
@@ -2190,8 +2192,8 @@ DECLARE_TEST(string, convert) {
 	str = string_from_real(buffer, 3, REAL_C(1.1), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.")));
 
-	str = string_from_real(buffer, sizeof(buffer), REAL_C(1.1), 0, 0, '=');
-	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.1")));
+	str = string_from_real(buffer, sizeof(buffer), REAL_C(1.5), 0, 0, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.5")));
 
 	str = string_from_real(buffer, sizeof(buffer), REAL_C(0.1), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============0.1")));
@@ -2199,13 +2201,49 @@ DECLARE_TEST(string, convert) {
 	str = string_from_real(buffer, sizeof(buffer), -REAL_C(0.0), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("===============0")));
 
-	conststr = string_from_real_static(REAL_C(1.1), 0, 0, '=');
-	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.1")));
+	conststr = string_from_real_static(REAL_C(1.5), 0, 0, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.5")));
 
 	conststr = string_from_real_static(REAL_C(0.1), 8, 16, '=');
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("=============0.1")));
 
 	conststr = string_from_real_static(-REAL_C(0.0), 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
+
+	str = string_from_float32(buffer, sizeof(buffer), 1.5f, 0, 0, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.5")));
+
+	str = string_from_float32(buffer, sizeof(buffer), 0.1f, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============0.1")));
+
+	str = string_from_float32(buffer, sizeof(buffer), -0.0f, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("===============0")));
+
+	conststr = string_from_float32_static(1.5f, 0, 0, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.5")));
+
+	conststr = string_from_float32_static(0.1f, 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("=============0.1")));
+
+	conststr = string_from_float32_static(-0.0f, 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
+
+	str = string_from_float64(buffer, sizeof(buffer), 1.5, 0, 0, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.5")));
+
+	str = string_from_float64(buffer, sizeof(buffer), 0.1, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============0.1")));
+
+	str = string_from_float64(buffer, sizeof(buffer), -0.0, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("===============0")));
+
+	conststr = string_from_float64_static(1.5, 0, 0, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.5")));
+
+	conststr = string_from_float64_static(0.1, 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("=============0.1")));
+
+	conststr = string_from_float64_static(-0.0, 8, 16, '=');
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
 
 	str = string_from_time(buffer, 0, time_system(), false);
@@ -2473,6 +2511,24 @@ DECLARE_TEST(string, convert) {
 	return 0;
 }
 
+/*
+TODO: Make string conversion routines locale-invariant
+DECLARE_TEST(string, locale) {
+    const char* test_locales[] = {"C", "", "en-US", "sv-SE"};
+
+    for (size_t iloc = 0, lcount = sizeof(test_locales) / sizeof(test_locales[0]); iloc < lcount; ++iloc) {
+        setlocale(LC_ALL, test_locales[iloc]);
+
+        string_const_t str = string_from_real_static(0, 0, 0, 0);
+        EXPECT_CONSTSTRINGEQ(str, string_const(STRING_CONST("0")));
+        str = string_from_real_static(1.5, 0, 0, 0);
+        EXPECT_CONSTSTRINGEQ(str, string_const(STRING_CONST("1.5")));
+    }
+
+    return 0;
+}
+*/
+
 static void
 test_string_declare(void) {
 	ADD_TEST(string, allocate);
@@ -2482,6 +2538,7 @@ test_string_declare(void) {
 	ADD_TEST(string, prepend);
 	ADD_TEST(string, format);
 	ADD_TEST(string, convert);
+	// ADD_TEST(string, locale);
 }
 
 static test_suite_t test_string_suite = {test_string_application,

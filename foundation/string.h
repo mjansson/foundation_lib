@@ -795,6 +795,32 @@ fill character. String will be zero terminated.
 FOUNDATION_API string_t
 string_from_real(char* str, size_t capacity, real val, unsigned int precision, unsigned int width, char padding);
 
+/*! Convert a float to a string, with optional fixed notation, field width, precision and
+fill character. String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in given buffer */
+FOUNDATION_API string_t
+string_from_float32(char* str, size_t capacity, float32_t val, unsigned int precision, unsigned int width,
+                    char padding);
+
+/*! Convert a float to a string, with optional fixed notation, field width, precision and
+fill character. String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in given buffer */
+FOUNDATION_API string_t
+string_from_float64(char* str, size_t capacity, float64_t val, unsigned int precision, unsigned int width,
+                    char padding);
+
 /*! Get a formatted string of the given timestamp. String buffer should be at least
 25 bytes (24 characters + terminating zero). A capacity of less than 25 characters
 will result in an empty string result. The string will be formetted like
@@ -881,6 +907,28 @@ string_from_*_static functions and only valid until next call to one of these fu
 \return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_real_static(real val, unsigned int precision, unsigned int width, char padding);
+
+/*! Convert a float into a thread-local conversion buffer, with optional fixed notation,
+field width, precision and fill character. The buffer is shared between all
+string_from_*_static functions and only valid until next call to one of these functions.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in thread-local buffer */
+FOUNDATION_API string_const_t
+string_from_float32_static(float32_t val, unsigned int precision, unsigned int width, char padding);
+
+/*! Convert a float into a thread-local conversion buffer, with optional fixed notation,
+field width, precision and fill character. The buffer is shared between all
+string_from_*_static functions and only valid until next call to one of these functions.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in thread-local buffer */
+FOUNDATION_API string_const_t
+string_from_float64_static(float64_t val, unsigned int precision, unsigned int width, char padding);
 
 /*! Convert a timestamp into a thread-local conversion buffer. The buffer is shared between all
 string_from_*_static functions and only valid until next call to one of these functions.
