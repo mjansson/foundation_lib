@@ -373,7 +373,7 @@ thread_sleep(unsigned int milliseconds) {
 void
 thread_yield(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	Sleep(0);
+	SwitchToThread();
 #elif FOUNDATION_PLATFORM_POSIX
 	sched_yield();
 #else
