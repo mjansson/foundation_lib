@@ -89,6 +89,12 @@ thread_is_started(const thread_t* thread);
 FOUNDATION_API bool
 thread_is_running(const thread_t* thread);
 
+/*! Query if thread has completed execution and safe to join
+\param thread Thread
+\return true if finished, false if not */
+FOUNDATION_API bool
+thread_is_finished(const thread_t* thread);
+
 /*! Signal thread (post thread semaphore)
 \param thread Thread */
 FOUNDATION_API void
