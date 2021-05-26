@@ -51,8 +51,8 @@ class ClangToolchain(toolchain.Toolchain):
                    '-fomit-frame-pointer', '-fno-math-errno','-ffinite-math-only', '-funsafe-math-optimizations',
                    '-fno-trapping-math', '-ffast-math']
     self.cwarnflags = ['-W', '-Werror', '-pedantic', '-Wall', '-Weverything',
-                       '-Wno-padded', '-Wno-documentation-unknown-command',
-                       '-Wno-implicit-fallthrough', '-Wno-static-in-inline', '-Wno-reserved-id-macro']
+                       '-Wno-c++98-compat', '-Wno-padded', '-Wno-documentation-unknown-command',
+                       '-Wno-implicit-fallthrough', '-Wno-static-in-inline', '-Wno-reserved-id-macro', '-Wno-disabled-macro-expansion']
     self.cmoreflags = []
     self.mflags = []
     self.arflags = []
@@ -70,14 +70,20 @@ class ClangToolchain(toolchain.Toolchain):
     self.parse_default_variables(variables)
     self.read_build_prefs()
 
-    if self.target.is_linux() or self.target.is_bsd() or self.target.is_raspberrypi():
+    if self.target.is_linux() or self.target.is_bsd() or self.target.is_raspberrypi() or self.target.is_sunos():
       self.cflags += ['-D_GNU_SOURCE=1']
       self.linkflags += ['-pthread']
       self.oslibs += ['m']
     if self.target.is_linux() or self.target.is_raspberrypi():
       self.oslibs += ['dl']
+    if self.target.is_raspberrypi():
+      self.linkflags += ['-latomic']
     if self.target.is_bsd():
       self.oslibs += ['execinfo']
+    if self.target.is_haiku():
+      self.cflags += ['-D_GNU_SOURCE=1']
+      self.linkflags += ['-lpthread']
+      self.oslibs += ['m']
     if not self.target.is_windows():
       self.linkflags += ['-fomit-frame-pointer']
 
@@ -99,7 +105,7 @@ class ClangToolchain(toolchain.Toolchain):
     if self.target.is_macos() or self.target.is_ios():
       self.cxxflags += ['-std=c++14', '-stdlib=libc++']
     else:
-      self.cxxflags += ['-std=gnu++14']
+      self.cxxflags += ['-std=c++14']
 
     #Overrides
     self.objext = '.o'
@@ -335,7 +341,7 @@ class ClangToolchain(toolchain.Toolchain):
     flags = []
     if targettype == 'sharedlib':
       flags += ['-DBUILD_DYNAMIC_LINK=1']
-      if self.target.is_linux() or self.target.is_bsd():
+      if self.target.is_linux() or self.target.is_bsd() or self.target.is_sunos():
        flags += ['-fPIC']
     flags += self.make_targetarchflags(arch, targettype)
     return flags
@@ -391,7 +397,7 @@ class ClangToolchain(toolchain.Toolchain):
       if targettype == 'sharedlib':
         flags += ['-shared', '-fPIC']
     if config != 'debug':
-      if targettype == 'bin' or targettype == 'sharedlib':
+      if (targettype == 'bin' or targettype == 'sharedlib') and self.use_lto():
         flags += ['-flto']
     return flags
 
