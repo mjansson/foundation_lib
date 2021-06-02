@@ -77,3 +77,9 @@ uuid_is_null(const uuid_t uuid) {
 }
 
 #define uuid_make uint128_make
+#define uuid_decl(a, b, c, d, e)                                                                               \
+	uuid_make(((uint64_t)0x##c << 48ULL) | ((uint64_t)0x##b << 32ULL) | (uint64_t)0x##a,                       \
+	          (((uint64_t)0x##e & 0xFF) << 56ULL) | (((uint64_t)0x##e & 0xFF00) << 40ULL) |                    \
+	              (((uint64_t)0x##e & 0xFF0000) << 24ULL) | (((uint64_t)0x##e & 0xFF000000) << 8ULL) |         \
+	              (((uint64_t)0x##e & 0xFF00000000) >> 8ULL) | (((uint64_t)0x##e & 0xFF0000000000) >> 24ULL) | \
+	              (((uint64_t)0x##d & 0xFF) << 8ULL) | (((uint64_t)0x##d & 0xFF00) >> 8ULL))
