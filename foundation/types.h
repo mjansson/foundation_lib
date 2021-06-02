@@ -417,6 +417,10 @@ typedef int64_t ssize_t;
 #endif
 #endif
 
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+
 /*! Hash value */
 typedef uint64_t hash_t;
 /*! Tick type used for absolute time measurements or timestamps */
