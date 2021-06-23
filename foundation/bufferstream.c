@@ -41,7 +41,8 @@ buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mod
 		size = capacity;
 
 	stream->type = STREAMTYPE_MEMORY;
-	stream->path = string_allocate_format(STRING_CONST("buffer://0x%" PRIfixPTR), (uintptr_t)stream);
+	stream->path = string_allocate_format(STRING_CONST("buffer://0x%" PRIfixPTR "-0x%" PRIfixPTR), (uintptr_t)buffer,
+	                                      (uintptr_t)pointer_offset(buffer, size));
 	stream->mode = mode & (STREAM_OUT | STREAM_IN | STREAM_BINARY);
 	stream->buffer = buffer;
 	stream->size = size;
