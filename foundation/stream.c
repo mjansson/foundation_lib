@@ -92,6 +92,7 @@ stream_initialize(stream_t* stream, byteorder_t order) {
 	stream->reliable = 1;
 	stream->inorder = 1;
 	stream->persistent = 0;
+	stream->compressed = 0;
 	stream->swap = ((byteorder_t)stream->byteorder != system_byteorder()) ? 1 : 0;
 	stream->mode = STREAM_BINARY;
 	stream->path = (string_t){0, 0};

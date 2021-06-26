@@ -1519,18 +1519,19 @@ platform compatibility. Use the macro as first declaration in a stream struct:
   int       some_other_data;
   //[...]
 };</code> */
-#define FOUNDATION_DECLARE_STREAM         \
-	unsigned int type : 16;               \
-	unsigned int sequential : 1;          \
-	unsigned int reliable : 1;            \
-	unsigned int inorder : 1;             \
-	unsigned int swap : 1;                \
-	unsigned int byteorder : 1;           \
-	unsigned int persistent : 1;          \
-	unsigned int unused_streamflags : 10; \
-	unsigned int mode;                    \
-	string_t path;                        \
-	string_const_t mime_type;             \
+#define FOUNDATION_DECLARE_STREAM        \
+	unsigned int type : 16;              \
+	unsigned int sequential : 1;         \
+	unsigned int reliable : 1;           \
+	unsigned int inorder : 1;            \
+	unsigned int swap : 1;               \
+	unsigned int byteorder : 1;          \
+	unsigned int persistent : 1;         \
+	unsigned int compressed : 1;         \
+	unsigned int unused_streamflags : 9; \
+	unsigned int mode;                   \
+	string_t path;                       \
+	string_const_t mime_type;            \
 	stream_vtable_t* vtable
 
 /*! Base stream type from which all streams are derived. All stream-based designs
