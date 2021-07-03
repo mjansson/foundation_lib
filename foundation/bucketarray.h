@@ -62,15 +62,15 @@ bucketarray_clear(bucketarray_t* array);
 
 /*! Add element at end of array
 \param array Array pointer
-\param item Element to add */
+\param element Element to add */
 FOUNDATION_API void
 bucketarray_push(bucketarray_t* array, void* element);
 
 /*! Erase element by swapping with last element
 \param array Array pointer
-\param item Element index to erase */
+\param index Element index to erase */
 FOUNDATION_API void
-bucketarray_erase(bucketarray_t* array, size_t element);
+bucketarray_erase(bucketarray_t* array, size_t index);
 
 /*! Get indexed element
 \param array Array pointer
