@@ -33,10 +33,10 @@
 #include <sys/sysctl.h>
 
 extern unsigned int
-_system_process_info_processor_count(void);
+system_process_info_processor_count(void);
 
 extern int
-_system_show_alert(const char*, size_t, const char*, size_t, int);
+system_show_alert(const char*, size_t, const char*, size_t, int);
 
 #endif
 
@@ -535,7 +535,7 @@ system_hostid(void) {
 size_t
 system_hardware_threads(void) {
 #if FOUNDATION_PLATFORM_APPLE
-	return _system_process_info_processor_count();
+	return system_process_info_processor_count();
 #elif FOUNDATION_PLATFORM_ANDROID
 	return (size_t)android_getCpuCount();
 #elif FOUNDATION_PLATFORM_BSD
@@ -731,7 +731,7 @@ system_message_box(const char* title, size_t title_length, const char* message, 
 	FOUNDATION_UNUSED(title_length);
 	return (MessageBoxA(0, message, title, cancel_button ? MB_OKCANCEL : MB_OK) == IDOK);
 #elif FOUNDATION_PLATFORM_APPLE
-	return _system_show_alert(title, title_length, message, message_length, cancel_button ? 1 : 0) > 0;
+	return system_show_alert(title, title_length, message, message_length, cancel_button ? 1 : 0) > 0;
 #elif 0  // FOUNDATION_PLATFORM_LINUX
 	char* buf = string_format("%s\n\n%s\n", title, message);
 	pid_t pid = fork();

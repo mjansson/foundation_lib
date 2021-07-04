@@ -71,6 +71,7 @@ to our foundation/foundation.h \endinternal */
 #else
 #include <CoreFoundation/CoreFoundation.h>
 #if FOUNDATION_PLATFORM_MACOS
+#include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
 #include <ApplicationServices/ApplicationServices.h>
 #endif
