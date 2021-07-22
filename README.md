@@ -54,4 +54,4 @@ Cross-platform build system uses Ninja
 This library is put in the public domain; you can redistribute it and/or modify it without any restrictions.
 
 
-Created by Mattias Jansson ([@maniccoder](https://twitter.com/maniccoder))  -  Support development through my [GitHub Sponsors page](https://github.com/sponsors/mjansson)
+Created by Mattias Jansson ([@maniccoder](https://twitter.com/maniccoder))
