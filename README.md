@@ -41,6 +41,8 @@ Platforms and architectures currently supported:
 * Android (ARMv6, ARMv7, ARMv8/AArch64, x86, x86-64, MIPS, MIPS64)
 * Raspberry Pi (ARMv6)
 
+Discord server for discussions
+https://discord.gg/M8BwTQrt6c
 
 The latest source code maintained by Mattias Jansson is always available at  
 <https://github.com/mjansson/foundation_lib>
