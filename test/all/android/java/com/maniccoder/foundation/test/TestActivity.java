@@ -1,4 +1,4 @@
-package com.rampantpixels.foundation.test;
+package com.maniccoder.foundation.test;
 
 import android.os.Bundle;
 import android.app.NativeActivity;

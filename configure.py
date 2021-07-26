@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join('build', 'ninja'))
 
 import generator
 
-generator = generator.Generator(project = 'foundation', variables = [('bundleidentifier', 'com.rampantpixels.foundation.$(binname)')])
+generator = generator.Generator(project = 'foundation', variables = [('bundleidentifier', 'com.maniccoder.foundation.$(binname)')])
 target = generator.target
 writer = generator.writer
 toolchain = generator.toolchain
@@ -17,7 +17,7 @@ extrasources = []
 
 foundation_sources = [
   'android.c', 'array.c', 'assert.c', 'assetstream.c', 'atomic.c', 'base64.c', 'beacon.c', 'bitbuffer.c', 'blowfish.c',
-  'bufferstream.c', 'environment.c', 'error.c', 'event.c', 'exception.c', 'foundation.c', 'fs.c',
+  'bucketarray.c', 'bufferstream.c', 'environment.c', 'error.c', 'event.c', 'exception.c', 'foundation.c', 'fs.c',
   'hash.c', 'hashmap.c', 'hashtable.c', 'json.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
   'objectmap.c', 'path.c', 'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'sha.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
@@ -65,7 +65,7 @@ if toolchain.is_monolithic() or target.is_ios() or target.is_android() or target
       os.path.join('drawable-ldpi', 'icon.png'), os.path.join('drawable-mdpi', 'icon.png'), os.path.join('drawable-hdpi', 'icon.png'),
       os.path.join('drawable-xhdpi', 'icon.png'), os.path.join('drawable-xxhdpi', 'icon.png'), os.path.join('drawable-xxxhdpi', 'icon.png')
     ]]
-    test_extrasources = [os.path.join('test', 'all', 'android', 'java', 'com', 'rampantpixels', 'foundation', 'test', item) for item in [
+    test_extrasources = [os.path.join('test', 'all', 'android', 'java', 'com', 'maniccoder', 'foundation', 'test', item) for item in [
       'TestActivity.java'
     ]]
   elif target.is_tizen():

@@ -1,10 +1,10 @@
-/* stream.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* stream.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -104,9 +104,9 @@ checking if all bytes are in printable ASCII range (byte values [0x20,0x7e] and 
 The method will restore the stream position with a call to #stream_seek, so using this on a
 sequential stream is not supported.
 \param stream Stream
-\param num Number of bytes to read */
+\param size Number of bytes to read */
 FOUNDATION_API void
-stream_determine_binary_mode(stream_t* stream, size_t num);
+stream_determine_binary_mode(stream_t* stream, size_t size);
 
 /*! Query if stream is in binary mode
 \param stream Stream
@@ -163,19 +163,19 @@ stream_last_modified(const stream_t* stream);
 /*! Read raw data from stream, disregarding byte order.
 \param stream Stream
 \param buffer Destination buffer
-\param num_bytes Number of bytes to read
+\param size Number of bytes to read
 \return Number of bytes read */
 FOUNDATION_API size_t
-stream_read(stream_t* stream, void* buffer, size_t num_bytes);
+stream_read(stream_t* stream, void* buffer, size_t size);
 
 /*! Read line of up to count characters, consuming but discarding delimiter, reading into buffer.
 \param stream Stream
 \param dest Destination buffer, null if input is to be ignored
-\param count Maximum number of characters to extract
+\param size Maximum number of characters to extract (destination buffer must be large enough)
 \param delimiter Delimiter
 \return Number of bytes read (including delimiter) */
 FOUNDATION_API string_t
-stream_read_line_buffer(stream_t* stream, char* dest, size_t count, char delimiter);
+stream_read_line_buffer(stream_t* stream, char* dest, size_t size, char delimiter);
 
 /*! Read line as string, discarding delimiter. Allocates a new memory buffer for the string, must
 be freed with a call to #string_deallocate
@@ -300,10 +300,10 @@ stream_skip_whitespace(stream_t* stream);
 /*! Write raw data to stream.
 \param stream Stream
 \param buffer Buffer of data to write
-\param num_bytes Number of bytes to write
+\param size Number of bytes to write
 \return Number of bytes written */
 FOUNDATION_API size_t
-stream_write(stream_t* stream, const void* buffer, size_t num_bytes);
+stream_write(stream_t* stream, const void* buffer, size_t size);
 
 /*! Write boolean to stream.
 \param stream Stream
@@ -419,8 +419,7 @@ stream_write_endl(stream_t* stream);
 \param format Format declaration string
 \param format_length Length of format declaration string */
 FOUNDATION_API void
-stream_write_format(stream_t* stream, const char* format, size_t format_length, ...)
-FOUNDATION_PRINTFCALL(2, 4);
+stream_write_format(stream_t* stream, const char* format, size_t format_length, ...) FOUNDATION_PRINTFCALL(2, 4);
 
 /*! \fn void stream_buffer_read(stream_t* stream)
 Buffer any pending incoming data (network streams).

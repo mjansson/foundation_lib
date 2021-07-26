@@ -1,10 +1,10 @@
-/* json.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* json.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -24,8 +24,8 @@ is_valid_token(json_token_t* tokens, size_t capacity, unsigned int index) {
 }
 
 static void
-set_token_primitive(json_token_t* tokens, size_t capacity, unsigned int current, json_type_t type,
-                    size_t value, size_t value_length) {
+set_token_primitive(json_token_t* tokens, size_t capacity, unsigned int current, json_type_t type, size_t value,
+                    size_t value_length) {
 	json_token_t* token = get_token(tokens, capacity, current);
 	if (token) {
 		token->type = type;
@@ -37,8 +37,7 @@ set_token_primitive(json_token_t* tokens, size_t capacity, unsigned int current,
 }
 
 static struct json_token_t*
-set_token_complex(json_token_t* tokens, size_t capacity, unsigned int current, json_type_t type,
-                  size_t pos) {
+set_token_complex(json_token_t* tokens, size_t capacity, unsigned int current, json_type_t type, size_t pos) {
 	json_token_t* token = get_token(tokens, capacity, current);
 	if (token) {
 		token->type = type;
@@ -51,8 +50,7 @@ set_token_complex(json_token_t* tokens, size_t capacity, unsigned int current, j
 }
 
 static void
-set_token_id(json_token_t* tokens, size_t capacity, unsigned int current, size_t id,
-             size_t id_length) {
+set_token_id(json_token_t* tokens, size_t capacity, unsigned int current, size_t id, size_t id_length) {
 	json_token_t* token = get_token(tokens, capacity, current);
 	if (token) {
 		token->id = (unsigned int)id;
@@ -170,12 +168,12 @@ parse_object(const char* buffer, size_t length, size_t pos, json_token_t* tokens
              unsigned int* current, bool simple);
 
 static size_t
-parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
-            unsigned int* current, bool simple);
+parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity, unsigned int* current,
+            bool simple);
 
 static size_t
-parse_array(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
-            unsigned int owner, unsigned int* current, bool simple);
+parse_array(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity, unsigned int owner,
+            unsigned int* current, bool simple);
 
 static size_t
 parse_object(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
@@ -233,8 +231,7 @@ parse_object(const char* buffer, size_t length, size_t pos, json_token_t* tokens
 					return STRING_NPOS;
 				pos = parse_value(buffer, length, pos + 1, tokens, capacity, current, simple);
 				pos = skip_whitespace(buffer, length, pos);
-				if (simple_string &&
-				    ((pos < length) && (buffer[pos] != ',') && (buffer[pos] != '}'))) {
+				if (simple_string && ((pos < length) && (buffer[pos] != ',') && (buffer[pos] != '}'))) {
 					token = get_token(tokens, capacity, last);
 					if (token)
 						token->sibling = *current;
@@ -248,8 +245,8 @@ parse_object(const char* buffer, size_t length, size_t pos, json_token_t* tokens
 }
 
 static size_t
-parse_array(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
-            unsigned int owner, unsigned int* current, bool simple) {
+parse_array(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity, unsigned int owner,
+            unsigned int* current, bool simple) {
 	json_token_t* parent = get_token(tokens, capacity, owner);
 	json_token_t* token;
 	unsigned int now;
@@ -289,8 +286,8 @@ parse_array(const char* buffer, size_t length, size_t pos, json_token_t* tokens,
 }
 
 static size_t
-parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity,
-            unsigned int* current, bool simple) {
+parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens, size_t capacity, unsigned int* current,
+            bool simple) {
 	json_token_t* subtoken;
 	unsigned int owner;
 	size_t string;
@@ -341,22 +338,19 @@ parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens,
 			case 't':
 			case 'f':
 			case 'n':
-				if ((c == 't') && (length - pos >= 4) &&
-				    string_equal(buffer + pos, 3, STRING_CONST("rue")) &&
+				if ((c == 't') && (length - pos >= 4) && string_equal(buffer + pos, 3, STRING_CONST("rue")) &&
 				    is_token_delimiter(buffer[pos + 3])) {
 					set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 4);
 					++(*current);
 					return pos + 3;
 				}
-				if ((c == 'f') && (length - pos >= 5) &&
-				    string_equal(buffer + pos, 4, STRING_CONST("alse")) &&
+				if ((c == 'f') && (length - pos >= 5) && string_equal(buffer + pos, 4, STRING_CONST("alse")) &&
 				    is_token_delimiter(buffer[pos + 4])) {
 					set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 5);
 					++(*current);
 					return pos + 4;
 				}
-				if ((c == 'n') && (length - pos >= 4) &&
-				    string_equal(buffer + pos, 3, STRING_CONST("ull")) &&
+				if ((c == 'n') && (length - pos >= 4) && string_equal(buffer + pos, 3, STRING_CONST("ull")) &&
 				    is_token_delimiter(buffer[pos + 3])) {
 					set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, 4);
 					++(*current);
@@ -503,8 +497,7 @@ json_unescape(char* buffer, size_t capacity, const char* string, size_t length) 
 				case 'u':
 					if (i + 4 < length) {
 						uint16_t val = (uint16_t)string_to_uint(string + i + 1, 4, true);
-						string_t conv =
-						    string_convert_utf16(buffer + outlength, capacity - outlength, &val, 1);
+						string_t conv = string_convert_utf16(buffer + outlength, capacity - outlength, &val, 1);
 						outlength += conv.length;
 						i += 4;
 					}
@@ -532,8 +525,7 @@ sjson_parse_stream(const char* path, size_t length, json_handler_fn handler) {
 		return 0;
 
 	size_t size = stream_size(configfile);
-	char* buffer =
-	    memory_allocate(0, size, 0, (size < 1024) ? MEMORY_TEMPORARY : MEMORY_PERSISTENT);
+	char* buffer = memory_allocate(0, size, 0, (size < 1024) ? MEMORY_TEMPORARY : MEMORY_PERSISTENT);
 
 	stream_read(configfile, buffer, size);
 	stream_deallocate(configfile);
@@ -564,8 +556,7 @@ sjson_parse_path(const char* path, size_t length, json_handler_fn handler) {
 			string_const_t ext = path_file_extension(STRING_ARGS(files[ifile]));
 			if (string_equal(STRING_ARGS(ext), STRING_CONST("json")) ||
 			    string_equal(STRING_ARGS(ext), STRING_CONST("sjson"))) {
-				string_t fullpath =
-				    path_concat(pathbuf, sizeof(pathbuf), path, length, STRING_ARGS(files[ifile]));
+				string_t fullpath = path_concat(pathbuf, sizeof(pathbuf), path, length, STRING_ARGS(files[ifile]));
 				num += sjson_parse_stream(STRING_ARGS(fullpath), handler);
 			}
 		}

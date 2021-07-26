@@ -1,10 +1,10 @@
-/* bits.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* bits.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -110,16 +110,23 @@ byteorder_swap16(uint16_t arg) {
 #if _MSC_VER >= 1310
 	return _byteswap_ushort(arg);
 #else
-	typedef union { uint16_t u16; uint8_t u8[2]; } u16cast;
+	typedef union {
+		uint16_t u16;
+		uint8_t u8[2];
+	} u16cast;
 	u16cast in, out;
 	in.u16 = arg;
-	out.u8[0] = in.u8[1]; out.u8[1] = in.u8[0];
+	out.u8[0] = in.u8[1];
+	out.u8[1] = in.u8[0];
 	return out.u16;
 #endif
 #else
-	typedef union { uint16_t u16; uint8_t u8[2]; } u16cast;
-	u16cast in = { .u16 = arg };
-	u16cast out = { .u8[0] = in.u8[1], .u8[1] = in.u8[0] };
+	typedef union {
+		uint16_t u16;
+		uint8_t u8[2];
+	} u16cast;
+	u16cast in = {.u16 = arg};
+	u16cast out = {.u8[0] = in.u8[1], .u8[1] = in.u8[0]};
 	return out.u16;
 #endif
 }
@@ -136,16 +143,25 @@ byteorder_swap32(uint32_t arg) {
 #if _MSC_VER >= 1310
 	return _byteswap_ulong(arg);
 #else
-	typedef union { uint32_t u32; uint8_t u8[4]; } u32cast;
+	typedef union {
+		uint32_t u32;
+		uint8_t u8[4];
+	} u32cast;
 	u32cast in, out;
 	in.u32 = arg;
-	out.u8[0] = in.u8[3]; out.u8[1] = in.u8[2]; out.u8[2] = in.u8[1]; out.u8[3] = in.u8[0];
+	out.u8[0] = in.u8[3];
+	out.u8[1] = in.u8[2];
+	out.u8[2] = in.u8[1];
+	out.u8[3] = in.u8[0];
 	return out.u32;
 #endif
 #else
-	typedef union { uint32_t u32; uint8_t u8[4]; } u32cast;
-	u32cast in = { .u32 = arg };
-	u32cast out = { .u8[0] = in.u8[3], .u8[1] = in.u8[2], .u8[2] = in.u8[1], .u8[3] = in.u8[0] };
+	typedef union {
+		uint32_t u32;
+		uint8_t u8[4];
+	} u32cast;
+	u32cast in = {.u32 = arg};
+	u32cast out = {.u8[0] = in.u8[3], .u8[1] = in.u8[2], .u8[2] = in.u8[1], .u8[3] = in.u8[0]};
 	return out.u32;
 #endif
 }
@@ -162,19 +178,36 @@ byteorder_swap64(uint64_t arg) {
 #if _MSC_VER >= 1310
 	return _byteswap_uint64(arg);
 #else
-	typedef union { uint64_t u64; uint8_t u8[8]; } u64cast;
+	typedef union {
+		uint64_t u64;
+		uint8_t u8[8];
+	} u64cast;
 	u64cast in, out;
 	in.u64 = arg;
-	out.u8[0] = in.u8[7]; out.u8[1] = in.u8[6]; out.u8[2] = in.u8[5]; out.u8[3] = in.u8[4];
-	out.u8[4] = in.u8[3]; out.u8[5] = in.u8[2]; out.u8[6] = in.u8[1]; out.u8[7] = in.u8[0];
+	out.u8[0] = in.u8[7];
+	out.u8[1] = in.u8[6];
+	out.u8[2] = in.u8[5];
+	out.u8[3] = in.u8[4];
+	out.u8[4] = in.u8[3];
+	out.u8[5] = in.u8[2];
+	out.u8[6] = in.u8[1];
+	out.u8[7] = in.u8[0];
 	return out.u64;
 #endif
 #else
-	typedef union { uint64_t u64; uint8_t u8[8]; } u64cast;
-	u64cast in = { .u64 = arg };
-	u64cast out = { .u8[0] = in.u8[7], .u8[1] = in.u8[6], .u8[2] = in.u8[5], .u8[3] = in.u8[4],
-	                .u8[4] = in.u8[3], .u8[5] = in.u8[2], .u8[6] = in.u8[1], .u8[7] = in.u8[0]
-	              };
+	typedef union {
+		uint64_t u64;
+		uint8_t u8[8];
+	} u64cast;
+	u64cast in = {.u64 = arg};
+	u64cast out = {.u8[0] = in.u8[7],
+	               .u8[1] = in.u8[6],
+	               .u8[2] = in.u8[5],
+	               .u8[3] = in.u8[4],
+	               .u8[4] = in.u8[3],
+	               .u8[5] = in.u8[2],
+	               .u8[6] = in.u8[1],
+	               .u8[7] = in.u8[0]};
 	return out.u64;
 #endif
 }

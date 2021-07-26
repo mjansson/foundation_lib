@@ -1,10 +1,10 @@
-/* foundation.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* foundation.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
-//Make artificial reference to main entry point
+// Make artificial reference to main entry point
 #if FOUNDATION_PLATFORM_ANDROID
 
 struct android_app;
@@ -33,26 +33,29 @@ static bool _initialized;
 
 static void
 foundation_initialize_config(const foundation_config_t config) {
-	_config.library_max           = (config.library_max ? config.library_max : 32);
-	_config.memory_tracker_max    = (config.memory_tracker_max ? config.memory_tracker_max : (32 * 1024));
-	_config.fs_monitor_max        = (config.fs_monitor_max ? config.fs_monitor_max : 16);
-	_config.error_context_depth   = (config.error_context_depth ? config.error_context_depth : 32);
-	_config.memory_context_depth  = (config.memory_context_depth ? config.memory_context_depth : 32);
-	_config.stacktrace_depth      = (config.stacktrace_depth ? config.stacktrace_depth : 32);
-	_config.event_block_chunk     = (config.event_block_chunk ? config.event_block_chunk : (8 * 1024));
-	_config.event_block_limit     = (config.event_block_limit ? config.event_block_limit : (512 * 1024));
-	_config.thread_stack_size     = (config.thread_stack_size ? config.thread_stack_size : 0x8000);
-	
-	_config.hash_store_size       = config.hash_store_size;
+	_config.library_max = (config.library_max ? config.library_max : 32);
+	_config.memory_tracker_max = (config.memory_tracker_max ? config.memory_tracker_max : (32 * 1024));
+	_config.fs_monitor_max = (config.fs_monitor_max ? config.fs_monitor_max : 16);
+	_config.error_context_depth = (config.error_context_depth ? config.error_context_depth : 32);
+	_config.memory_context_depth = (config.memory_context_depth ? config.memory_context_depth : 32);
+	_config.stacktrace_depth = (config.stacktrace_depth ? config.stacktrace_depth : 32);
+	_config.event_block_chunk = (config.event_block_chunk ? config.event_block_chunk : (8 * 1024));
+	_config.event_block_limit = (config.event_block_limit ? config.event_block_limit : (512 * 1024));
+	_config.thread_stack_size = (config.thread_stack_size ? config.thread_stack_size : 0x8000);
+
+	_config.hash_store_size = config.hash_store_size;
 	_config.random_state_prealloc = config.random_state_prealloc;
 }
 
-#define SUBSYSTEM_INIT(system) if (ret == 0) ret = _##system##_initialize()
-#define SUBSYSTEM_INIT_ARGS(system, ...) if (ret == 0) ret = _##system##_initialize( __VA_ARGS__ )
+#define SUBSYSTEM_INIT(system) \
+	if (ret == 0)              \
+	ret = _##system##_initialize()
+#define SUBSYSTEM_INIT_ARGS(system, ...) \
+	if (ret == 0)                        \
+	ret = _##system##_initialize(__VA_ARGS__)
 
 int
-foundation_initialize(const memory_system_t memory, const application_t application,
-                      const foundation_config_t config) {
+foundation_initialize(const memory_system_t memory, const application_t application, const foundation_config_t config) {
 	int ret = 0;
 
 	if (_initialized)
@@ -81,7 +84,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	if (ret)
 		return ret;
 
-	//Parse built-in command line options
+	// Parse built-in command line options
 	{
 		/*lint --e{613} */
 		const string_const_t* cmdline = environment_command_line();
@@ -100,7 +103,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	}
 
 #if !BUILD_DYNAMIC_LINK
-	//Artificial references
+	// Artificial references
 	/*lint -e506 */
 #if FOUNDATION_PLATFORM_ANDROID
 	android_main(0);

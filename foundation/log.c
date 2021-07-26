@@ -1,10 +1,10 @@
-/* log.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* log.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -18,65 +18,54 @@
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
-#  if BUILD_ENABLE_LOG && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG)
-#    define snprintf( p, s, ... ) _snprintf_s( p, s, _TRUNCATE, __VA_ARGS__ )
-#    define vsnprintf( s, n, format, arg ) _vsnprintf_s( s, n, _TRUNCATE, format, arg )
-#  endif
+#if BUILD_ENABLE_LOG && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL || FOUNDATION_COMPILER_CLANG)
+#define snprintf(p, s, ...) _snprintf_s(p, s, _TRUNCATE, __VA_ARGS__)
+#define vsnprintf(s, n, format, arg) _vsnprintf_s(s, n, _TRUNCATE, format, arg)
+#endif
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
-#  include <android/log.h>
+#include <android/log.h>
 #endif
 
 #if FOUNDATION_PLATFORM_TIZEN
-#  include <foundation/tizen.h>
+#include <foundation/tizen.h>
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
+#include <foundation/posix.h>
 #endif
 
 #if BUILD_ENABLE_LOG || BUILD_ENABLE_DEBUG_LOG
 
-static bool           _log_stdout = true;
-static bool           _log_prefix = true;
+static bool _log_stdout = true;
+static bool _log_prefix = true;
 static log_handler_fn _log_handler;
 static hashtable64_t* _log_suppress;
-static error_level_t  _log_suppress_default;
+static error_level_t _log_suppress_default;
 
 #define LOG_WARNING_NAMES 10
-static char _log_warning_name[LOG_WARNING_NAMES][18] = {
-	"performance",
-	"deprecated",
-	"invalid value",
-	"memory",
-	"unsupported",
-	"suspicious",
-	"system call fail",
-	"deadlock",
-	"script",
-	"resource"
-};
+static char* _log_warning_name[LOG_WARNING_NAMES] = {"performance", "deprecated", "invalid value",    "memory",
+                                                     "unsupported", "suspicious", "system call fail", "deadlock",
+                                                     "script",      "resource"};
 
 #define LOG_ERROR_NAMES 16
-static char _log_error_name[LOG_ERROR_NAMES][18] = {
-	"none",
-	"invalid value",
-	"unsupported",
-	"not implemented",
-	"out of memory",
-	"memory leak",
-	"memory alignment",
-	"internal failure",
-	"access denied",
-	"exception",
-	"system call fail",
-	"unknown type",
-	"unknown resource",
-	"deprecated",
-	"assert",
-	"script"
-};
+static char* _log_error_name[LOG_ERROR_NAMES] = {"none",
+                                                 "invalid value",
+                                                 "unsupported",
+                                                 "not implemented",
+                                                 "out of memory",
+                                                 "memory leak",
+                                                 "memory alignment",
+                                                 "internal failure",
+                                                 "access denied",
+                                                 "exception",
+                                                 "system call fail",
+                                                 "unknown type",
+                                                 "unknown resource",
+                                                 "deprecated",
+                                                 "assert",
+                                                 "script"};
 
 struct log_timestamp_t {
 	int hours;
@@ -120,9 +109,10 @@ _log_make_timestamp(void) {
 
 #if BUILD_ENABLE_LOG
 
-static void FOUNDATION_PRINTFCALL(5, 0)
-_log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t prefix_length,
-             const char* format, size_t format_length, va_list list, void* std) {
+static void
+FOUNDATION_PRINTFCALL(5, 0)
+    _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t prefix_length, const char* format,
+                 size_t format_length, va_list list, void* std) {
 	log_timestamp_t timestamp = _log_make_timestamp();
 	uint64_t tid = thread_id();
 	unsigned int pid = thread_hardware();
@@ -133,11 +123,12 @@ _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t 
 	FOUNDATION_UNUSED(format_length);
 	/*lint -e716 */
 	while (1) {
-		//This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is always > 0
+		// This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is
+		// always > 0
 		if (_log_prefix)
-			need = snprintf(buffer, (unsigned int)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%u> %.*s",
-			                timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds,
-			                tid, pid, (int)prefix_length, prefix);
+			need = snprintf(buffer, (unsigned int)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%u> %.*s", timestamp.hours,
+			                timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, (int)prefix_length,
+			                prefix);
 		else
 			need = snprintf(buffer, (unsigned int)size, "%.*s", (int)prefix_length, prefix);
 
@@ -240,8 +231,7 @@ log_warnf(hash_t context, warning_t warn, const char* format, size_t length, ...
 	log_error_context(context, ERRORLEVEL_WARNING);
 
 	if (warn < LOG_WARNING_NAMES)
-		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("WARNING [%s]: "),
-		                       _log_warning_name[warn]);
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("WARNING [%s]: "), _log_warning_name[warn]);
 	else
 		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("WARNING [%d]: "), warn);
 
@@ -308,9 +298,9 @@ log_panic(hash_t context, error_t err, const char* msg, size_t length) {
 	log_panicf(context, err, STRING_CONST("%.*s"), (int)length, msg);
 }
 
-static void FOUNDATION_PRINTFCALL(4, 6)
-_log_error_contextf(hash_t context, error_level_t error_level, void* std, const char* format,
-                    size_t length, ...) {
+static void
+FOUNDATION_PRINTFCALL(4, 6)
+    _log_error_contextf(hash_t context, error_level_t error_level, void* std, const char* format, size_t length, ...) {
 	va_list list;
 	va_start(list, length);
 	_log_outputf(context, error_level, "", 0, format, length, list, std);
@@ -325,8 +315,8 @@ log_error_context(hash_t context, error_level_t error_level) {
 		error_frame_t* frame = err_context->frame;
 		for (i = 0; i < err_context->depth; ++i, ++frame)
 			_log_error_contextf(context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout,
-			                    STRING_CONST("When %.*s: %.*s"), (int)frame->name.length, frame->name.str, (int)frame->data.length,
-			                    frame->data.str);
+			                    STRING_CONST("When %.*s: %.*s"), (int)frame->name.length, frame->name.str,
+			                    (int)frame->data.length, frame->data.str);
 	}
 }
 
@@ -399,4 +389,3 @@ _log_finalize(void) {
 	_log_suppress = 0;
 #endif
 }
-

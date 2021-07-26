@@ -1,10 +1,10 @@
-/* pipe.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* pipe.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -30,8 +30,7 @@ static stream_vtable_t _pipe_stream_vtable;
 
 stream_t*
 pipe_allocate(void) {
-	stream_pipe_t* pipestream = memory_allocate(HASH_STREAM, sizeof(stream_pipe_t), 8,
-	                                            MEMORY_PERSISTENT);
+	stream_pipe_t* pipestream = memory_allocate(HASH_STREAM, sizeof(stream_pipe_t), 8, MEMORY_PERSISTENT);
 	pipe_initialize(pipestream);
 	return (stream_t*)pipestream;
 }
@@ -44,14 +43,13 @@ pipe_initialize(stream_pipe_t* pipestream) {
 	stream_initialize(stream, system_byteorder());
 
 	pipestream->type = STREAMTYPE_PIPE;
-	pipestream->path = string_allocate_format(STRING_CONST("pipe://0x%" PRIfixPTR),
-	                                          (uintptr_t)pipestream);
+	pipestream->path = string_allocate_format(STRING_CONST("pipe://0x%" PRIfixPTR), (uintptr_t)pipestream);
 	pipestream->mode = STREAM_OUT | STREAM_IN | STREAM_BINARY;
 	pipestream->sequential = true;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		//Inheritable by default so process can use for stdstreams
+		// Inheritable by default so process can use for stdstreams
 		HANDLE hread, hwrite;
 		SECURITY_ATTRIBUTES security_attribs;
 		memset(&security_attribs, 0, sizeof(security_attribs));
@@ -63,14 +61,13 @@ pipe_initialize(stream_pipe_t* pipestream) {
 			string_const_t errmsg = system_error_message(0);
 			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe: %.*s"),
 			           STRING_FORMAT(errmsg));
-		}
-		else {
+		} else {
 			pipestream->fd_read = _open_osfhandle((intptr_t)hread, _O_RDONLY | _O_BINARY);
 			pipestream->fd_write = _open_osfhandle((intptr_t)hwrite, _O_WRONLY | _O_BINARY);
 			if (!pipestream->fd_read || !pipestream->fd_write) {
 				string_const_t errmsg = system_error_message(0);
-				log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe file descriptors: %.*s"),
-				           STRING_FORMAT(errmsg));
+				log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
+				           STRING_CONST("Unable to create unnamed pipe file descriptors: %.*s"), STRING_FORMAT(errmsg));
 				if (pipestream->fd_read)
 					close(pipestream->fd_read);
 				else
@@ -80,19 +77,18 @@ pipe_initialize(stream_pipe_t* pipestream) {
 				else
 					CloseHandle(hwrite);
 				pipestream->fd_read = pipestream->fd_write = 0;
-			}
-			else {
+			} else {
 				unsigned long mode = PIPE_READMODE_BYTE | PIPE_WAIT;
 				if (!SetNamedPipeHandleState(hread, &mode, 0, 0)) {
 					string_const_t errmsg = system_error_message(0);
-					log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe handle state: %.*s"),
-						STRING_FORMAT(errmsg));
+					log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
+					           STRING_CONST("Unable to create unnamed pipe handle state: %.*s"), STRING_FORMAT(errmsg));
 				}
 			}
 		}
 	}
 #else
-	int fds[2] = { 0, 0 };
+	int fds[2] = {0, 0};
 	if (pipe(fds) < 0) {
 		string_const_t errmsg = system_error_message(0);
 		log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to create unnamed pipe: %.*s"),
@@ -178,21 +174,20 @@ pipe_write_fd(stream_t* stream) {
 }
 
 static size_t
-_pipe_stream_read(stream_t* stream, void* dest, size_t num) {
+_pipe_stream_read(stream_t* stream, void* dest, size_t size) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 	if (pipestream->fd_read && ((pipestream->mode & STREAM_IN) != 0)) {
 		size_t total_read = 0;
 		do {
-			ssize_t num_read = read(pipestream->fd_read, pointer_offset(dest, total_read),
-			                        (pipe_size_t)(num - total_read));
-			if (num_read <= 0) {
+			ssize_t was_read =
+			    read(pipestream->fd_read, pointer_offset(dest, total_read), (pipe_size_t)(size - total_read));
+			if (was_read <= 0) {
 				pipestream->eos = true;
 				break;
 			}
-			total_read += (size_t)num_read;
-		}
-		while (total_read < num);
+			total_read += (size_t)was_read;
+		} while (total_read < size);
 		return total_read;
 	}
 
@@ -200,21 +195,20 @@ _pipe_stream_read(stream_t* stream, void* dest, size_t num) {
 }
 
 static size_t
-_pipe_stream_write(stream_t* stream, const void* source, size_t num) {
+_pipe_stream_write(stream_t* stream, const void* source, size_t size) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 	if (pipestream->fd_write && ((pipestream->mode & STREAM_OUT) != 0)) {
 		size_t total_written = 0;
 		do {
-			ssize_t num_written = write(pipestream->fd_write, pointer_offset_const(source, total_written),
-			                             (pipe_size_t)(num - total_written));
-			if (num_written <= 0) {
+			ssize_t was_written = write(pipestream->fd_write, pointer_offset_const(source, total_written),
+			                            (pipe_size_t)(size - total_written));
+			if (was_written <= 0) {
 				pipestream->eos = true;
 				break;
 			}
-			total_written += (size_t)num_written;
-		}
-		while (total_written < num);
+			total_written += (size_t)was_written;
+		} while (total_written < size);
 		return total_written;
 	}
 

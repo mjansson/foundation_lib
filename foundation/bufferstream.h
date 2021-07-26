@@ -1,10 +1,10 @@
-/* bufferstream.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* bufferstream.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -36,8 +36,7 @@ deallocated with a call to #stream_deallocate.
 \param grow      Allow growing buffer by reallocating memory (requires buffer to be adopted)
 \return          New stream */
 FOUNDATION_API stream_t*
-buffer_stream_allocate(void* buffer, unsigned int mode, size_t size,
-                       size_t capacity, bool adopt, bool grow);
+buffer_stream_allocate(void* buffer, unsigned int mode, size_t size, size_t capacity, bool adopt, bool grow);
 
 /*! Initialize a new stream for memory buffers from an (optionally) existing buffer.
 The buffer can grow up to the given capacity. If adopt and grow flags set it will
@@ -51,5 +50,5 @@ a call to #stream_finalize
 \param adopt     Take ownership of buffer
 \param grow      Allow growing buffer by reallocating memory (requires buffer to be adopted) */
 FOUNDATION_API void
-buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mode,
-                         size_t size, size_t capacity, bool adopt, bool grow);
+buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mode, size_t size, size_t capacity,
+                         bool adopt, bool grow);

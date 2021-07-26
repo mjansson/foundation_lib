@@ -1,10 +1,10 @@
-/* main.c  -  Foundation base64 test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation base64 test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_base64_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation base64 tests"));
 	app.short_name = string_const(STRING_CONST("test_base64"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -59,7 +59,7 @@ DECLARE_TEST(base64, encode_decode) {
 	for (written = 0; written < 128; ++written)
 		test_data64[written] = random64();
 
-	//Test encode/decode zero/one blocks
+	// Test encode/decode zero/one blocks
 	{
 		written = base64_encode(test_data, 1, test_string, 1);
 		EXPECT_EQ(written, 1);
@@ -112,7 +112,7 @@ DECLARE_TEST(base64, encode_decode) {
 		EXPECT_EQ(guard_value, test_data[1]);
 	}
 
-	//Test encode/decode larger blocks
+	// Test encode/decode larger blocks
 	{
 		written = base64_encode(test_data, 32, test_string, 8);
 		EXPECT_EQ(written, 5);
@@ -320,15 +320,13 @@ test_base64_declare(void) {
 	ADD_TEST(base64, encode_decode);
 }
 
-static test_suite_t test_base64_suite = {
-	test_base64_application,
-	test_base64_memory_system,
-	test_base64_config,
-	test_base64_declare,
-	test_base64_initialize,
-	test_base64_finalize,
-	0
-};
+static test_suite_t test_base64_suite = {test_base64_application,
+                                         test_base64_memory_system,
+                                         test_base64_config,
+                                         test_base64_declare,
+                                         test_base64_initialize,
+                                         test_base64_finalize,
+                                         0};
 
 #if BUILD_MONOLITHIC
 
@@ -352,5 +350,3 @@ test_suite_define(void) {
 }
 
 #endif
-
-

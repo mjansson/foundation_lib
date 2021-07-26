@@ -1,10 +1,10 @@
-/* main.c  -  Foundation bufferstream test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation bufferstream test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_bufferstream_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation bufferstream tests"));
 	app.short_name = string_const(STRING_CONST("test_bufferstream"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -69,7 +69,7 @@ DECLARE_TEST(bufferstream, null) {
 	EXPECT_EQ(stream_available_read(stream), 0);
 	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5zero));
 
-	//No buffer and not growing - all read/write ops should do nothing
+	// No buffer and not growing - all read/write ops should do nothing
 	EXPECT_EQ(stream_read(stream, readbuffer, 1024), 0);
 	EXPECT_EQ(stream_write(stream, writebuffer, 1024), 0);
 	EXPECT_TRUE(stream_eos(stream));
@@ -127,7 +127,7 @@ DECLARE_TEST(bufferstream, zero) {
 	EXPECT_EQ(stream_available_read(stream), 0);
 	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5null));
 
-	//No buffer and not growing - all read/write ops should do nothing
+	// No buffer and not growing - all read/write ops should do nothing
 	EXPECT_EQ(stream_read(stream, readbuffer, 1024), 0);
 	EXPECT_EQ(stream_write(stream, writebuffer, 1024), 0);
 	EXPECT_TRUE(stream_eos(stream));
@@ -216,7 +216,7 @@ DECLARE_TEST(bufferstream, null_grow) {
 
 	stream_deallocate(stream);
 
-	//Test invalid parameter combo (size > capacity) (!adopt && grow)
+	// Test invalid parameter combo (size > capacity) (!adopt && grow)
 	log_enable_stdout(false);
 	stream = buffer_stream_allocate(0, STREAM_IN | STREAM_OUT, 256, 0, false, true);
 	log_enable_stdout(true);
@@ -275,8 +275,7 @@ DECLARE_TEST(bufferstream, zero_grow) {
 	EXPECT_EQ(stream_available_read(stream), 0);
 	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5null));
 
-	writestr = string_copy(writebuffer, 1024,
-	                       STRING_CONST("MD5 test string for which the value is precomputed"));
+	writestr = string_copy(writebuffer, 1024, STRING_CONST("MD5 test string for which the value is precomputed"));
 	EXPECT_EQ(stream_write(stream, writebuffer, writestr.length), writestr.length);
 	EXPECT_TRUE(stream_eos(stream));
 	EXPECT_EQ(stream_size(stream), writestr.length);
@@ -339,8 +338,7 @@ DECLARE_TEST(bufferstream, zero_nogrow) {
 	EXPECT_EQ(stream_available_read(stream), 0);
 	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5null));
 
-	writestr = string_copy(writebuffer, 1024,
-	                       STRING_CONST("MD5 test string for which the value is precomputed"));
+	writestr = string_copy(writebuffer, 1024, STRING_CONST("MD5 test string for which the value is precomputed"));
 	EXPECT_EQ(stream_write(stream, writebuffer, writestr.length), writestr.length);
 	EXPECT_TRUE(stream_eos(stream));
 	EXPECT_EQ(stream_size(stream), writestr.length);
@@ -404,8 +402,7 @@ DECLARE_TEST(bufferstream, sized_grow) {
 	EXPECT_EQ(stream_available_read(stream), 315);
 	EXPECT_FALSE(uint128_equal(stream_md5(stream), md5null));
 
-	writestr = string_copy(writebuffer, 1024,
-	                       STRING_CONST("MD5 test string for which the value is precomputed"));
+	writestr = string_copy(writebuffer, 1024, STRING_CONST("MD5 test string for which the value is precomputed"));
 	EXPECT_EQ(stream_write(stream, writebuffer, writestr.length), writestr.length);
 	EXPECT_FALSE(stream_eos(stream));
 	EXPECT_EQ(stream_size(stream), 315);
@@ -450,8 +447,7 @@ DECLARE_TEST(bufferstream, sized_grow) {
 	EXPECT_EQ(stream_available_read(stream), 0);
 	EXPECT_TRUE(uint128_equal(stream_md5(stream), md5null));
 
-	writestr = string_copy(writebuffer, 1024,
-	                       STRING_CONST("MD5 test string for which the value is precomputed"));
+	writestr = string_copy(writebuffer, 1024, STRING_CONST("MD5 test string for which the value is precomputed"));
 	EXPECT_EQ(stream_write(stream, writebuffer, writestr.length), writestr.length);
 	EXPECT_TRUE(stream_eos(stream));
 	EXPECT_EQ(stream_size(stream), writestr.length);
@@ -514,8 +510,7 @@ DECLARE_TEST(bufferstream, sized_nogrow) {
 	EXPECT_EQ(stream_available_read(stream), 315);
 	EXPECT_FALSE(uint128_equal(stream_md5(stream), md5null));
 
-	writestr = string_copy(writebuffer, 1024,
-	                       STRING_CONST("MD5 test string for which the value is precomputed"));
+	writestr = string_copy(writebuffer, 1024, STRING_CONST("MD5 test string for which the value is precomputed"));
 	EXPECT_SIZEEQ(stream_write(stream, writebuffer, writestr.length), writestr.length);
 	EXPECT_FALSE(stream_eos(stream));
 	EXPECT_EQ(stream_size(stream), 315);
@@ -599,15 +594,13 @@ test_bufferstream_declare(void) {
 	ADD_TEST(bufferstream, sized_nogrow);
 }
 
-static test_suite_t test_bufferstream_suite = {
-	test_bufferstream_application,
-	test_bufferstream_memory_system,
-	test_bufferstream_config,
-	test_bufferstream_declare,
-	test_bufferstream_initialize,
-	test_bufferstream_finalize,
-	0
-};
+static test_suite_t test_bufferstream_suite = {test_bufferstream_application,
+                                               test_bufferstream_memory_system,
+                                               test_bufferstream_config,
+                                               test_bufferstream_declare,
+                                               test_bufferstream_initialize,
+                                               test_bufferstream_finalize,
+                                               0};
 
 #if BUILD_MONOLITHIC
 

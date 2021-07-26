@@ -1,10 +1,10 @@
-/* mutex.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* mutex.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -13,27 +13,27 @@
 #include <foundation/foundation.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/windows.h>
+#include <foundation/windows.h>
 #elif FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
+#include <foundation/posix.h>
 #endif
 
 struct FOUNDATION_ALIGN(16) mutex_t {
-	char             name_buffer[32];
-	string_const_t   name;
+	char name_buffer[32];
+	string_const_t name;
 #if FOUNDATION_PLATFORM_WINDOWS
 	CRITICAL_SECTION csection;
-	void*            event;
-	atomic32_t       waiting;
+	void* event;
+	atomic32_t waiting;
 #elif FOUNDATION_PLATFORM_POSIX
-	pthread_mutex_t  mutex;
-	pthread_cond_t   cond;
-	volatile bool    pending;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+	volatile bool pending;
 #else
-#  error Not implemented
+#error Not implemented
 #endif
-	volatile int     lockcount;
-	uint64_t         lockedthread;
+	volatile int lockcount;
+	uint64_t lockedthread;
 };
 
 static void
@@ -56,7 +56,7 @@ _mutex_initialize(mutex_t* mutex, const char* name, size_t length) {
 
 	pthread_mutexattr_destroy(&attr);
 #else
-#  error _mutex_initialize not implemented
+#error _mutex_initialize not implemented
 #endif
 
 	mutex->lockcount = 0;
@@ -73,14 +73,13 @@ _mutex_finalize(mutex_t* mutex) {
 	pthread_mutex_destroy(&mutex->mutex);
 	pthread_cond_destroy(&mutex->cond);
 #else
-#  error _mutex_finalize not implemented
+#error _mutex_finalize not implemented
 #endif
 }
 
 mutex_t*
 mutex_allocate(const char* name, size_t length) {
-	mutex_t* mutex = memory_allocate(0, sizeof(mutex_t), 16,
-	                                 MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	mutex_t* mutex = memory_allocate(0, sizeof(mutex_t), 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	_mutex_initialize(mutex, name, length);
 	return mutex;
 }
@@ -111,7 +110,7 @@ mutex_try_lock(mutex_t* mutex) {
 #elif FOUNDATION_PLATFORM_POSIX
 	was_locked = (pthread_mutex_trylock(&mutex->mutex) == 0);
 #else
-#  error mutex_try_lock not implemented
+#error mutex_try_lock not implemented
 	was_locked = false;
 #endif
 #if !BUILD_DEPLOY
@@ -141,16 +140,16 @@ mutex_lock(mutex_t* mutex) {
 		return false;
 	}
 #else
-#  error mutex_lock not implemented
+#error mutex_lock not implemented
 #endif
 #if !BUILD_DEPLOY
 	profile_lock(mutex->name.str, mutex->name.length);
 #endif
 
-	FOUNDATION_ASSERT_MSGFORMAT(!mutex->lockcount ||
-	                            (thread_id() == mutex->lockedthread),
-	                            "Mutex lock acquired with lockcount > 0 (%d) and locked thread not self (%" PRIx64 " != %" PRIx64
-	                            ")", mutex->lockcount, mutex->lockedthread, thread_id());
+	FOUNDATION_ASSERT_MSGFORMAT(!mutex->lockcount || (thread_id() == mutex->lockedthread),
+	                            "Mutex lock acquired with lockcount > 0 (%d) and locked thread not self (%" PRIx64
+	                            " != %" PRIx64 ")",
+	                            mutex->lockcount, mutex->lockedthread, thread_id());
 	if (!mutex->lockcount)
 		mutex->lockedthread = thread_id();
 	++mutex->lockcount;
@@ -161,8 +160,8 @@ mutex_lock(mutex_t* mutex) {
 bool
 mutex_unlock(mutex_t* mutex) {
 	if (!mutex->lockcount) {
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to unlock unlocked mutex %.*s"),
-		          (int)mutex->name.length, mutex->name.str);
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to unlock unlocked mutex %.*s"), (int)mutex->name.length,
+		          mutex->name.str);
 		return false;
 	}
 
@@ -181,11 +180,10 @@ mutex_unlock(mutex_t* mutex) {
 		return false;
 	}
 #else
-#  error mutex_unlock not implemented
+#error mutex_unlock not implemented
 #endif
 	return true;
 }
-
 
 bool
 mutex_wait(mutex_t* mutex) {
@@ -242,17 +240,15 @@ mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 		int ret = pthread_cond_wait(&mutex->cond, &mutex->mutex);
 		if (ret == 0) {
 			was_signal = true;
-		}
-		else {
+		} else {
 			string_const_t errmsg = system_error_message(ret);
 			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to wait on mutex '%.*s': %.*s (%d)"),
 			           STRING_FORMAT(mutex->name), STRING_FORMAT(errmsg), ret);
 		}
-	}
-	else {
+	} else {
 		int ret;
 		gettimeofday(&now, 0);
-		then.tv_sec  = now.tv_sec + (time_t)(milliseconds / 1000);
+		then.tv_sec = now.tv_sec + (time_t)(milliseconds / 1000);
 		then.tv_nsec = (now.tv_usec * 1000) + (long)(milliseconds % 1000) * 1000000L;
 		while (then.tv_nsec >= 1000000000L) {
 			++then.tv_sec;
@@ -261,11 +257,9 @@ mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 		ret = pthread_cond_timedwait(&mutex->cond, &mutex->mutex, &then);
 		if (ret == 0) {
 			was_signal = true;
-		}
-		else if (ret != ETIMEDOUT) {
+		} else if (ret != ETIMEDOUT) {
 			string_const_t errmsg = system_error_message(ret);
-			log_errorf(0, ERROR_SYSTEM_CALL_FAIL,
-			           STRING_CONST("Unable to wait (timed) on mutex '%.*s': %.*s (%d)"),
+			log_errorf(0, ERROR_SYSTEM_CALL_FAIL, STRING_CONST("Unable to wait (timed) on mutex '%.*s': %.*s (%d)"),
 			           STRING_FORMAT(mutex->name), STRING_FORMAT(errmsg), ret);
 		}
 	}
@@ -281,7 +275,7 @@ mutex_try_wait(mutex_t* mutex, unsigned int milliseconds) {
 	return was_signal;
 
 #else
-#  error mutex_wait not implemented
+#error mutex_wait not implemented
 #endif
 }
 
@@ -310,7 +304,7 @@ mutex_signal(mutex_t* mutex) {
 	mutex_unlock(mutex);
 
 #else
-#  error mutex_signal not implemented
+#error mutex_signal not implemented
 #endif
 }
 
@@ -322,4 +316,3 @@ mutex_event_handle(mutex_t* mutex) {
 }
 
 #endif
-

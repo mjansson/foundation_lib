@@ -1,10 +1,10 @@
-/* main.c  -  Foundation uuid test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation uuid test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_uuid_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation uuid tests"));
 	app.short_name = string_const(STRING_CONST("test_uuid"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -49,7 +49,7 @@ test_uuid_finalize(void) {
 DECLARE_TEST(uuid, generate) {
 	int iloop;
 	uuid_t uuid, uuid_ref;
-	char name_str[] = "com.rampantpixels.foundation.uuid.000000";
+	char name_str[] = "com.maniccoder.foundation.uuid.000000";
 
 	uuid = uuid_null();
 	uuid_ref = uuid_null();
@@ -58,7 +58,7 @@ DECLARE_TEST(uuid, generate) {
 	EXPECT_TRUE(uuid_is_null(uuid_ref));
 	EXPECT_TRUE(uuid_equal(uuid, uuid_ref));
 
-	//Random based
+	// Random based
 	uuid = uuid_generate_random();
 	uuid_ref = uuid_null();
 
@@ -100,7 +100,7 @@ DECLARE_TEST(uuid, generate) {
 		EXPECT_TRUE(uuid_equal(uuid_ref, uuid_ref));
 	}
 
-	//Time based
+	// Time based
 	uuid = uuid_generate_time();
 	uuid_ref = uuid_null();
 
@@ -142,8 +142,8 @@ DECLARE_TEST(uuid, generate) {
 		EXPECT_TRUE(uuid_equal(uuid_ref, uuid_ref));
 	}
 
-	//Name based
-	uuid = uuid_generate_name(UUID_DNS, STRING_CONST("com.rampantpixels.foundation.uuid"));
+	// Name based
+	uuid = uuid_generate_name(UUID_DNS, STRING_CONST("com.maniccoder.foundation.uuid"));
 	uuid_ref = uuid_null();
 
 	EXPECT_FALSE(uuid_is_null(uuid));
@@ -153,8 +153,8 @@ DECLARE_TEST(uuid, generate) {
 	EXPECT_TRUE(uuid_equal(uuid, uuid));
 	EXPECT_TRUE(uuid_equal(uuid_ref, uuid_ref));
 
-	uuid = uuid_generate_name(UUID_DNS, STRING_CONST("com.rampantpixels.foundation.uuid.1"));
-	uuid_ref = uuid_generate_name(UUID_DNS, STRING_CONST("com.rampantpixels.foundation.uuid.2"));
+	uuid = uuid_generate_name(UUID_DNS, STRING_CONST("com.maniccoder.foundation.uuid.1"));
+	uuid_ref = uuid_generate_name(UUID_DNS, STRING_CONST("com.maniccoder.foundation.uuid.2"));
 
 	EXPECT_FALSE(uuid_is_null(uuid));
 	EXPECT_FALSE(uuid_is_null(uuid_ref));
@@ -163,7 +163,7 @@ DECLARE_TEST(uuid, generate) {
 	EXPECT_TRUE(uuid_equal(uuid, uuid));
 	EXPECT_TRUE(uuid_equal(uuid_ref, uuid_ref));
 
-	uuid = uuid_generate_name(UUID_DNS, STRING_CONST("com.rampantpixels.foundation.uuid.2"));
+	uuid = uuid_generate_name(UUID_DNS, STRING_CONST("com.maniccoder.foundation.uuid.2"));
 
 	EXPECT_FALSE(uuid_is_null(uuid));
 	EXPECT_FALSE(uuid_is_null(uuid_ref));
@@ -173,8 +173,7 @@ DECLARE_TEST(uuid, generate) {
 	EXPECT_TRUE(uuid_equal(uuid_ref, uuid_ref));
 
 	for (iloop = 0; iloop < 10000; ++iloop) {
-		string_t str = string_format(name_str, 40, STRING_CONST("com.rampantpixels.foundation.uuid.%05u"),
-		                             iloop);
+		string_t str = string_format(name_str, 40, STRING_CONST("com.maniccoder.foundation.uuid.%05u"), iloop);
 
 		uuid_ref = uuid;
 		uuid = uuid_generate_name(UUID_DNS, str.str, str.length);
@@ -190,15 +189,15 @@ DECLARE_TEST(uuid, generate) {
 	return 0;
 }
 
-#define NUM_UUIDS 4096
-static uuid_t uuid_thread_store[32][NUM_UUIDS];
+#define UUIDS_COUNT 4096
+static uuid_t uuid_thread_store[32][UUIDS_COUNT];
 
 static void*
 uuid_thread_time(void* arg) {
 	int i;
 	int ithread = (int)(uintptr_t)arg;
 
-	for (i = 0; i < NUM_UUIDS; ++i)
+	for (i = 0; i < UUIDS_COUNT; ++i)
 		uuid_thread_store[ithread][i] = uuid_generate_time();
 
 	return 0;
@@ -207,28 +206,28 @@ uuid_thread_time(void* arg) {
 DECLARE_TEST(uuid, threaded) {
 	thread_t thread[32];
 	size_t ith, i, jth, j;
-	size_t num_threads = math_clamp(system_hardware_threads() * 2, 4, 8);
+	size_t threads_count = math_clamp(system_hardware_threads() * 2, 4, 8);
 
-	for (ith = 0; ith < num_threads; ++ith)
-		thread_initialize(&thread[ith], uuid_thread_time, (void*)(uintptr_t)ith,
-		                  STRING_CONST("uuid_thread"), THREAD_PRIORITY_NORMAL, 0);
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
+		thread_initialize(&thread[ith], uuid_thread_time, (void*)(uintptr_t)ith, STRING_CONST("uuid_thread"),
+		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_start(&thread[ith]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_finalize(&thread[ith]);
 
-	for (ith = 0; ith < num_threads; ++ith) {
-		for (i = 0; i < NUM_UUIDS; ++i) {
-			for (jth = ith + 1; jth < num_threads; ++jth) {
-				for (j = 0; j < NUM_UUIDS; ++j) {
+	for (ith = 0; ith < threads_count; ++ith) {
+		for (i = 0; i < UUIDS_COUNT; ++i) {
+			for (jth = ith + 1; jth < threads_count; ++jth) {
+				for (j = 0; j < UUIDS_COUNT; ++j) {
 					EXPECT_FALSE(uuid_equal(uuid_thread_store[ith][i], uuid_thread_store[jth][j]));
 				}
 			}
-			for (j = i + 1; j < NUM_UUIDS; ++j) {
+			for (j = i + 1; j < UUIDS_COUNT; ++j) {
 				EXPECT_FALSE(uuid_equal(uuid_thread_store[ith][i], uuid_thread_store[ith][j]));
 			}
 		}
@@ -280,15 +279,13 @@ test_uuid_declare(void) {
 	ADD_TEST(uuid, string);
 }
 
-static test_suite_t test_uuid_suite = {
-	test_uuid_application,
-	test_uuid_memory_system,
-	test_uuid_config,
-	test_uuid_declare,
-	test_uuid_initialize,
-	test_uuid_finalize,
-	0
-};
+static test_suite_t test_uuid_suite = {test_uuid_application,
+                                       test_uuid_memory_system,
+                                       test_uuid_config,
+                                       test_uuid_declare,
+                                       test_uuid_initialize,
+                                       test_uuid_finalize,
+                                       0};
 
 #if BUILD_MONOLITHIC
 

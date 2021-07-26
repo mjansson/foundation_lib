@@ -1,10 +1,10 @@
-/* posix.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* posix.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -23,24 +23,24 @@ Safe inclusion of posix headers */
 #if FOUNDATION_PLATFORM_POSIX
 
 #if FOUNDATION_COMPILER_GCC
-#  pragma GCC diagnostic push
-#  if FOUNDATION_GCC_VERSION > 40700
-#    pragma GCC diagnostic ignored "-Wpedantic"
-#  endif
+#pragma GCC diagnostic push
+#if FOUNDATION_GCC_VERSION > 40700
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 #elif FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  if __has_warning( "-Wreserved-id-macro" )
-#    pragma clang diagnostic ignored "-Wreserved-id-macro"
-#  endif
-#  if __has_warning( "-Wpedantic" )
-#    pragma clang diagnostic ignored "-Wpedantic"
-#  endif
-#  if __has_warning( "-Wundef" )
-#    pragma clang diagnostic ignored "-Wundef"
-#  endif
-#  if __has_warning( "-Wpacked" )
-#    pragma clang diagnostic ignored "-Wpacked"
-#  endif
+#pragma clang diagnostic push
+#if __has_warning("-Wreserved-id-macro")
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
+#endif
+#if __has_warning("-Wpedantic")
+#pragma clang diagnostic ignored "-Wpedantic"
+#endif
+#if __has_warning("-Wundef")
+#pragma clang diagnostic ignored "-Wundef"
+#endif
+#if __has_warning("-Wpacked")
+#pragma clang diagnostic ignored "-Wpacked"
+#endif
 #endif
 
 #define radixsort __stdlib_radixsort
@@ -54,7 +54,7 @@ Safe inclusion of posix headers */
 #endif
 
 #ifndef _GNU_SOURCE
-#  define _GNU_SOURCE 1
+#define _GNU_SOURCE 1
 #endif
 
 #include <unistd.h>
@@ -81,7 +81,7 @@ Safe inclusion of posix headers */
 #endif
 
 #if !FOUNDATION_PLATFORM_ANDROID
-#  include <execinfo.h>
+#include <execinfo.h>
 #endif
 
 #undef radixsort
@@ -92,9 +92,9 @@ Safe inclusion of posix headers */
 #endif
 
 #if FOUNDATION_COMPILER_GCC
-#  pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 #elif FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #endif
 
 #endif

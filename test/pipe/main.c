@@ -1,10 +1,10 @@
-/* main.c  -  Foundation pipe test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation pipe test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_pipe_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation pipe tests"));
 	app.short_name = string_const(STRING_CONST("test_pipe"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -188,15 +188,13 @@ test_pipe_declare(void) {
 	ADD_TEST(pipe, readwrite);
 }
 
-static test_suite_t test_pipe_suite = {
-	test_pipe_application,
-	test_pipe_memory_system,
-	test_pipe_config,
-	test_pipe_declare,
-	test_pipe_initialize,
-	test_pipe_finalize,
-	0
-};
+static test_suite_t test_pipe_suite = {test_pipe_application,
+                                       test_pipe_memory_system,
+                                       test_pipe_config,
+                                       test_pipe_declare,
+                                       test_pipe_initialize,
+                                       test_pipe_finalize,
+                                       0};
 
 #if BUILD_MONOLITHIC
 

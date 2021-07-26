@@ -1,10 +1,10 @@
-/* uuidmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* uuidmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -12,36 +12,35 @@
 
 #include <foundation/foundation.h>
 
-#define UUIDMAP_MINBUCKETS     13
+#define UUIDMAP_MINBUCKETS 13
 
-#define GET_BUCKET(map, key) ((size_t)((key.word[0] ^ key.word[1]) % (uint64_t)map->num_buckets))
+#define GET_BUCKET(map, key) ((size_t)((key.word[0] ^ key.word[1]) % (uint64_t)map->bucket_count))
 
 uuidmap_t*
-uuidmap_allocate(size_t buckets, size_t bucketsize) {
+uuidmap_allocate(size_t bucket_count, size_t bucket_size) {
 	uuidmap_t* map;
 
-	if (buckets < UUIDMAP_MINBUCKETS)
-		buckets = UUIDMAP_MINBUCKETS;
+	if (bucket_count < UUIDMAP_MINBUCKETS)
+		bucket_count = UUIDMAP_MINBUCKETS;
 
-	map = memory_allocate(0, sizeof(uuidmap_t) + sizeof(uuidmap_node_t*) * buckets, 0,
-	                      MEMORY_PERSISTENT);
+	map = memory_allocate(0, sizeof(uuidmap_t) + sizeof(uuidmap_node_t*) * bucket_count, 0, MEMORY_PERSISTENT);
 
-	uuidmap_initialize(map, buckets, bucketsize);
+	uuidmap_initialize(map, bucket_count, bucket_size);
 
 	return map;
 }
 
 void
-uuidmap_initialize(uuidmap_t* map, size_t buckets, size_t bucketsize) {
+uuidmap_initialize(uuidmap_t* map, size_t bucket_count, size_t bucket_size) {
 	size_t ibucket;
 
-	map->num_buckets = buckets;
-	map->num_nodes   = 0;
+	map->bucket_count = bucket_count;
+	map->node_count = 0;
 
-	for (ibucket = 0; ibucket < buckets; ++ibucket) {
+	for (ibucket = 0; ibucket < bucket_count; ++ibucket) {
 		map->bucket[ibucket] = 0;
-		if (bucketsize)
-			array_reserve(map->bucket[ibucket], bucketsize);
+		if (bucket_size)
+			array_reserve(map->bucket[ibucket], bucket_size);
 	}
 }
 
@@ -54,7 +53,7 @@ uuidmap_deallocate(uuidmap_t* map) {
 void
 uuidmap_finalize(uuidmap_t* map) {
 	size_t ibucket;
-	for (ibucket = 0; ibucket < map->num_buckets; ++ibucket)
+	for (ibucket = 0; ibucket < map->bucket_count; ++ibucket)
 		array_deallocate(map->bucket[ibucket]);
 }
 
@@ -72,9 +71,9 @@ uuidmap_insert(uuidmap_t* map, uuid_t key, void* value) {
 		}
 	}
 	{
-		uuidmap_node_t node = { key, value };
+		uuidmap_node_t node = {key, value};
 		array_push(map->bucket[ibucket], node);
-		++map->num_nodes;
+		++map->node_count;
 	}
 	return 0;
 }
@@ -89,7 +88,7 @@ uuidmap_erase(uuidmap_t* map, uuid_t key) {
 		if (uuid_equal(bucket[inode].key, key)) {
 			void* prev = bucket[inode].value;
 			array_erase(map->bucket[ibucket], inode);
-			--map->num_nodes;
+			--map->node_count;
 			return prev;
 		}
 	}
@@ -124,13 +123,13 @@ uuidmap_has_key(uuidmap_t* map, uuid_t key) {
 
 size_t
 uuidmap_size(uuidmap_t* map) {
-	return map->num_nodes;
+	return map->node_count;
 }
 
 void
 uuidmap_clear(uuidmap_t* map) {
 	size_t ibucket;
-	for (ibucket = 0; ibucket < map->num_buckets; ++ibucket)
+	for (ibucket = 0; ibucket < map->bucket_count; ++ibucket)
 		array_clear(map->bucket[ibucket]);
-	map->num_nodes = 0;
+	map->node_count = 0;
 }

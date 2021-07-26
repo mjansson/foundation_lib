@@ -1,10 +1,10 @@
-/* path.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* path.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -98,8 +98,7 @@ is considered to be a relative path.
 \param second_length Length of second path
 \return Concatenated path in new allocated memory buffer */
 FOUNDATION_API string_t
-path_allocate_concat(const char* first, size_t first_length, const char* second,
-                     size_t second_length);
+path_allocate_concat(const char* first, size_t first_length, const char* second, size_t second_length);
 
 /*! Allocate a new string which is the concatenation of the given paths. The first
 path part determines if path is absolute or relative. Note that an emtpy string
@@ -109,8 +108,7 @@ size_t) arguments and terminated by a null pointer.
 \param first_length Length of first path
 \return Concatenated path in new allocated memory buffer */
 FOUNDATION_API string_t
-path_allocate_concat_varg(const char* first, size_t first_length, ...)
-FOUNDATION_ATTRIBUTE(sentinel);
+path_allocate_concat_varg(const char* first, size_t first_length, ...) FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Allocate a new string which is the concatenation of the given paths. The first
 path part determines if path is absolute or relative. Note that an emtpy string
@@ -136,8 +134,8 @@ an emtpy string is considered to be a relative path.
 \param second_length Length of second path
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
-path_concat(char* dest, size_t capacity, const char* first, size_t first_length,
-            const char* second, size_t second_length);
+path_concat(char* dest, size_t capacity, const char* first, size_t first_length, const char* second,
+            size_t second_length);
 
 /*! Concatenation of the given paths into the given buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The first path part
@@ -152,7 +150,7 @@ is zero, in which case an empty string is returned.
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
 path_concat_varg(char* dest, size_t capacity, const char* first, size_t first_length, ...)
-FOUNDATION_ATTRIBUTE(sentinel);
+    FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Concatenation of the given paths into the given buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The first path part
@@ -167,8 +165,7 @@ is zero, in which case an empty string is returned.
 \param list Path argument list
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
-path_concat_vlist(char* dest, size_t capacity, const char* first, size_t first_length,
-                  va_list list);
+path_concat_vlist(char* dest, size_t capacity, const char* first, size_t first_length, va_list list);
 
 /*! Append given path at the end of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. Returned path is
@@ -181,8 +178,7 @@ returned.
 \param tail_length Length of tail path
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
-path_append(char* base, size_t base_length, size_t base_capacity, const char* tail,
-            size_t tail_length);
+path_append(char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length);
 
 /*! Append given paths at the end of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
@@ -196,9 +192,8 @@ empty string is returned.
 \param tail_length Length of tail path
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
-path_append_varg(char* base, size_t base_length, size_t base_capacity, const char* tail,
-                 size_t tail_length, ...)
-FOUNDATION_ATTRIBUTE(sentinel);
+path_append_varg(char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length, ...)
+    FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Append given paths at the end of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
@@ -213,8 +208,8 @@ empty string is returned.
 \param list Tail path argument list
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
-path_append_vlist(char* base, size_t base_length, size_t base_capacity, const char* tail,
-                  size_t tail_length, va_list list);
+path_append_vlist(char* base, size_t base_length, size_t base_capacity, const char* tail, size_t tail_length,
+                  va_list list);
 
 /*! Prepend given path at the start of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. Returned path is
@@ -227,8 +222,7 @@ returned.
 \param base_length Length of base path
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
-path_prepend(char* tail, size_t tail_length, size_t tail_capacity, const char* base,
-             size_t base_length);
+path_prepend(char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length);
 
 /*! Prepend given paths at the start of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
@@ -243,9 +237,8 @@ will be the first path fragment in the concatenated final path.
 \param base_length Length of first base path
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
-path_prepend_varg(char* tail, size_t tail_length, size_t tail_capacity, const char* base,
-                  size_t base_length, ...)
-FOUNDATION_ATTRIBUTE(sentinel);
+path_prepend_varg(char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length, ...)
+    FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Prepend given paths at the start of the given path buffer. If the concatenated path does
 not fit into the capacity of the buffer, the path will be truncated. The path argument
@@ -261,8 +254,8 @@ will be the first path fragment in the concatenated final path.
 \param list List of base paths
 \return Concatenated path in given memory buffer */
 FOUNDATION_API string_t
-path_prepend_vlist(char* tail, size_t tail_length, size_t tail_capacity, const char* base,
-                   size_t base_length, va_list list);
+path_prepend_vlist(char* tail, size_t tail_length, size_t tail_capacity, const char* base, size_t base_length,
+                   va_list list);
 
 /*! Make the path in real filesystem absolute by prepending the current working directory
 if the path is relative, and cleaning out ".." and "." directories. Returns empty string
@@ -317,4 +310,3 @@ temporary storage
 \return A unique temporary path stored in given buffer */
 FOUNDATION_API string_t
 path_make_temporary(char* buffer, size_t capacity);
-

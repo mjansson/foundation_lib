@@ -1,10 +1,10 @@
-/* memory.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* memory.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -14,19 +14,19 @@
 #include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
-#  include <foundation/windows.h>
+#include <foundation/windows.h>
 #endif
 #if FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
-#  include <sys/mman.h>
+#include <foundation/posix.h>
+#include <sys/mman.h>
 #endif
 
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
-#  include <malloc.h>
+#include <malloc.h>
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG)
-#  include <malloc.h>
+#include <malloc.h>
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
@@ -49,8 +49,7 @@ typedef FOUNDATION_ALIGN(8) struct {
 	atomic32_t allocated_current;
 } memory_statistics_atomic_t;
 
-FOUNDATION_STATIC_ASSERT(sizeof(memory_statistics_t) == sizeof(memory_statistics_atomic_t),
-                         "statistics sizes differs");
+FOUNDATION_STATIC_ASSERT(sizeof(memory_statistics_t) == sizeof(memory_statistics_atomic_t), "statistics sizes differs");
 
 static memory_statistics_atomic_t _memory_stats;
 
@@ -71,8 +70,15 @@ _memory_untrack(void* addr);
 
 #else
 
-#define _memory_track(addr, size ) do { (void)sizeof( (addr) ); (void)sizeof( (size) ); } while(0)
-#define _memory_untrack(addr) do { (void)sizeof( (addr) ); } while(0)
+#define _memory_track(addr, size) \
+	do {                          \
+		(void)sizeof((addr));     \
+		(void)sizeof((size));     \
+	} while (0)
+#define _memory_untrack(addr) \
+	do {                      \
+		(void)sizeof((addr)); \
+	} while (0)
 
 #endif
 
@@ -179,12 +185,12 @@ void
 memory_context_push(hash_t context_id) {
 	memory_context_t* context = get_thread_memory_context();
 	if (!context) {
-		context = memory_allocate(0, sizeof(memory_context_t) +
-		                          (sizeof(hash_t) * foundation_config().memory_context_depth),
-		                          0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		context =
+		    memory_allocate(0, sizeof(memory_context_t) + (sizeof(hash_t) * foundation_config().memory_context_depth),
+		                    0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_memory_context(context);
 	}
-	context->context[ context->depth ] = context_id;
+	context->context[context->depth] = context_id;
 	if (context->depth < (foundation_config().memory_context_depth - 1))
 		++context->depth;
 }
@@ -199,7 +205,7 @@ memory_context_pop(void) {
 hash_t
 memory_context(void) {
 	memory_context_t* context = get_thread_memory_context();
-	return (context && (context->depth > 0)) ? context->context[ context->depth - 1 ] : 0;
+	return (context && (context->depth > 0)) ? context->context[context->depth - 1] : 0;
 }
 
 void
@@ -268,14 +274,13 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	memory = _aligned_malloc(size, align);
 #else
 	if (align > FOUNDATION_MIN_ALIGN) {
-#  if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
+#if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 		if (posix_memalign(&memory, align, size))
 			memory = 0;
-#  else
+#else
 		memory = aligned_alloc(align, size);
-#  endif
-	}
-	else {
+#endif
+	} else {
 		memory = malloc(size);
 	}
 #endif
@@ -283,14 +288,14 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	memory = _memory_guard_initialize(memory, size, align);
 #endif
 	if (!memory) {
-		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"), size);
+		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"),
+		           size);
 	}
 	return memory;
 }
 
 static void*
-_memory_allocate_malloc(hash_t context, size_t size, unsigned  int align, unsigned int hint) {
+_memory_allocate_malloc(hash_t context, size_t size, unsigned int align, unsigned int hint) {
 	void* block;
 	FOUNDATION_UNUSED(context);
 	block = _memory_allocate_malloc_raw(size, align, hint);
@@ -315,18 +320,17 @@ _memory_deallocate_malloc(void* p) {
 }
 
 static void*
-_memory_reallocate_malloc(void* p, size_t size, unsigned  int align, size_t oldsize,
-                          unsigned int hint) {
+_memory_reallocate_malloc(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint) {
 #if BUILD_ENABLE_MEMORY_GUARD
 	if (align < FOUNDATION_MIN_ALIGN)
 		align = FOUNDATION_MIN_ALIGN;
 #else
-#  if FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_WINDOWS
 	return _aligned_realloc(p, size, align > FOUNDATION_MIN_ALIGN ? align : FOUNDATION_MIN_ALIGN);
-#  else
+#else
 	if (align <= FOUNDATION_MIN_ALIGN)
 		return realloc(p, size);
-#  endif
+#endif
 #endif
 	void* memory = _memory_allocate_malloc_raw(size, align, hint);
 	if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
@@ -398,8 +402,7 @@ memory_set_tracker(memory_tracker_t tracker) {
 			tracker.initialize();
 
 		_memory_tracker = tracker;
-	}
-	else {
+	} else {
 		_memory_tracker_preinit = tracker;
 	}
 }
@@ -423,16 +426,16 @@ memory_tracker_dump(memory_tracker_handler_fn handler) {
 }
 
 FOUNDATION_ALIGNED_STRUCT(memory_tag_t, 8) {
-	atomicptr_t   address;
-	size_t        size;
-	void*         trace[14];
+	atomicptr_t address;
+	size_t size;
+	void* trace[14];
 };
 
 typedef struct memory_tag_t memory_tag_t;
 
 static memory_tag_t* _memory_tags;
-static atomic32_t    _memory_tag_next;
-static bool          _memory_tracker_initialized;
+static atomic32_t _memory_tag_next;
+static bool _memory_tracker_initialized;
 
 static int
 _memory_tracker_initialize(void) {
@@ -473,8 +476,8 @@ _memory_tracker_cleanup(void) {
 static void
 _memory_tracker_finalize(void) {
 #if FOUNDATION_PLATFORM_APPLE
-	//Hack to allow system dispatch threads time to finalize
-	//and free memory during shutdown
+	// Hack to allow system dispatch threads time to finalize
+	// and free memory during shutdown
 	thread_sleep(100);
 #endif
 
@@ -488,10 +491,10 @@ _memory_tracker_finalize(void) {
 			if (addr) {
 				char tracebuf[512];
 				string_t trace = stacktrace_resolve(tracebuf, sizeof(tracebuf), tag->trace,
-				                                    sizeof(tag->trace)/sizeof(tag->trace[0]), 0);
+				                                    sizeof(tag->trace) / sizeof(tag->trace[0]), 0);
 				log_warnf(HASH_MEMORY, WARNING_MEMORY,
-				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s"),
-				          tag->size, (uintptr_t)addr, it, STRING_FORMAT(trace));
+				          STRING_CONST("Memory leak: %" PRIsize " bytes @ 0x%" PRIfixPTR " : tag %d\n%.*s"), tag->size,
+				          (uintptr_t)addr, it, STRING_FORMAT(trace));
 			}
 		}
 	}
@@ -507,7 +510,7 @@ _memory_tracker_dump(memory_tracker_handler_fn handler) {
 			memory_tag_t* tag = _memory_tags + it;
 			void* addr = atomic_load_ptr(&tag->address, memory_order_acquire);
 			if (addr) {
-				if (handler(addr, tag->size, tag->trace, sizeof(tag->trace)/sizeof(tag->trace[0])))
+				if (handler(addr, tag->size, tag->trace, sizeof(tag->trace) / sizeof(tag->trace[0])))
 					break;
 			}
 		}
@@ -523,26 +526,23 @@ _memory_tracker_track(void* addr, size_t size) {
 			int32_t tag = atomic_exchange_and_add32(&_memory_tag_next, 1, memory_order_acq_rel);
 			while (tag >= (int32_t)foundation_config().memory_tracker_max) {
 				int32_t newtag = tag % (int32_t)foundation_config().memory_tracker_max;
-				if (atomic_cas32(&_memory_tag_next, newtag + 1, tag + 1, memory_order_release,
-				                 memory_order_acquire))
+				if (atomic_cas32(&_memory_tag_next, newtag + 1, tag + 1, memory_order_release, memory_order_acquire))
 					tag = newtag;
 				else
 					tag = atomic_exchange_and_add32(&_memory_tag_next, 1, memory_order_acq_rel);
 			}
-			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, nullptr,
-			                   memory_order_release, memory_order_acquire)) {
+			if (atomic_cas_ptr(&_memory_tags[tag].address, addr, nullptr, memory_order_release, memory_order_acquire)) {
 				_memory_tags[tag].size = size;
 				stacktrace_capture(_memory_tags[tag].trace,
-				                   sizeof(_memory_tags[tag].trace)/sizeof(_memory_tags[tag].trace[0]), 3);
+				                   sizeof(_memory_tags[tag].trace) / sizeof(_memory_tags[tag].trace[0]), 3);
 				break;
 			}
-		}
-		while (++loop < limit);
+		} while (++loop < limit);
 
-		//if (loop >= limit)
+		// if (loop >= limit)
 		//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS,
-		//	          STRING_CONST("Unable to track allocation: 0x%" PRIfixPTR " %" PRIsize " bytes"),
-		//	          (uintptr_t)addr, size);
+		//	          STRING_CONST("Unable to track allocation: 0x%" PRIfixPTR " %" PRIsize "
+		// bytes"), 	          (uintptr_t)addr, size);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
 		atomic_incr32(&_memory_stats.allocations_total, memory_order_relaxed);
@@ -552,10 +552,10 @@ _memory_tracker_track(void* addr, size_t size) {
 		atomic_thread_fence_release();
 #endif
 	}
-	//else if (addr) {
+	// else if (addr) {
 	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS,
-	//	          STRING_CONST("Pre-init untracked allocation: 0x%" PRIfixPTR " %" PRIsize " bytes"),
-	//	          (uintptr_t)addr, size);
+	//	          STRING_CONST("Pre-init untracked allocation: 0x%" PRIfixPTR " %" PRIsize "
+	// bytes"), 	          (uintptr_t)addr, size);
 	//}
 }
 
@@ -574,8 +574,7 @@ _memory_tracker_untrack(void* addr) {
 				tag = itag;
 				size = _memory_tags[itag].size;
 				found = true;
-			}
-			else if (itag == iend)
+			} else if (itag == iend)
 				break;
 			else if (itag)
 				--itag;
@@ -591,8 +590,9 @@ _memory_tracker_untrack(void* addr) {
 		atomic_thread_fence_release();
 #endif
 	}
-	//else if (addr) {
-	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Pre-init untracked deallocation: 0x%" PRIfixPTR), (uintptr_t)addr);
+	// else if (addr) {
+	//	log_warnf(HASH_MEMORY, WARNING_SUSPICIOUS, STRING_CONST("Pre-init untracked deallocation:
+	// 0x%" PRIfixPTR), (uintptr_t)addr);
 	//}
 }
 

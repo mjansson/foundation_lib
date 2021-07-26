@@ -1,10 +1,10 @@
-/* windows.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* windows.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -35,6 +35,8 @@ Safe inclusion of windows.h without collisions with foundation library symbols. 
 #if FOUNDATION_COMPILER_MSVC
 // Work around broken dbghlp.h header
 #pragma warning(disable : 4091)
+// Work around broken winbase.h header
+#pragma warning(disable : 5105)
 #elif FOUNDATION_COMPILER_CLANG
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnonportable-system-include-path"

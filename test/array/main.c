@@ -1,10 +1,10 @@
-/* main.c  -  Foundation array test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation array test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_array_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation array tests"));
 	app.short_name = string_const(STRING_CONST("test_array"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -47,32 +47,33 @@ test_array_finalize(void) {
 }
 
 typedef FOUNDATION_ALIGNED_STRUCT(_basic_type, 8) {
-	int        intval;
-	float32_t  floatval;
-	object_t   objval;
-	int        _padding;
-} basic_t;
+	int intval;
+	float32_t floatval;
+	object_t objval;
+	int _padding;
+}
+basic_t;
 
 typedef FOUNDATION_ALIGNED_STRUCT(_combined_type, 8) {
-	int        intval;
-	int        _ipadding;
+	int intval;
+	int _ipadding;
 	union {
-		int      intval;
-		real     realval;
-		void*    ptrval;
-		basic_t  basicval;
+		int intval;
+		real realval;
+		void* ptrval;
+		basic_t basicval;
 		object_t objval;
-	}          unionval;
-	char       charval;
-	char       _cpadding[7];
-	basic_t    basicval;
-	void*      ptrval;
-} combine_t;
+	} unionval;
+	char charval;
+	char _cpadding[7];
+	basic_t basicval;
+	void* ptrval;
+}
+combine_t;
 
 static int
-assert_ignore(hash_t context, const char* condition, size_t cond_length,
-              const char* file, size_t file_length, unsigned int line,
-              const char* msg, size_t msg_length) {
+assert_ignore(hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length,
+              unsigned int line, const char* msg, size_t msg_length) {
 	FOUNDATION_UNUSED(context);
 	FOUNDATION_UNUSED(condition);
 	FOUNDATION_UNUSED(cond_length);
@@ -85,13 +86,13 @@ assert_ignore(hash_t context, const char* condition, size_t cond_length,
 }
 
 DECLARE_TEST(array, allocation) {
-	void**     array_ptr = 0;
-	int*       array_int = 0;
-	object_t*  array_obj = 0;
-	basic_t*   array_basic = 0;
+	void** array_ptr = 0;
+	int* array_int = 0;
+	object_t* array_obj = 0;
+	basic_t* array_basic = 0;
 	combine_t* array_combine = 0;
-	int        array_fail[_array_header_size+1] = {0, 0, 0, 0, 0};
-	int*       array_fail_ptr = array_fail + _array_header_size;
+	int array_fail[_array_header_size + 1] = {0, 0, 0, 0, 0};
+	int* array_fail_ptr = array_fail + _array_header_size;
 
 	EXPECT_EQ(array_size(array_ptr), 0);
 	EXPECT_EQ(array_size(array_int), 0);
@@ -227,7 +228,7 @@ DECLARE_TEST(array, allocation) {
 		array_grow(array_int, -2);
 		array_grow(array_obj, -3);
 		array_grow(array_basic, -4);
-		array_grow(array_combine, 0);   //Grow is not bounds checked
+		array_grow(array_combine, 0);  // Grow is not bounds checked
 
 		EXPECT_EQ(array_size(array_ptr), 75284 * 2 - 1);
 		EXPECT_EQ(array_size(array_int), 8295 * 2 - 2);
@@ -297,10 +298,10 @@ DECLARE_TEST(array, allocation) {
 	}
 	// Reserve + grow
 	{
-		void**     array_ptr_prev = 0;
-		int*       array_int_prev = 0;
-		object_t*  array_obj_prev = 0;
-		basic_t*   array_basic_prev = 0;
+		void** array_ptr_prev = 0;
+		int* array_int_prev = 0;
+		object_t* array_obj_prev = 0;
+		basic_t* array_basic_prev = 0;
 		combine_t* array_combine_prev = 0;
 
 		array_reserve(array_ptr, 1);
@@ -393,17 +394,17 @@ DECLARE_TEST(array, allocation) {
 }
 
 DECLARE_TEST(array, copy) {
-	int        i;
-	void**     array_ptr = 0;
-	int*       array_int = 0;
-	object_t*  array_obj = 0;
-	basic_t*   array_basic = 0;
+	int i;
+	void** array_ptr = 0;
+	int* array_int = 0;
+	object_t* array_obj = 0;
+	basic_t* array_basic = 0;
 	combine_t* array_combine = 0;
 
-	void**     copy_ptr = 0;
-	int*       copy_int = 0;
-	object_t*  copy_obj = 0;
-	basic_t*   copy_basic = 0;
+	void** copy_ptr = 0;
+	int* copy_int = 0;
+	object_t* copy_obj = 0;
+	basic_t* copy_basic = 0;
 	combine_t* copy_combine = 0;
 
 	for (i = 0; i < 255; ++i) {
@@ -563,11 +564,11 @@ DECLARE_TEST(array, copy) {
 }
 
 DECLARE_TEST(array, pushpop) {
-	int        i, j;
-	void**     array_ptr = 0;
-	int*       array_int = 0;
-	object_t*  array_obj = 0;
-	basic_t*   array_basic = 0;
+	int i, j;
+	void** array_ptr = 0;
+	int* array_int = 0;
+	object_t* array_obj = 0;
+	basic_t* array_basic = 0;
 	combine_t* array_combine = 0;
 
 	// Push to empty
@@ -673,8 +674,7 @@ DECLARE_TEST(array, pushpop) {
 			array_push(array_obj, (object_t)i);
 			array_push(array_basic, basic);
 			array_push(array_combine, combine);
-		}
-		else {
+		} else {
 			void* iptr = (void*)((uintptr_t)i);
 			object_t iobj = (object_t)i;
 			array_push_memcpy(array_ptr, &iptr);
@@ -771,8 +771,7 @@ DECLARE_TEST(array, pushpop) {
 				array_push(array_obj, (object_t)(i + j));
 				array_push(array_basic, basic);
 				array_push(array_combine, combine);
-			}
-			else {
+			} else {
 				void* iptr = (void*)((uintptr_t)(i + j));
 				object_t iobj = (object_t)(i + j);
 				int ii = i + j;
@@ -829,19 +828,19 @@ DECLARE_TEST(array, pushpop) {
 
 DECLARE_TEST(array, inserterase) {
 	unsigned int clamped_i;
-	int          i, j, k;
-	bool         found;
+	int i, j, k;
+	bool found;
 
-	void**     array_ptr = 0;
-	int*       array_int = 0;
-	object_t*  array_obj = 0;
-	basic_t*   array_basic = 0;
+	void** array_ptr = 0;
+	int* array_int = 0;
+	object_t* array_obj = 0;
+	basic_t* array_basic = 0;
 	combine_t* array_combine = 0;
 
-	void**     copy_ptr = 0;
-	int*       copy_int = 0;
-	object_t*  copy_obj = 0;
-	basic_t*   copy_basic = 0;
+	void** copy_ptr = 0;
+	int* copy_int = 0;
+	object_t* copy_obj = 0;
+	basic_t* copy_basic = 0;
 	combine_t* copy_combine = 0;
 
 	// Insert in empty
@@ -1171,7 +1170,7 @@ DECLARE_TEST(array, inserterase) {
 		array_deallocate(copy_combine);
 	}
 
-	//Erase single item, safe
+	// Erase single item, safe
 	for (i = 0; i < 255; ++i) {
 		basic_t basic;
 		combine_t combine;
@@ -1366,7 +1365,7 @@ DECLARE_TEST(array, inserterase) {
 		array_deallocate(copy_combine);
 	}
 
-	//Erase single item, memcpy safe
+	// Erase single item, memcpy safe
 	for (i = 0; i < 255; ++i) {
 		basic_t basic;
 		combine_t combine;
@@ -1561,7 +1560,7 @@ DECLARE_TEST(array, inserterase) {
 		array_deallocate(copy_combine);
 	}
 
-	//Erase single item, ordered safe
+	// Erase single item, ordered safe
 	for (i = 0; i < 255; ++i) {
 		basic_t basic;
 		combine_t combine;
@@ -1669,7 +1668,7 @@ DECLARE_TEST(array, inserterase) {
 	array_deallocate(array_basic);
 	array_deallocate(array_combine);
 
-	//Range erase
+	// Range erase
 	for (i = 0; i < 255; ++i) {
 		basic_t basic;
 		combine_t combine;
@@ -1702,10 +1701,10 @@ DECLARE_TEST(array, inserterase) {
 	array_copy(copy_basic, array_basic);
 	array_copy(copy_combine, array_combine);
 
-	//Erasing 0 is always safe
+	// Erasing 0 is always safe
 	{
 		unsigned int zero = 0;
-		//Compiler catches negative (signed) values with -Weverything
+		// Compiler catches negative (signed) values with -Weverything
 #if !FOUNDATION_COMPILER_CLANG
 		int small_neg = -1;
 		int large_neg = -1234;
@@ -1731,7 +1730,7 @@ DECLARE_TEST(array, inserterase) {
 		EXPECT_EQ(memcmp(array_combine + i, copy_combine + i, sizeof(combine_t)), 0);
 	}
 
-	//Erase first
+	// Erase first
 	array_erase_ordered_range(array_ptr, 0, 1);
 	array_erase_ordered_range(array_int, 0, 1);
 	array_erase_ordered_range(array_obj, 0, 1);
@@ -1752,7 +1751,7 @@ DECLARE_TEST(array, inserterase) {
 		EXPECT_EQ(memcmp(array_combine + i, copy_combine + i + 1, sizeof(combine_t)), 0);
 	}
 
-	//Erase last
+	// Erase last
 	array_erase_ordered_range(array_ptr, 253, 1);
 	array_erase_ordered_range(array_int, 253, 1);
 	array_erase_ordered_range(array_obj, 253, 1);
@@ -1773,7 +1772,7 @@ DECLARE_TEST(array, inserterase) {
 		EXPECT_EQ(memcmp(array_combine + i, copy_combine + i + 1, sizeof(combine_t)), 0);
 	}
 
-	//Erase range
+	// Erase range
 	array_erase_ordered_range(array_ptr, 37, 63);
 	array_erase_ordered_range(array_int, 37, 63);
 	array_erase_ordered_range(array_obj, 37, 63);
@@ -1802,7 +1801,7 @@ DECLARE_TEST(array, inserterase) {
 		EXPECT_EQ(memcmp(array_combine + i, copy_combine + i + 64, sizeof(combine_t)), 0);
 	}
 
-	//Erase range safe
+	// Erase range safe
 	{
 		int small_neg = -10;
 		int large_neg = -1234;
@@ -1835,7 +1834,7 @@ DECLARE_TEST(array, inserterase) {
 		EXPECT_EQ(memcmp(array_combine + i, copy_combine + i + 64, sizeof(combine_t)), 0);
 	}
 
-	//Erase range safe overlap start
+	// Erase range safe overlap start
 	array_erase_ordered_range_safe(array_ptr, -1234, 1236);
 	array_erase_ordered_range_safe(array_int, -134, 136);
 	array_erase_ordered_range_safe(array_obj, -1, 3);
@@ -1864,7 +1863,7 @@ DECLARE_TEST(array, inserterase) {
 		EXPECT_EQ(memcmp(array_combine + i, copy_combine + i + 66, sizeof(combine_t)), 0);
 	}
 
-	//Erase range safe overlap end
+	// Erase range safe overlap end
 	array_erase_ordered_range_safe(array_ptr, 180, 1236);
 	array_erase_ordered_range_safe(array_int, 180, 136);
 	array_erase_ordered_range_safe(array_obj, 180, 8);
@@ -1893,7 +1892,7 @@ DECLARE_TEST(array, inserterase) {
 		EXPECT_EQ(memcmp(array_combine + i, copy_combine + i + 66, sizeof(combine_t)), 0);
 	}
 
-	//Erase range safe
+	// Erase range safe
 	array_erase_ordered_range_safe(array_ptr, 100, 10);
 	array_erase_ordered_range_safe(array_int, 100, 10);
 	array_erase_ordered_range_safe(array_obj, 100, 10);
@@ -2015,15 +2014,13 @@ test_array_declare(void) {
 	ADD_TEST(array, resize);
 }
 
-static test_suite_t test_array_suite = {
-	test_array_application,
-	test_array_memory_system,
-	test_array_config,
-	test_array_declare,
-	test_array_initialize,
-	test_array_finalize,
-	0
-};
+static test_suite_t test_array_suite = {test_array_application,
+                                        test_array_memory_system,
+                                        test_array_config,
+                                        test_array_declare,
+                                        test_array_initialize,
+                                        test_array_finalize,
+                                        0};
 
 #if BUILD_MONOLITHIC
 
@@ -2047,5 +2044,3 @@ test_suite_define(void) {
 }
 
 #endif
-
-

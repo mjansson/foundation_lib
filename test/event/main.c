@@ -1,10 +1,10 @@
-/* main.c  -  Foundation event test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation event test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-//Events are not sizeof(event_t), but aligned to 8 byte boundaries
+// Events are not sizeof(event_t), but aligned to 8 byte boundaries
 #define EXPECTED_EVENT_SIZE 16
 
 static application_t
@@ -22,7 +22,7 @@ test_event_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation event tests"));
 	app.short_name = string_const(STRING_CONST("test_event"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -50,9 +50,8 @@ test_event_finalize(void) {
 }
 
 static int
-assert_ignore_handler(hash_t context, const char* condition, size_t cond_length,
-                                  const char* file, size_t file_length, unsigned int line,
-                                  const char* msg, size_t msg_length) {
+assert_ignore_handler(hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length,
+                      unsigned int line, const char* msg, size_t msg_length) {
 	FOUNDATION_UNUSED(context);
 	FOUNDATION_UNUSED(condition);
 	FOUNDATION_UNUSED(cond_length);
@@ -148,7 +147,7 @@ DECLARE_TEST(event, immediate) {
 	EXPECT_NE(event, 0);
 	EXPECT_INTEQ(event->id, FOUNDATIONEVENT_TERMINATE);
 	EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE);
-	//EXPECT_UINTGT(event->serial, 0);
+	// EXPECT_UINTGT(event->serial, 0);
 	EXPECT_EQ(event->object, 0);
 	EXPECT_EQ(event->flags, 0);
 	EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
@@ -166,8 +165,8 @@ DECLARE_TEST(event, immediate) {
 	EXPECT_EQ(event, 0);
 
 	event_post(stream, FOUNDATIONEVENT_TERMINATE, 0, 0, buffer, 13);
-	event_post_varg(stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, (size_t)3, buffer + 3,
-	                (size_t)10, buffer + 13, (size_t)24, nullptr);
+	event_post_varg(stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, (size_t)3, buffer + 3, (size_t)10, buffer + 13,
+	                (size_t)24, nullptr);
 
 	block = event_stream_process(stream);
 	event = event_next(block, 0);
@@ -190,13 +189,13 @@ DECLARE_TEST(event, immediate) {
 	EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE + 40 - sizeof(event_t));
 	last_serial = event->serial;
 
-	//Test out of memory handling
+	// Test out of memory handling
 	log_enable_stdout(false);
 	prev_assert_handler = assert_handler();
 	assert_set_handler(assert_ignore_handler);
 	for (iloop = 0; iloop < 512 * 1024; ++iloop)
-		event_post_varg(stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, (size_t)3, buffer + 3,
-		                (size_t)10, buffer + 13, (size_t)24, nullptr);
+		event_post_varg(stream, FOUNDATIONEVENT_TERMINATE + 1, 0, 0, buffer, (size_t)3, buffer + 3, (size_t)10,
+		                buffer + 13, (size_t)24, nullptr);
 	assert_set_handler(prev_assert_handler);
 	log_enable_stdout(true);
 	EXPECT_TYPEEQ(error(), ERROR_OUT_OF_MEMORY, error_t, "d");
@@ -218,11 +217,12 @@ DECLARE_TEST(event, immediate) {
 
 typedef FOUNDATION_ALIGNED_STRUCT(_producer_thread_arg, 16) {
 	event_stream_t* stream;
-	tick_t          max_delay;
-	tick_t          end_time;
-	unsigned int    sleep_time;
-	unsigned int    id;
-} producer_thread_arg_t;
+	tick_t max_delay;
+	tick_t end_time;
+	unsigned int sleep_time;
+	unsigned int id;
+}
+producer_thread_arg_t;
 
 static void*
 producer_thread(void* arg) {
@@ -240,18 +240,16 @@ producer_thread(void* arg) {
 		random_id = (uint16_t)random32_range(1, 65535);
 		random_size = (uint16_t)random32_range(args->max_delay ? 8 : 0, 256);
 		thread_yield();
-		//There is a small chance of test failure due to thread time slice contention here
-		//If the producer thread is suspended between the timestamp calculation and event post
-		//an event with an old timestamp might be posted after the main test thread does an
-		//event process - test will fail (timestamp check will fail since it is old due to suspension)
+		// There is a small chance of test failure due to thread time slice contention here
+		// If the producer thread is suspended between the timestamp calculation and event post
+		// an event with an old timestamp might be posted after the main test thread does an
+		// event process - test will fail (timestamp check will fail since it is old due to suspension)
 		timestamp = args->max_delay ? time_current() + (tick_t)random_delay : 0;
 		memcpy(buffer, &timestamp, sizeof(tick_t));
 		event_post_varg(args->stream, random_id, args->id, timestamp, buffer, random_size / 2,
-		                buffer + (random_size / 2), (size_t)(random_size - (random_size / 2)),
-		                nullptr);
+		                buffer + (random_size / 2), (size_t)(random_size - (random_size / 2)), nullptr);
 		++produced;
-	}
-	while (!thread_try_wait(0) && (time_current() < args->end_time));
+	} while (!thread_try_wait(0) && (time_current() < args->end_time));
 
 	return (void*)((uintptr_t)produced);
 }
@@ -265,12 +263,12 @@ DECLARE_TEST(event, immediate_threaded) {
 	size_t read[32];
 	unsigned int i;
 	bool running = true;
-	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 4, 4, 32);
 	size_t max_payload = 256 + EXPECTED_EVENT_SIZE - sizeof(event_t);
 
 	stream = event_stream_allocate(0);
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		args[i].stream = stream;
 		args[i].end_time = time_current() + (time_ticks_per_second() * 5);
 		args[i].max_delay = 0;
@@ -278,18 +276,18 @@ DECLARE_TEST(event, immediate_threaded) {
 		args[i].id = i;
 
 		read[i] = 0;
-		thread_initialize(&thread[i], producer_thread, args + i, STRING_CONST("event_producer"),
-		                  THREAD_PRIORITY_NORMAL, 0);
+		thread_initialize(&thread[i], producer_thread, args + i, STRING_CONST("event_producer"), THREAD_PRIORITY_NORMAL,
+		                  0);
 	}
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_start(&thread[i]);
 
-	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
 
 	while (running) {
 		running = false;
 
-		for (i = 0; i < num_threads; ++i) {
+		for (i = 0; i < threads_count; ++i) {
 			if (thread_is_running(&thread[i])) {
 				running = true;
 				break;
@@ -301,7 +299,7 @@ DECLARE_TEST(event, immediate_threaded) {
 		block = event_stream_process(stream);
 		event = event_next(block, 0);
 		while (event) {
-			++read[ event->object ];
+			++read[event->object];
 			running = true;
 
 			EXPECT_SIZELE(event_payload_size(event), max_payload);
@@ -313,11 +311,11 @@ DECLARE_TEST(event, immediate_threaded) {
 	event = event_next(block, 0);
 	while (event) {
 		EXPECT_SIZELE(event_payload_size(event), max_payload);
-		++read[ event->object ];
+		++read[event->object];
 		event = event_next(block, event);
 	}
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		void* result = thread[i].result;
 		size_t should_have_read = (uintptr_t)result;
 		EXPECT_EQ(read[i], should_have_read);
@@ -357,7 +355,7 @@ DECLARE_TEST(event, delay) {
 
 		if ((expect_event == FOUNDATIONEVENT_TERMINATE) && event) {
 			EXPECT_EQ(event->id, expect_event);
-			EXPECT_EQ(event->size, EXPECTED_EVENT_SIZE + 8);     //8 bytes for additional timestamp payload
+			EXPECT_EQ(event->size, EXPECTED_EVENT_SIZE + 8);  // 8 bytes for additional timestamp payload
 			EXPECT_EQ(event->object, 0);
 			EXPECT_EQ(event->flags, EVENTFLAG_DELAY);
 			EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
@@ -372,7 +370,7 @@ DECLARE_TEST(event, delay) {
 
 		if ((expect_event == FOUNDATIONEVENT_TERMINATE + 1) && event) {
 			EXPECT_EQ(event->id, expect_event);
-			EXPECT_EQ(event->size, EXPECTED_EVENT_SIZE + 8);     //8 bytes for additional timestamp payload
+			EXPECT_EQ(event->size, EXPECTED_EVENT_SIZE + 8);  // 8 bytes for additional timestamp payload
 			EXPECT_EQ(event->object, 0);
 			EXPECT_EQ(event->flags, EVENTFLAG_DELAY);
 			EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
@@ -391,14 +389,13 @@ DECLARE_TEST(event, delay) {
 			break;
 
 		thread_yield();
-	}
-	while (time_current() < limit);
+	} while (time_current() < limit);
 
 	EXPECT_EQ(event, 0);
 	EXPECT_EQ(expect_event, FOUNDATIONEVENT_TERMINATE + 2);
 	EXPECT_LE(time_current(), limit);
 
-	//Reverse order of delivery
+	// Reverse order of delivery
 	current = time_current();
 	delivery = current + halfsecond;
 	limit = current + (halfsecond * 5);
@@ -406,7 +403,7 @@ DECLARE_TEST(event, delay) {
 	expect_event = FOUNDATIONEVENT_TERMINATE;
 	event_post(stream, expect_event, 0, delivery + smalltick, 0, 0);
 	event_post(stream, expect_event + 1, 0, delivery, 0, 0);
-	++expect_event; //Expect second event to deliver first
+	++expect_event;  // Expect second event to deliver first
 
 	do {
 		block = event_stream_process(stream);
@@ -415,7 +412,7 @@ DECLARE_TEST(event, delay) {
 
 		if ((expect_event == FOUNDATIONEVENT_TERMINATE + 1) && event) {
 			EXPECT_INTEQ(event->id, expect_event);
-			EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 8);     //8 bytes for additional timestamp payload
+			EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 8);  // 8 bytes for additional timestamp payload
 			EXPECT_EQ(event->object, 0);
 			EXPECT_EQ(event->flags, EVENTFLAG_DELAY);
 			EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
@@ -430,7 +427,7 @@ DECLARE_TEST(event, delay) {
 
 		if ((expect_event == FOUNDATIONEVENT_TERMINATE) && event) {
 			EXPECT_INTEQ(event->id, expect_event);
-			EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 8);     //8 bytes for additional timestamp payload
+			EXPECT_SIZEEQ(event->size, EXPECTED_EVENT_SIZE + 8);  // 8 bytes for additional timestamp payload
 			EXPECT_EQ(event->object, 0);
 			EXPECT_EQ(event->flags, EVENTFLAG_DELAY);
 			EXPECT_SIZEEQ(event_payload_size(event), EXPECTED_EVENT_SIZE - sizeof(event_t));
@@ -449,8 +446,7 @@ DECLARE_TEST(event, delay) {
 
 		thread_yield();
 
-	}
-	while (time_current() < limit);
+	} while (time_current() < limit);
 
 	EXPECT_EQ(event, 0);
 	EXPECT_INTEQ(expect_event, FOUNDATIONEVENT_TERMINATE - 1);
@@ -471,14 +467,14 @@ DECLARE_TEST(event, delay_threaded) {
 	size_t read[32];
 	unsigned int i;
 	bool running = true;
-	size_t num_threads = math_clamp(system_hardware_threads() * 4, 4, 32);
+	size_t threads_count = math_clamp(system_hardware_threads() * 4, 4, 32);
 
 	stream = event_stream_allocate(0);
 	begintime = time_current();
 
 	thread_yield();
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		args[i].stream = stream;
 		args[i].end_time = time_current() + (time_ticks_per_second() * 5);
 		args[i].max_delay = time_ticks_per_second() * 5;
@@ -486,18 +482,18 @@ DECLARE_TEST(event, delay_threaded) {
 		args[i].id = i;
 
 		read[i] = 0;
-		thread_initialize(&thread[i], producer_thread, args + i, STRING_CONST("event_producer"),
-		                  THREAD_PRIORITY_NORMAL, 0);
+		thread_initialize(&thread[i], producer_thread, args + i, STRING_CONST("event_producer"), THREAD_PRIORITY_NORMAL,
+		                  0);
 	}
-	for (i = 0; i < num_threads; ++i)
+	for (i = 0; i < threads_count; ++i)
 		thread_start(&thread[i]);
 
-	test_wait_for_threads_startup(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
 
 	while (running) {
 		running = false;
 
-		for (i = 0; i < num_threads; ++i) {
+		for (i = 0; i < threads_count; ++i) {
 			if (thread_is_running(&thread[i])) {
 				running = true;
 				break;
@@ -519,12 +515,11 @@ DECLARE_TEST(event, delay_threaded) {
 			char msgbuf[64];
 
 			running = true;
-			++read[ event->object ];
+			++read[event->object];
 			memcpy(&payloadtime, event->payload, sizeof(tick_t));
 
-			string_format(msgbuf, 64, STRING_CONST("payload %" PRIu64 " - previous %" PRIu64 " (%dms)"),
-			              payloadtime, prevtime, (int)(time_ticks_to_seconds(time_diff(prevtime,
-			                                           payloadtime)) * REAL_C(1000.0)));
+			string_format(msgbuf, 64, STRING_CONST("payload %" PRIu64 " - previous %" PRIu64 " (%dms)"), payloadtime,
+			              prevtime, (int)(time_ticks_to_seconds(time_diff(prevtime, payloadtime)) * REAL_C(1000.0)));
 
 			EXPECT_SIZEGE(event_payload_size(event), EXPECTED_EVENT_SIZE + 8 - sizeof(event_t));
 			EXPECT_SIZELE(event_payload_size(event), EXPECTED_EVENT_SIZE + 256 - sizeof(event_t));
@@ -544,7 +539,7 @@ DECLARE_TEST(event, delay_threaded) {
 		event = event_next(block, 0);
 		curtime = time_current();
 		while (event) {
-			++read[ event->object ];
+			++read[event->object];
 			memcpy(&payloadtime, event->payload, sizeof(tick_t));
 
 			EXPECT_SIZEGE(event_payload_size(event), EXPECTED_EVENT_SIZE + 8 - sizeof(event_t));
@@ -558,10 +553,9 @@ DECLARE_TEST(event, delay_threaded) {
 
 		thread_sleep(10);
 
-	}
-	while (time_current() < endtime);
+	} while (time_current() < endtime);
 
-	for (i = 0; i < num_threads; ++i) {
+	for (i = 0; i < threads_count; ++i) {
 		void* result = thread[i].result;
 		size_t should_have_read = (size_t)((uintptr_t)result);
 		EXPECT_EQ(read[i], should_have_read);
@@ -582,15 +576,13 @@ test_event_declare(void) {
 	ADD_TEST(event, delay_threaded);
 }
 
-static test_suite_t test_event_suite = {
-	test_event_application,
-	test_event_memory_system,
-	test_event_config,
-	test_event_declare,
-	test_event_initialize,
-	test_event_finalize,
-	0
-};
+static test_suite_t test_event_suite = {test_event_application,
+                                        test_event_memory_system,
+                                        test_event_config,
+                                        test_event_declare,
+                                        test_event_initialize,
+                                        test_event_finalize,
+                                        0};
 
 #if BUILD_MONOLITHIC
 

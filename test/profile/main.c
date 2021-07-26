@@ -13,12 +13,12 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-//Must be >30000 since we assume that in forced fail test
-#define TEST_PROFILE_BUFFER_SIZE  1024*1024
+// Must be >30000 since we assume that in forced fail test
+#define TEST_PROFILE_BUFFER_SIZE 1024 * 1024
 
-static char*       _test_profile_buffer;
-static size_t      _test_profile_offset;
-static atomic32_t  _test_profile_output_counter;
+static char* _test_profile_buffer;
+static size_t _test_profile_offset;
+static atomic32_t _test_profile_output_counter;
 
 static void
 test_profile_output(void* buffer, size_t size) {
@@ -112,7 +112,7 @@ DECLARE_TEST(profile, output) {
 
 #if BUILD_ENABLE_PROFILE
 	EXPECT_GT(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
-	//TODO: Implement parsing output results
+	// TODO: Implement parsing output results
 #else
 	EXPECT_EQ(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
 #endif
@@ -193,8 +193,8 @@ DECLARE_TEST(profile, thread) {
 
 	log_enable_stdout(false);
 	for (ith = 0; ith < 32; ++ith)
-		thread_initialize(&thread[ith], _profile_fail_thread, 0, STRING_CONST("profile_thread"),
-		                  THREAD_PRIORITY_NORMAL, 0);
+		thread_initialize(&thread[ith], _profile_fail_thread, 0, STRING_CONST("profile_thread"), THREAD_PRIORITY_NORMAL,
+		                  0);
 	for (ith = 0; ith < 32; ++ith)
 		thread_start(&thread[ith]);
 
@@ -222,7 +222,7 @@ DECLARE_TEST(profile, thread) {
 
 #if BUILD_ENABLE_PROFILE
 	EXPECT_INTGT(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
-	//TODO: Implement parsing output results
+	// TODO: Implement parsing output results
 #else
 	EXPECT_INTEQ(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
 #endif
@@ -275,8 +275,7 @@ _profile_stream_thread(void* arg) {
 				profile_update_block();
 
 				profile_begin_block(STRING_CONST("Thread subblock"));
-				{
-				}
+				{}
 				profile_end_block();
 			}
 			profile_end_block();
@@ -303,11 +302,10 @@ DECLARE_TEST(profile, stream) {
 	uint64_t frame;
 	string_t filename;
 
-	error(); //Clear error
+	error();  // Clear error
 
-	filename = path_allocate_concat(STRING_ARGS(environment_temporary_directory()),
-	                                STRING_CONST("test.profile"));
-	//log_infof(HASH_TEST, STRING_CONST("Output to profile file: %.*s"), STRING_FORMAT(filename));
+	filename = path_allocate_concat(STRING_ARGS(environment_temporary_directory()), STRING_CONST("test.profile"));
+	// log_infof(HASH_TEST, STRING_CONST("Output to profile file: %.*s"), STRING_FORMAT(filename));
 	fs_make_directory(STRING_ARGS(environment_temporary_directory()));
 	_profile_stream = fs_open_file(STRING_ARGS(filename), STREAM_OUT | STREAM_BINARY);
 	string_deallocate(filename.str);
@@ -328,7 +326,9 @@ DECLARE_TEST(profile, stream) {
 	for (frame = 0; frame < 1000; ++frame) {
 		thread_sleep(16);
 		profile_log(
-		    STRING_CONST("This is a really long profile log line that should break into multiple profile blocks automatically without causing any issues whatsoever if everything works as expected which it should or the code needs to be fixed"));
+		    STRING_CONST("This is a really long profile log line that should break into multiple profile blocks "
+		                 "automatically without causing any issues whatsoever if everything works as expected which it "
+		                 "should or the code needs to be fixed"));
 		profile_end_frame(frame++);
 		if ((frame % 30) == 0) {
 			profile_enable(false);
@@ -360,7 +360,7 @@ DECLARE_TEST(profile, stream) {
 
 	stream_deallocate(_profile_stream);
 
-//TODO: Validate that output is sane
+	// TODO: Validate that output is sane
 	log_debugf(HASH_TEST, STRING_CONST("Generated %" PRId64 " blocks"),
 	           atomic_load64(&_profile_generated_blocks, memory_order_acquire));
 
@@ -375,15 +375,13 @@ test_profile_declare(void) {
 	ADD_TEST(profile, stream);
 }
 
-static test_suite_t test_profile_suite = {
-	test_profile_application,
-	test_profile_memory_system,
-	test_profile_config,
-	test_profile_declare,
-	test_profile_initialize,
-	test_profile_finalize,
-	0
-};
+static test_suite_t test_profile_suite = {test_profile_application,
+                                          test_profile_memory_system,
+                                          test_profile_config,
+                                          test_profile_declare,
+                                          test_profile_initialize,
+                                          test_profile_finalize,
+                                          0};
 
 #if BUILD_MONOLITHIC
 

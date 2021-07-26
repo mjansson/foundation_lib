@@ -1,10 +1,10 @@
-/* bufferstream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* bufferstream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -16,17 +16,15 @@
 static stream_vtable_t _buffer_stream_vtable;
 
 stream_t*
-buffer_stream_allocate(void* buffer, unsigned int mode, size_t size, size_t capacity,
-                       bool adopt, bool grow) {
-	stream_buffer_t* stream = memory_allocate(HASH_STREAM, sizeof(stream_buffer_t), 8,
-	                                          MEMORY_PERSISTENT);
+buffer_stream_allocate(void* buffer, unsigned int mode, size_t size, size_t capacity, bool adopt, bool grow) {
+	stream_buffer_t* stream = memory_allocate(HASH_STREAM, sizeof(stream_buffer_t), 8, MEMORY_PERSISTENT);
 	buffer_stream_initialize(stream, buffer, mode, size, capacity, adopt, grow);
 	return (stream_t*)stream;
 }
 
 void
-buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mode, size_t size,
-                         size_t capacity, bool adopt, bool grow) {
+buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mode, size_t size, size_t capacity,
+                         bool adopt, bool grow) {
 	memset(stream, 0, sizeof(stream_buffer_t));
 	stream_initialize((stream_t*)stream, system_byteorder());
 
@@ -43,7 +41,8 @@ buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mod
 		size = capacity;
 
 	stream->type = STREAMTYPE_MEMORY;
-	stream->path = string_allocate_format(STRING_CONST("buffer://0x%" PRIfixPTR), (uintptr_t)stream);
+	stream->path = string_allocate_format(STRING_CONST("buffer://0x%" PRIfixPTR "-0x%" PRIfixPTR), (uintptr_t)buffer,
+	                                      (uintptr_t)pointer_offset(buffer, size));
 	stream->mode = mode & (STREAM_OUT | STREAM_IN | STREAM_BINARY);
 	stream->buffer = buffer;
 	stream->size = size;
@@ -73,49 +72,48 @@ _buffer_stream_finalize(stream_t* stream) {
 }
 
 static size_t
-_buffer_stream_read(stream_t* stream, void* dest, size_t num) {
-	size_t available, num_read;
+_buffer_stream_read(stream_t* stream, void* dest, size_t size) {
+	size_t available;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
 	FOUNDATION_ASSERT(buffer_stream->size >= buffer_stream->current);
 
 	available = buffer_stream->size - buffer_stream->current;
-	num_read = (num < available) ? num : available;
+	if (available < size)
+		size = available;
 
-	if (num_read > 0) {
-		memcpy(dest, pointer_offset(buffer_stream->buffer, buffer_stream->current), num_read);
-		buffer_stream->current += num_read;
-		return num_read;
+	if (size > 0) {
+		memcpy(dest, pointer_offset(buffer_stream->buffer, buffer_stream->current), size);
+		buffer_stream->current += size;
+		return size;
 	}
 
 	return 0;
 }
 
 static size_t
-_buffer_stream_write(stream_t* stream, const void* source, size_t num) {
-	size_t available, want, num_write;
+_buffer_stream_write(stream_t* stream, const void* source, size_t size) {
+	size_t available, want;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
 	FOUNDATION_ASSERT(buffer_stream->size >= buffer_stream->current);
 
 	available = buffer_stream->size - buffer_stream->current;
-	want = num;
+	want = size;
 
 	if (want > available) {
 		if (buffer_stream->capacity >= (buffer_stream->current + want)) {
 			available = want;
 			buffer_stream->size = buffer_stream->current + want;
-		}
-		else if (buffer_stream->grow) {
+		} else if (buffer_stream->grow) {
 			size_t prev_capacity = buffer_stream->capacity;
 			available = want;
 			buffer_stream->size = buffer_stream->current + want;
 			buffer_stream->capacity = (buffer_stream->size < 1024) ? 1024 : buffer_stream->size + 1024;
-			//tail segment from current to size will be overwritten
-			buffer_stream->buffer = memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0,
-			                                          prev_capacity, 0);
-		}
-		else {
+			// tail segment from current to size will be overwritten
+			buffer_stream->buffer =
+			    memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0, prev_capacity, 0);
+		} else {
 			available = buffer_stream->capacity - buffer_stream->current;
 			buffer_stream->size = buffer_stream->capacity;
 		}
@@ -123,11 +121,11 @@ _buffer_stream_write(stream_t* stream, const void* source, size_t num) {
 
 	buffer_stream->lastmod = time_current();
 
-	num_write = (want < available) ? want : available;
-	if (num_write > 0) {
-		memcpy(pointer_offset(buffer_stream->buffer, buffer_stream->current), source, num_write);
-		buffer_stream->current += num_write;
-		return num_write;
+	size = (want < available) ? want : available;
+	if (size > 0) {
+		memcpy(pointer_offset(buffer_stream->buffer, buffer_stream->current), source, size);
+		buffer_stream->current += size;
+		return size;
 	}
 
 	return 0;
@@ -141,7 +139,7 @@ _buffer_stream_eos(stream_t* stream) {
 
 static void
 _buffer_stream_flush(stream_t* stream) {
-	//lint --e{715, 818} stream unused and could be const, but it's really a vtable function
+	// lint --e{715, 818} stream unused and could be const, but it's really a vtable function
 	FOUNDATION_UNUSED(stream);
 }
 
@@ -150,14 +148,12 @@ _buffer_stream_truncate(stream_t* stream, size_t size) {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	if (buffer_stream->capacity >= size) {
 		buffer_stream->size = size;
-	}
-	else if (buffer_stream->grow) {
+	} else if (buffer_stream->grow) {
 		buffer_stream->capacity = size;
-		buffer_stream->buffer = memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0,
-		                                          buffer_stream->current, 0);
+		buffer_stream->buffer =
+		    memory_reallocate(buffer_stream->buffer, buffer_stream->capacity, 0, buffer_stream->current, 0);
 		buffer_stream->size = buffer_stream->capacity;
-	}
-	else {
+	} else {
 		buffer_stream->size = buffer_stream->capacity;
 	}
 	if (buffer_stream->current > buffer_stream->size)
@@ -182,8 +178,7 @@ _buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t directi
 			new_current = (abs_offset > buffer_stream->current) ? 0 : (buffer_stream->current - abs_offset);
 		else
 			new_current = buffer_stream->current + abs_offset;
-	}
-	else if (direction == STREAM_SEEK_BEGIN)
+	} else if (direction == STREAM_SEEK_BEGIN)
 		new_current = (offset > 0) ? abs_offset : 0;
 	else if (direction == STREAM_SEEK_END)
 		new_current = (offset < 0) ? buffer_stream->size - abs_offset : buffer_stream->size;

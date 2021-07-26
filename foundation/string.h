@@ -1,10 +1,10 @@
-/* string.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* string.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -112,20 +112,16 @@ The format specifier must be a string literal of specified length, zero terminat
 FOUNDATION_API string_t
 string_allocate_format(const char* format, size_t length, ...) FOUNDATION_PRINTFCALL(1, 3);
 
-/*! \fn string_t string_format(char* buffer, size_t capacity, const char* format, size_t length, ...)
-In-memory string formatting from a format specifier and variable data, printf style.
-The format specifier must be a string literal of specified length, zero terminated.
-Will print at most (capacity-1) characters into the buffer and always zero terminate.
-If buffer or capacity is null the returned string is null, otherwise the string is always
-returned with buffer pointer and length [0, capacity-1].
-\param buffer Destination buffer
-\param capacity Capacity of destination buffer
-\param format Format specifier
-\param length Length of format specifier
-\return Formatted string in given buffer, zero terminated */
+/*! \fn string_t string_format(char* buffer, size_t capacity, const char* format, size_t length,
+...) In-memory string formatting from a format specifier and variable data, printf style. The format
+specifier must be a string literal of specified length, zero terminated. Will print at most
+(capacity-1) characters into the buffer and always zero terminate. If buffer or capacity is null the
+returned string is null, otherwise the string is always returned with buffer pointer and length [0,
+capacity-1]. \param buffer Destination buffer \param capacity Capacity of destination buffer \param
+format Format specifier \param length Length of format specifier \return Formatted string in given
+buffer, zero terminated */
 FOUNDATION_API string_t
-string_format(char* buffer, size_t capacity, const char* format, size_t length, ...)
-    FOUNDATION_PRINTFCALL(3, 5);
+string_format(char* buffer, size_t capacity, const char* format, size_t length, ...) FOUNDATION_PRINTFCALL(3, 5);
 
 /*! \fn string_t string_allocate_vformat(const char* format, size_t length, va_list list)
 Allocate a new string from a format specifier and variable data given as a va_list,
@@ -139,19 +135,15 @@ a string buffer is always allocated and returned.
 FOUNDATION_API string_t
 string_allocate_vformat(const char* format, size_t length, va_list list) FOUNDATION_PRINTFCALL(1, 0);
 
-/*! \fn string_t string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list
-list)
-In-memory string formatting from a format specifier and variable data given as a va_list, printf style.
-The format specifier must be a string literal of specified length, zero terminated. Will print at most
-(capacity-1) characters into the buffer and always zero terminate the string. If buffer or capacity is null
-the returned string is null, otherwise the string is always returned with buffer pointer and length [0,
-capacity-1]
-\param buffer Destination buffer
-\param capacity Capacity of destination buffer
-\param format Format specifier
-\param length Length of format specifier
-\param list Variable argument list
-\return Formatted string in given buffer, zero terminated */
+/*! \fn string_t string_vformat(char* buffer, size_t capacity, const char* format, size_t length,
+va_list list) In-memory string formatting from a format specifier and variable data given as a
+va_list, printf style. The format specifier must be a string literal of specified length, zero
+terminated. Will print at most (capacity-1) characters into the buffer and always zero terminate the
+string. If buffer or capacity is null the returned string is null, otherwise the string is always
+returned with buffer pointer and length [0, capacity-1] \param buffer Destination buffer \param
+capacity Capacity of destination buffer \param format Format specifier \param length Length of
+format specifier \param list Variable argument list \return Formatted string in given buffer, zero
+terminated */
 FOUNDATION_API string_t
 string_vformat(char* buffer, size_t capacity, const char* format, size_t length, va_list list)
     FOUNDATION_PRINTFCALL(3, 0);
@@ -188,8 +180,7 @@ pointers in both pointer arguments.
 \param length Length of source string
 \return Destination string in given buffer */
 FOUNDATION_API string_t
-string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATION_RESTRICT src,
-            size_t length);
+string_copy(char* FOUNDATION_RESTRICT dst, size_t capacity, const char* FOUNDATION_RESTRICT src, size_t length);
 
 /*! Reallocate a string and fill with the given character. If the current buffer capacity
 is greater than the requested length the buffer is not reallocated. If the requested
@@ -226,8 +217,8 @@ termination state will be unmodified as well.
 \param repeat Repeat flag
 \return Final replaced string */
 FOUNDATION_API string_t
-string_replace(char* str, size_t length, size_t capacity, const char* key, size_t key_length,
-               const char* newkey, size_t newkey_length, bool repeat);
+string_replace(char* str, size_t length, size_t capacity, const char* key, size_t key_length, const char* newkey,
+               size_t newkey_length, bool repeat);
 
 /*! Allocate a new string which is the concatenation of the given two strings.. Returned
 string is never null, a string is always allocated
@@ -250,8 +241,8 @@ string is never null, a string is always allocated and is always zero terminated
 \param suffix_length Length of suffix string
 \return Newly allocated string which is concatenation of all given strings */
 FOUNDATION_API string_t
-string_allocate_concat_varg(const char* prefix, size_t prefix_length, const char* suffix,
-                            size_t suffix_length, ...) FOUNDATION_ATTRIBUTE(sentinel);
+string_allocate_concat_varg(const char* prefix, size_t prefix_length, const char* suffix, size_t suffix_length, ...)
+    FOUNDATION_ATTRIBUTE(sentinel);
 
 /*! Allocate a new string which is the concatenation of the given variable number of strings.
 The argument list must be pairs of (char*, size_t) arguments specifying strings with
@@ -354,9 +345,9 @@ meaning the last argument will be the first string fragment in the concatenated 
 FOUNDATION_API string_t
 string_prepend(char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length);
 
-/*! Prepend a variable number of prefix strings to a base string. The string will not be reallocated,
-the prepending will continue in a best effort way until the capacity of the destination buffer
-is reached. The variable argument list must be (char*, size_t) tuples giving additional
+/*! Prepend a variable number of prefix strings to a base string. The string will not be
+reallocated, the prepending will continue in a best effort way until the capacity of the destination
+buffer is reached. The variable argument list must be (char*, size_t) tuples giving additional
 suffix strings to append, terminated by a null pointer argument. The resulting string will be
 zero terminated. Given prefix fragments are prepended in order, meaning the last argument will
 be the first string fragment in the concatenated final string.
@@ -370,9 +361,9 @@ FOUNDATION_API string_t
 string_prepend_varg(char* str, size_t length, size_t capacity, const char* prefix, size_t prefix_length, ...)
     FOUNDATION_ATTRIBUTE(sentinel);
 
-/*! Prepend a variable number of prefix strings to a base string. The string will not be reallocated,
-the prepending will continue in a best effort way until the capacity of the destination buffer
-is reached. The variable argument list must be (char*, size_t) tuples giving additional
+/*! Prepend a variable number of prefix strings to a base string. The string will not be
+reallocated, the prepending will continue in a best effort way until the capacity of the destination
+buffer is reached. The variable argument list must be (char*, size_t) tuples giving additional
 suffix strings to append, terminated by a null pointer argument. The resulting string will be
 zero terminated. Given prefix fragments are prepended in order, meaning the last argument will
 be the first string fragment in the concatenated final string.
@@ -546,8 +537,8 @@ string_equal_substr(const char* lhs, size_t lhs_length, size_t lhs_offset, const
 \param rhs_offset Offset in second string
 \return True if substrings are equal in [offset,length) range, false if not */
 FOUNDATION_API bool
-string_equal_substr_nocase(const char* lhs, size_t lhs_length, size_t lhs_offset, const char* rhs,
-                           size_t rhs_length, size_t rhs_offset);
+string_equal_substr_nocase(const char* lhs, size_t lhs_length, size_t lhs_offset, const char* rhs, size_t rhs_length,
+                           size_t rhs_offset);
 
 /*! Check if a string matches a given pattern using ? and * wildcards. For regular expression
 matching see the regex.h module.
@@ -588,8 +579,8 @@ including empty substrings (consecutive separator characters).
 \param allow_empty Flag to include empty substrings if true, ignore if false
 \return Number of substrings stored in array */
 FOUNDATION_API size_t
-string_explode(const char* str, size_t length, const char* delimiters, size_t delim_length,
-               string_const_t* arr, size_t arrsize, bool allow_empty);
+string_explode(const char* str, size_t length, const char* delimiters, size_t delim_length, string_const_t* arr,
+               size_t arrsize, bool allow_empty);
 
 /*! Merge a string array using the given separator string
 \param dst Destination string buffer
@@ -600,8 +591,8 @@ string_explode(const char* str, size_t length, const char* delimiters, size_t de
 \param delim_length Length of separator string
 \return Merged string in destination buffer */
 FOUNDATION_API string_t
-string_merge(char* dst, size_t capacity, const string_const_t* array, size_t array_size,
-             const char* delimiter, size_t delim_length);
+string_merge(char* dst, size_t capacity, const string_const_t* array, size_t array_size, const char* delimiter,
+             size_t delim_length);
 
 /*! Merge a string list using the given separator string. The variable argument list shoud
 be (const char*, size_t) pairs of strings to merge, terminated by a null pointer.
@@ -645,8 +636,7 @@ string_glyph(const char* str, size_t length, size_t offset, size_t* consumed);
 \param needle_length Length of string to find
 \return Index of string found, or <0 if no string matching */
 FOUNDATION_API ssize_t
-string_array_find(const string_const_t* haystack, size_t haystack_size, const char* needle,
-                  size_t needle_length);
+string_array_find(const string_const_t* haystack, size_t haystack_size, const char* needle, size_t needle_length);
 
 /*! Deallocate all strings in an array of strings. Does not deallocate array itself.
 \param array Array of strings */
@@ -803,8 +793,33 @@ fill character. String will be zero terminated.
 \param padding Fill character
 \return String in given buffer */
 FOUNDATION_API string_t
-string_from_real(char* str, size_t capacity, real val, unsigned int precision, unsigned int width,
-                 char padding);
+string_from_real(char* str, size_t capacity, real val, unsigned int precision, unsigned int width, char padding);
+
+/*! Convert a float to a string, with optional fixed notation, field width, precision and
+fill character. String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in given buffer */
+FOUNDATION_API string_t
+string_from_float32(char* str, size_t capacity, float32_t val, unsigned int precision, unsigned int width,
+                    char padding);
+
+/*! Convert a float to a string, with optional fixed notation, field width, precision and
+fill character. String will be zero terminated.
+\param str String buffer
+\param capacity Capacity of string buffer.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in given buffer */
+FOUNDATION_API string_t
+string_from_float64(char* str, size_t capacity, float64_t val, unsigned int precision, unsigned int width,
+                    char padding);
 
 /*! Get a formatted string of the given timestamp. String buffer should be at least
 25 bytes (24 characters + terminating zero). A capacity of less than 25 characters
@@ -892,6 +907,28 @@ string_from_*_static functions and only valid until next call to one of these fu
 \return String in thread-local buffer */
 FOUNDATION_API string_const_t
 string_from_real_static(real val, unsigned int precision, unsigned int width, char padding);
+
+/*! Convert a float into a thread-local conversion buffer, with optional fixed notation,
+field width, precision and fill character. The buffer is shared between all
+string_from_*_static functions and only valid until next call to one of these functions.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in thread-local buffer */
+FOUNDATION_API string_const_t
+string_from_float32_static(float32_t val, unsigned int precision, unsigned int width, char padding);
+
+/*! Convert a float into a thread-local conversion buffer, with optional fixed notation,
+field width, precision and fill character. The buffer is shared between all
+string_from_*_static functions and only valid until next call to one of these functions.
+\param val Float value
+\param precision Precision
+\param width Field width
+\param padding Fill character
+\return String in thread-local buffer */
+FOUNDATION_API string_const_t
+string_from_float64_static(float64_t val, unsigned int precision, unsigned int width, char padding);
 
 /*! Convert a timestamp into a thread-local conversion buffer. The buffer is shared between all
 string_from_*_static functions and only valid until next call to one of these functions.

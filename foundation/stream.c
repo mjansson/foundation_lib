@@ -1,10 +1,10 @@
-/* stream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* stream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -82,8 +82,7 @@ stream_set_protocol_handler(const char* protocol, size_t length, stream_open_fn 
 
 stream_open_fn
 stream_protocol_handler(const char* protocol, size_t length) {
-	return (stream_open_fn)(uintptr_t)hashtable64_get(_stream_protocol_table,
-	                                                  hash(protocol, length));
+	return (stream_open_fn)(uintptr_t)hashtable64_get(_stream_protocol_table, hash(protocol, length));
 }
 
 void
@@ -93,6 +92,7 @@ stream_initialize(stream_t* stream, byteorder_t order) {
 	stream->reliable = 1;
 	stream->inorder = 1;
 	stream->persistent = 0;
+	stream->compressed = 0;
 	stream->swap = ((byteorder_t)stream->byteorder != system_byteorder()) ? 1 : 0;
 	stream->mode = STREAM_BINARY;
 	stream->path = (string_t){0, 0};
@@ -226,10 +226,10 @@ stream_tell(stream_t* stream) {
 }
 
 size_t
-stream_read(stream_t* stream, void* buffer, size_t num_bytes) {
+stream_read(stream_t* stream, void* buffer, size_t size) {
 	if (!(stream->mode & STREAM_IN))
 		return 0;
-	return stream->vtable->read(stream, buffer, num_bytes);
+	return stream->vtable->read(stream, buffer, size);
 }
 
 string_t
@@ -342,8 +342,7 @@ stream_skip_whitespace(stream_t* stream) {
 	size_t read;
 	size_t total = 0;
 
-	if (!(stream->mode & STREAM_IN) || (stream->mode & STREAM_BINARY) ||
-	    stream_is_sequential(stream))
+	if (!(stream->mode & STREAM_IN) || (stream->mode & STREAM_BINARY) || stream_is_sequential(stream))
 		return 0;
 
 	do {
@@ -365,32 +364,31 @@ stream_size(stream_t* stream) {
 }
 
 void
-stream_determine_binary_mode(stream_t* stream, size_t num) {
+stream_determine_binary_mode(stream_t* stream, size_t size) {
 	char fixed_buffer[32];
-	char* buf;
+	char* buf = fixed_buffer;
 	size_t cur;
 	size_t actual_read, i;
 
 	if (!(stream->mode & STREAM_IN) || stream_is_sequential(stream))
 		return;
 
-	if (!num)
-		num = 8;
+	if (!size)
+		size = 8;
 
-	buf =
-	    (num <= sizeof(fixed_buffer)) ? fixed_buffer : memory_allocate(0, num, 0, MEMORY_TEMPORARY);
-	memset(buf, 32, num);
+	if (size > sizeof(fixed_buffer))
+		buf = memory_allocate(0, size, 0, MEMORY_TEMPORARY);
+	memset(buf, 32, size);
 
 	cur = stream_tell(stream);
-	actual_read = stream_read(stream, buf, num);
+	actual_read = stream_read(stream, buf, size);
 	stream_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
 
 	stream->mode &= ~STREAM_BINARY;
 
 	for (i = 0; i < actual_read; ++i) {
 		// TODO: What about UTF-8?
-		if (((buf[i] < 0x20) && (buf[i] != 0x09) && (buf[i] != 0x0a) && (buf[i] != 0x0d)) ||
-		    (buf[i] > 0x7e)) {
+		if (((buf[i] < 0x20) && (buf[i] != 0x09) && (buf[i] != 0x0a) && (buf[i] != 0x0d)) || (buf[i] > 0x7e)) {
 			stream->mode |= STREAM_BINARY;
 			break;
 		}
@@ -723,8 +721,7 @@ stream_read_string(stream_t* stream) {
 					if (outbuffer != buffer) {
 						outbuffer = memory_reallocate(outbuffer, outsize, 0, cursize, 0);
 					} else {
-						FOUNDATION_ASSERT(
-						    cursize == 0);  // Or internal assumptions about code flow is incorrect
+						FOUNDATION_ASSERT(cursize == 0);  // Or internal assumptions about code flow is incorrect
 						outbuffer = memory_allocate(0, outsize, 0, MEMORY_PERSISTENT);
 						memcpy(outbuffer, buffer, i);
 					}
@@ -862,7 +859,7 @@ stream_available_read(stream_t* stream) {
 
 static bool
 stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t), void* data) {
-	size_t cur, ic, lastc, num, limit;
+	size_t cur, ic, lastc, size, limit;
 	unsigned char buf[1025];
 	bool ignore_lf = false;
 
@@ -876,11 +873,11 @@ stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t),
 	buf[limit] = 0;
 
 	while (!stream_eos(stream)) {
-		num = stream->vtable->read(stream, buf, limit);
-		if (!num)
+		size = stream->vtable->read(stream, buf, limit);
+		if (!size)
 			continue;
 		if (stream->mode & STREAM_BINARY)
-			digester(data, buf, (size_t)num);
+			digester(data, buf, size);
 		else {
 			// If last buffer ended with CR, ignore a leading LF
 			lastc = 0;
@@ -894,13 +891,12 @@ stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t),
 			// a
 			// single LF), it will not work!
 			/*lint -e{850} */
-			for (ic = lastc; ic < num && ic < limit; ++ic) {
+			for (ic = lastc; ic < size && ic < limit; ++ic) {
 				bool was_cr = (buf[ic] == '\r');
 				bool was_lf = (buf[ic] == '\n');
 				if (was_cr || was_lf) {
 					if (was_cr && (ic == limit - 1))
-						ignore_lf =
-						    true;  // Make next buffer ignore leading LF as it is part of CR+LF
+						ignore_lf = true;  // Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
 					digester(data, buf + lastc, (size_t)((ic - lastc) + 1));  // Include the LF
 					if (was_cr && (buf[ic + 1] == '\n'))                      // Check for CR+LF
@@ -908,8 +904,8 @@ stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t),
 					lastc = ic + 1;
 				}
 			}
-			if (lastc < num)
-				digester(data, buf + lastc, (size_t)(num - lastc));
+			if (lastc < size)
+				digester(data, buf + lastc, size - lastc);
 		}
 	}
 
@@ -972,10 +968,10 @@ stream_sha512(stream_t* stream) {
 }
 
 size_t
-stream_write(stream_t* stream, const void* buffer, size_t num_bytes) {
+stream_write(stream_t* stream, const void* buffer, size_t size) {
 	if (!(stream->mode & STREAM_OUT))
 		return 0;
-	return stream->vtable->write(stream, buffer, num_bytes);
+	return stream->vtable->write(stream, buffer, size);
 }
 
 void
@@ -1262,8 +1258,8 @@ _stream_stdout_flush(stream_t* stream) {
 
 static stream_t*
 _stream_std_clone(stream_t* stream) {
-	stream_std_t* clone = memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8,
-	                                      MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	stream_std_t* clone =
+	    memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	memcpy(clone, stream, sizeof(stream_std_t));
 	clone->path = string_clone(stream->path.str, stream->path.length);
 	return (stream_t*)clone;
@@ -1318,44 +1314,18 @@ _stream_std_last_modified(const stream_t* stream) {
 	return time_system();
 }
 
-static stream_vtable_t _stream_stdout_vtable = {0,
-                                                _stream_stdout_write,
-                                                0,
-                                                _stream_stdout_flush,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                _stream_std_last_modified,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                0,
-                                                _stream_std_clone};
+static stream_vtable_t _stream_stdout_vtable = {
+    0, _stream_stdout_write, 0, _stream_stdout_flush, 0, 0, 0, 0, _stream_std_last_modified, 0, 0, 0, 0, 0,
+    0, _stream_std_clone};
 
-static stream_vtable_t _stream_stdin_vtable = {_stream_stdin_read,
-                                               0,
-                                               _stream_stdin_eos,
-                                               0,
-                                               0,
-                                               0,
-                                               0,
-                                               0,
-                                               _stream_std_last_modified,
-                                               0,
-                                               0,
-                                               0,
-                                               0,
-                                               _stream_stdin_available_read,
-                                               0,
-                                               _stream_std_clone};
+static stream_vtable_t _stream_stdin_vtable = {
+    _stream_stdin_read,           0, _stream_stdin_eos, 0, 0, 0, 0, 0, _stream_std_last_modified, 0, 0, 0, 0,
+    _stream_stdin_available_read, 0, _stream_std_clone};
 
 stream_t*
 stream_open_stdout(void) {
-	stream_std_t* stream = memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8,
-	                                       MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	stream_std_t* stream =
+	    memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	stream_initialize((stream_t*)stream, system_byteorder());
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
@@ -1368,8 +1338,8 @@ stream_open_stdout(void) {
 
 stream_t*
 stream_open_stderr(void) {
-	stream_std_t* stream = memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8,
-	                                       MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	stream_std_t* stream =
+	    memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	stream_initialize((stream_t*)stream, system_byteorder());
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
@@ -1382,8 +1352,8 @@ stream_open_stderr(void) {
 
 stream_t*
 stream_open_stdin(void) {
-	stream_std_t* stream = memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8,
-	                                       MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	stream_std_t* stream =
+	    memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	stream_initialize((stream_t*)stream, system_byteorder());
 	stream->sequential = 1;
 	stream->mode = STREAM_IN;

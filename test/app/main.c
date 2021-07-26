@@ -1,10 +1,10 @@
-/* main.c  -  Foundation app test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation app test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -15,7 +15,7 @@
 #include <mock/mock.h>
 
 #if FOUNDATION_PLATFORM_POSIX
-#  include <foundation/posix.h>
+#include <foundation/posix.h>
 #endif
 
 static application_t _global_app;
@@ -24,7 +24,7 @@ static application_t
 test_app_application(void) {
 	_global_app.name = string_const(STRING_CONST("Foundation application tests"));
 	_global_app.short_name = string_const(STRING_CONST("test_app"));
-	_global_app.company = string_const(STRING_CONST("Rampant Pixels"));
+	_global_app.company = string_const(STRING_CONST(""));
 	_global_app.version = foundation_version();
 	_global_app.flags = APPLICATION_UTILITY;
 	_global_app.exception_handler = test_exception_handler;
@@ -55,7 +55,7 @@ test_app_finalize(void) {
 DECLARE_TEST(app, environment) {
 	const application_t decl = test_app_application();
 
-	//Test double init
+	// Test double init
 	EXPECT_TRUE(foundation_is_initialized());
 	EXPECT_EQ(foundation_initialize(test_app_memory_system(), test_app_application(), test_app_config()), 0);
 
@@ -64,8 +64,7 @@ DECLARE_TEST(app, environment) {
 	EXPECT_CONSTSTRINGEQ(environment_application()->short_name, decl.short_name);
 #endif
 	EXPECT_CONSTSTRINGEQ(environment_application()->company, decl.company);
-	EXPECT_TRUE(uint128_equal(environment_application()->version.version,
-	                          decl.version.version));
+	EXPECT_TRUE(uint128_equal(environment_application()->version.version, decl.version.version));
 	EXPECT_EQ(environment_application()->flags, APPLICATION_UTILITY);
 	EXPECT_EQ(environment_application()->exception_handler, test_exception_handler);
 
@@ -97,7 +96,7 @@ static size_t _memory_dumps;
 static size_t _memory_dump_size;
 
 static int
-memory_dump(const void* addr, size_t size, void * const* trace, size_t depth) {
+memory_dump(const void* addr, size_t size, void* const* trace, size_t depth) {
 	FOUNDATION_UNUSED(addr);
 	FOUNDATION_UNUSED(trace);
 	FOUNDATION_UNUSED(depth);
@@ -113,7 +112,7 @@ memory_dump(const void* addr, size_t size, void * const* trace, size_t depth) {
 DECLARE_TEST(app, memory) {
 	thread_t thread[16];
 	size_t ith;
-	size_t num_threads = math_clamp(system_hardware_threads() + 1, 2, 16);
+	size_t threads_count = math_clamp(system_hardware_threads() + 1, 2, 16);
 
 	log_set_suppress(HASH_MEMORY, ERRORLEVEL_NONE);
 
@@ -130,20 +129,19 @@ DECLARE_TEST(app, memory) {
 	EXPECT_SIZEGT(_memory_dump_size, 1);
 #endif
 
-	for (ith = 0; ith < num_threads; ++ith)
-		thread_initialize(&thread[ith], memory_thread, 0, STRING_CONST("memory_thread"),
-		                  THREAD_PRIORITY_NORMAL, 0);
+	for (ith = 0; ith < threads_count; ++ith)
+		thread_initialize(&thread[ith], memory_thread, 0, STRING_CONST("memory_thread"), THREAD_PRIORITY_NORMAL, 0);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_start(&thread[ith]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		EXPECT_EQ(thread[ith].result, 0);
 
-	for (ith = 0; ith < num_threads; ++ith)
+	for (ith = 0; ith < threads_count; ++ith)
 		thread_finalize(&thread[ith]);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS && BUILD_ENABLE_MEMORY_TRACKER
@@ -200,7 +198,7 @@ test_thread(void* arg) {
 		thread_set_hardware(mask);
 		for (size_t iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
 			random64();
-			//Not all platforms support setting thread cpu affinity
+			// Not all platforms support setting thread cpu affinity
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX
 			EXPECT_UINTEQ(thread_hardware(), core);
 #endif
@@ -229,14 +227,13 @@ DECLARE_TEST(app, thread) {
 	thread_t* testthread = 0;
 	thread_t thread[32];
 	size_t ithread;
-	size_t num_threads = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
+	size_t threads_count = math_clamp(system_hardware_threads() * 2U, 4U, 30U);
 	semaphore_t sync;
 
 	EXPECT_TRUE(thread_is_main());
 
 	semaphore_initialize(&sync, 1);
-	testthread = thread_allocate(test_thread, &sync, STRING_CONST("test_thread"),
-	                             THREAD_PRIORITY_NORMAL, 0);
+	testthread = thread_allocate(test_thread, &sync, STRING_CONST("test_thread"), THREAD_PRIORITY_NORMAL, 0);
 	thread_start(testthread);
 
 	test_wait_for_threads_startup(testthread, 1);
@@ -245,16 +242,15 @@ DECLARE_TEST(app, thread) {
 	EXPECT_EQ(thread_join(testthread), nullptr);
 	thread_deallocate(testthread);
 
-	for (ithread = 0; ithread < num_threads; ++ithread)
-		thread_initialize(&thread[ithread], test_thread, &sync, STRING_CONST("test_thread"),
-		                  THREAD_PRIORITY_NORMAL, 0);
-	for (ithread = 0; ithread < num_threads; ++ithread)
+	for (ithread = 0; ithread < threads_count; ++ithread)
+		thread_initialize(&thread[ithread], test_thread, &sync, STRING_CONST("test_thread"), THREAD_PRIORITY_NORMAL, 0);
+	for (ithread = 0; ithread < threads_count; ++ithread)
 		thread_start(&thread[ithread]);
 
-	test_wait_for_threads_startup(thread, num_threads);
-	test_wait_for_threads_finish(thread, num_threads);
+	test_wait_for_threads_startup(thread, threads_count);
+	test_wait_for_threads_finish(thread, threads_count);
 
-	for (ithread = 0; ithread < num_threads; ++ithread) {
+	for (ithread = 0; ithread < threads_count; ++ithread) {
 		EXPECT_EQ(thread_join(&thread[ithread]), nullptr);
 		thread_finalize(&thread[ithread]);
 	}
@@ -264,8 +260,7 @@ DECLARE_TEST(app, thread) {
 
 	semaphore_finalize(&sync);
 
-	testthread = thread_allocate(sleep_thread, 0, STRING_CONST("sleep_thread"), THREAD_PRIORITY_NORMAL,
-	                             0);
+	testthread = thread_allocate(sleep_thread, 0, STRING_CONST("sleep_thread"), THREAD_PRIORITY_NORMAL, 0);
 	thread_start(testthread);
 
 	test_wait_for_threads_startup(testthread, 1);
@@ -286,15 +281,13 @@ test_app_declare(void) {
 	ADD_TEST(app, thread);
 }
 
-static test_suite_t test_app_suite = {
-	test_app_application,
-	test_app_memory_system,
-	test_app_config,
-	test_app_declare,
-	test_app_initialize,
-	test_app_finalize,
-	0
-};
+static test_suite_t test_app_suite = {test_app_application,
+                                      test_app_memory_system,
+                                      test_app_config,
+                                      test_app_declare,
+                                      test_app_initialize,
+                                      test_app_finalize,
+                                      0};
 
 #if BUILD_MONOLITHIC
 

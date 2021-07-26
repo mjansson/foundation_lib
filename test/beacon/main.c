@@ -1,10 +1,10 @@
-/* main.c  -  Foundation beacon test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation beacon test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_beacon_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation beacon tests"));
 	app.short_name = string_const(STRING_CONST("test_beacon"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -199,15 +199,13 @@ test_beacon_declare(void) {
 	ADD_TEST(beacon, multiwait);
 }
 
-static test_suite_t test_beacon_suite = {
-	test_beacon_application,
-	test_beacon_memory_system,
-	test_beacon_config,
-	test_beacon_declare,
-	test_beacon_initialize,
-	test_beacon_finalize,
-	0
-};
+static test_suite_t test_beacon_suite = {test_beacon_application,
+                                         test_beacon_memory_system,
+                                         test_beacon_config,
+                                         test_beacon_declare,
+                                         test_beacon_initialize,
+                                         test_beacon_finalize,
+                                         0};
 
 #if BUILD_MONOLITHIC
 

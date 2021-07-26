@@ -1,10 +1,10 @@
-/* fs.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* fs.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -77,8 +77,7 @@ static mutex_t* _fs_monitor_lock;
 static fs_monitor_t* _fs_monitors;
 static event_stream_t* _fs_event_stream;
 
-#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || \
-    FOUNDATION_PLATFORM_MACOS
+#if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOS
 #define FOUNDATION_HAVE_FS_MONITOR 1
 static void*
 _fs_monitor(void*);
@@ -118,8 +117,7 @@ fs_monitor(const char* path, size_t length) {
 	mutex_lock(_fs_monitor_lock);
 
 	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
-		if (_fs_monitors[mi].inuse &&
-		    string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
+		if (_fs_monitors[mi].inuse && string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
 			mutex_unlock(_fs_monitor_lock);
 			return true;
 		}
@@ -140,8 +138,8 @@ fs_monitor(const char* path, size_t length) {
 			// On macOS file system monitors are run in system dispatch
 			_fs_monitor(_fs_monitors + mi);
 #else
-			thread_initialize(&_fs_monitors[mi].thread, _fs_monitor, _fs_monitors + mi,
-			                  STRING_CONST("fs_monitor"), THREAD_PRIORITY_BELOWNORMAL, 0);
+			thread_initialize(&_fs_monitors[mi].thread, _fs_monitor, _fs_monitors + mi, STRING_CONST("fs_monitor"),
+			                  THREAD_PRIORITY_BELOWNORMAL, 0);
 			thread_start(&_fs_monitors[mi].thread);
 #endif
 			ret = true;
@@ -151,8 +149,7 @@ fs_monitor(const char* path, size_t length) {
 
 	if (mi == foundation_config().fs_monitor_max) {
 		string_deallocate(path_clone.str);
-		log_errorf(0, ERROR_OUT_OF_MEMORY,
-		           STRING_CONST("Unable to monitor file system, no free monitor slots: %.*s"),
+		log_errorf(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to monitor file system, no free monitor slots: %.*s"),
 		           (int)length, path);
 	}
 
@@ -190,8 +187,7 @@ fs_unmonitor(const char* path, size_t length) {
 
 	if (_fs_monitors) {
 		for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
-			if (_fs_monitors[mi].inuse &&
-			    string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
+			if (_fs_monitors[mi].inuse && string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
 				_fs_stop_monitor(_fs_monitors + mi);
 		}
 	}
@@ -291,8 +287,7 @@ fs_subdirs(const char* path, size_t length) {
 					if (!data.cFileName[1] || (data.cFileName[1] == L'.'))
 						continue;  // Don't include . and .. directories
 				}
-				filename =
-				    string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName));
+				filename = string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName));
 				array_push(arr, filename);
 			}
 		} while (FindNextFileW(find, &data));
@@ -319,8 +314,8 @@ fs_subdirs(const char* path, size_t length) {
 					continue;  // Don't include . and .. directories
 			}
 			size_t entrylen = string_length(entry->d_name);
-			string_t thispath = path_append(foundpath_buffer, length, sizeof(foundpath_buffer),
-			                                entry->d_name, entrylen);
+			string_t thispath =
+			    path_append(foundpath_buffer, length, sizeof(foundpath_buffer), entry->d_name, entrylen);
 			if (!stat(thispath.str, &st) && S_ISDIR(st.st_mode))
 				array_push(arr, string_clone(entry->d_name, entrylen));
 		}
@@ -362,8 +357,7 @@ fs_files(const char* path, size_t length) {
 	if (find != INVALID_HANDLE_VALUE)
 		do {
 			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-				array_push(arr, string_allocate_from_wstring(data.cFileName,
-				                                             wstring_length(data.cFileName)));
+				array_push(arr, string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName)));
 		} while (FindNextFileW(find, &data));
 	FindClose(find);
 
@@ -385,8 +379,7 @@ fs_files(const char* path, size_t length) {
 
 		while ((entry = readdir(dir)) != 0) {
 			size_t entrylen = string_length(entry->d_name);
-			string_t thispath =
-			    path_append(localpath, length, sizeof(localpath), entry->d_name, entrylen);
+			string_t thispath = path_append(localpath, length, sizeof(localpath), entry->d_name, entrylen);
 			if (!stat(thispath.str, &st) && S_ISREG(st.st_mode))
 				array_push(arr, string_clone(entry->d_name, entrylen));
 		}
@@ -461,16 +454,14 @@ fs_remove_directory(const char* path, size_t length) {
 	remain = BUILD_MAX_PATHLEN - fspathofs;
 	subpaths = fs_subdirs(STRING_ARGS(fspath));
 	for (i = 0, num = array_size(subpaths); i < num; ++i) {
-		localpath = path_append(abspath_buffer + fspathofs, fspath.length, remain,
-		                        STRING_ARGS(subpaths[i]));
+		localpath = path_append(abspath_buffer + fspathofs, fspath.length, remain, STRING_ARGS(subpaths[i]));
 		fs_remove_directory(STRING_ARGS(localpath));
 	}
 	string_array_deallocate(subpaths);
 
 	subfiles = fs_files(STRING_ARGS(fspath));
 	for (i = 0, num = array_size(subfiles); i < num; ++i) {
-		localpath = path_append(abspath_buffer + fspathofs, fspath.length, remain,
-		                        STRING_ARGS(subfiles[i]));
+		localpath = path_append(abspath_buffer + fspathofs, fspath.length, remain, STRING_ARGS(subfiles[i]));
 		fs_remove_file(STRING_ARGS(localpath));
 	}
 	string_array_deallocate(subfiles);
@@ -528,8 +519,7 @@ fs_make_directory(const char* path, size_t length) {
 			result = CreateDirectoryW(wpath, 0);
 			wstring_deallocate(wpath);
 #elif FOUNDATION_PLATFORM_POSIX
-			mode_t mode =
-			    S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH;
+			mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH;
 			result = (mkdir(localpath.str, mode) == 0);
 #else
 #error Not implemented
@@ -537,8 +527,7 @@ fs_make_directory(const char* path, size_t length) {
 			if (!result) {
 				int err = system_error();
 				string_const_t errmsg = system_error_message(err);
-				log_warnf(0, WARNING_SUSPICIOUS,
-				          STRING_CONST("Failed to create directory '%.*s': %.*s (%d)"),
+				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed to create directory '%.*s': %.*s (%d)"),
 				          STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
 				goto end;
 			}
@@ -573,8 +562,7 @@ fs_copy_file(const char* source, size_t srclen, const char* dest, size_t destlen
 	if (destpath.length)
 		fs_make_directory(STRING_ARGS(destpath));
 
-	outfile =
-	    fs_open_file(dest, destlen, STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE);
+	outfile = fs_open_file(dest, destlen, STREAM_OUT | STREAM_BINARY | STREAM_CREATE | STREAM_TRUNCATE);
 	if (!outfile) {
 		stream_deallocate(infile);
 		return false;
@@ -708,8 +696,7 @@ fs_temporary_file(void) {
 }
 
 static string_t*
-fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool recurse,
-                       bool isfile) {
+fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool recurse, bool isfile) {
 	string_t* names = 0;
 	string_t* subdirs;
 	string_t localpath;
@@ -739,8 +726,7 @@ fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool r
 		do {
 			bool fileattr = ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0);
 			if (isfile == fileattr) {
-				string_t filestr = string_convert_utf16(filename, BUILD_MAX_PATHLEN,
-				                                        (const uint16_t*)data.cFileName,
+				string_t filestr = string_convert_utf16(filename, BUILD_MAX_PATHLEN, (const uint16_t*)data.cFileName,
 				                                        wstring_length(data.cFileName));
 				if (regex_match(pattern, STRING_ARGS(filestr), 0, 0)) {
 					filestr = string_clone(STRING_ARGS(filestr));
@@ -791,8 +777,7 @@ fs_matching_name_regex(const char* path, size_t length, regex_t* pattern, bool r
 		subnames = fs_matching_files_regex(STRING_ARGS(localpath), pattern, true);
 
 		for (in = 0, nsize = array_size(subnames); in < nsize; ++in)
-			array_push(names,
-			           path_allocate_concat(STRING_ARGS(subdirs[id]), STRING_ARGS(subnames[in])));
+			array_push(names, path_allocate_concat(STRING_ARGS(subdirs[id]), STRING_ARGS(subnames[in])));
 
 		string_array_deallocate(subnames);
 	}
@@ -811,8 +796,7 @@ fs_matching_files_regex(const char* path, size_t length, regex_t* pattern, bool 
 }
 
 string_t*
-fs_matching_files(const char* path, size_t length, const char* pattern, size_t pattern_length,
-                  bool recurse) {
+fs_matching_files(const char* path, size_t length, const char* pattern, size_t pattern_length, bool recurse) {
 	regex_t* regex = regex_compile(pattern, pattern_length);
 	string_t* names = fs_matching_files_regex(path, length, regex, recurse);
 	regex_deallocate(regex);
@@ -825,8 +809,7 @@ fs_matching_subdirs_regex(const char* path, size_t length, regex_t* pattern, boo
 }
 
 string_t*
-fs_matching_subdirs(const char* path, size_t length, const char* pattern, size_t pattern_length,
-                    bool recurse) {
+fs_matching_subdirs(const char* path, size_t length, const char* pattern, size_t pattern_length, bool recurse) {
 	regex_t* regex = regex_compile(pattern, pattern_length);
 	string_t* names = fs_matching_subdirs_regex(path, length, regex, recurse);
 	regex_deallocate(regex);
@@ -835,8 +818,7 @@ fs_matching_subdirs(const char* path, size_t length, const char* pattern, size_t
 
 void
 fs_event_post(foundation_event_id id, const char* path, size_t pathlen) {
-	event_post_varg(fs_event_stream(), (int)id, 0, 0, &pathlen, sizeof(pathlen), path, pathlen,
-	                nullptr);
+	event_post_varg(fs_event_stream(), (int)id, 0, 0, &pathlen, sizeof(pathlen), path, pathlen, nullptr);
 }
 
 string_const_t
@@ -878,15 +860,15 @@ _fs_send_creations(char* path, size_t length, size_t capacity) {
 }
 
 static void
-_fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity,
-                      fs_watch_t** watch_arr, string_t** path_arr, bool send_create) {
+_fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity, fs_watch_t** watch_arr,
+                      string_t** path_arr, bool send_create) {
 	string_t* subdirs = 0;
 	string_t local_path;
 	string_t stored_path;
 	int fd = inotify_add_watch(notify_fd, path, IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVE);
 	if (fd < 0) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Failed watching subdir: %.*s (%d)"),
-		          (int)length, path, fd);
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Failed watching subdir: %.*s (%d)"), (int)length, path,
+		          fd);
 		return;
 	}
 
@@ -906,10 +888,8 @@ _fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity,
 	// Recurse
 	subdirs = fs_subdirs(STRING_ARGS(local_path));
 	for (size_t i = 0, size = array_size(subdirs); i < size; ++i) {
-		string_t subpath =
-		    string_append(STRING_ARGS(local_path), capacity, STRING_ARGS(subdirs[i]));
-		_fs_add_notify_subdir(notify_fd, STRING_ARGS(subpath), capacity, watch_arr, path_arr,
-		                      send_create);
+		string_t subpath = string_append(STRING_ARGS(local_path), capacity, STRING_ARGS(subdirs[i]));
+		_fs_add_notify_subdir(notify_fd, STRING_ARGS(subpath), capacity, watch_arr, path_arr, send_create);
 	}
 	string_array_deallocate(subdirs);
 }
@@ -953,8 +933,7 @@ _fs_monitor(void* monitorptr) {
 	handle = CreateEvent(0, FALSE, FALSE, 0);
 	if (handle == INVALID_HANDLE_VALUE) {
 		string_const_t errstr = system_error_message(0);
-		log_warnf(0, WARNING_SUSPICIOUS,
-		          STRING_CONST("Unable to create event to monitor path: %.*s : %.*s"),
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to create event to monitor path: %.*s : %.*s"),
 		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
@@ -976,8 +955,7 @@ _fs_monitor(void* monitorptr) {
 
 	// Recurse and add all subdirs
 	local_path = string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(monitor->path));
-	_fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths,
-	                      false);
+	_fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths, false);
 
 	beacon_add_fd(beacon, notify_fd);
 
@@ -999,15 +977,13 @@ _fs_monitor(void* monitorptr) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		wfpath = wstring_allocate_from_string(STRING_ARGS(monitor->path));
-		dir = CreateFileW(wfpath, FILE_LIST_DIRECTORY,
-		                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0, OPEN_EXISTING,
-		                  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, 0);
+		dir = CreateFileW(wfpath, FILE_LIST_DIRECTORY, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0,
+		                  OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, 0);
 		wstring_deallocate(wfpath);
 	}
 	if (dir == INVALID_HANDLE_VALUE) {
 		string_const_t errstr = system_error_message(0);
-		log_warnf(0, WARNING_SUSPICIOUS,
-		          STRING_CONST("Unable to open handle for path: %.*s : %.*s"),
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to open handle for path: %.*s : %.*s"),
 		          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 		goto exit_thread;
 	}
@@ -1023,12 +999,11 @@ _fs_monitor(void* monitorptr) {
 		out_size = 0;
 		success = ReadDirectoryChangesW(
 		    dir, buffer, buffer_size, TRUE,
-		    FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE,
-		    &out_size, &overlap, 0);
+		    FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE, &out_size, &overlap,
+		    0);
 		if (!success) {
 			string_const_t errstr = system_error_message(0);
-			log_warnf(0, WARNING_SUSPICIOUS,
-			          STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
 			          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 			goto exit_thread;
 		}
@@ -1044,8 +1019,7 @@ _fs_monitor(void* monitorptr) {
 			success = GetOverlappedResult(dir, &overlap, &transferred, FALSE);
 			if (!success) {
 				string_const_t errstr = system_error_message(0);
-				log_warnf(0, WARNING_SUSPICIOUS,
-				          STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
+				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to read directory changes for path: %.*s : %.*s"),
 				          STRING_FORMAT(monitor->path), STRING_FORMAT(errstr));
 			} else {
 				PFILE_NOTIFY_INFORMATION info = buffer;
@@ -1056,11 +1030,9 @@ _fs_monitor(void* monitorptr) {
 					string_t fullpath;
 
 					info->FileName[numchars] = 0;
-					utfstr = string_allocate_from_wstring(info->FileName,
-					                                      wstring_length(info->FileName));
+					utfstr = string_allocate_from_wstring(info->FileName, wstring_length(info->FileName));
 					utfstr = path_clean(STRING_ARGS_CAPACITY(utfstr));
-					fullpath =
-					    path_allocate_concat(STRING_ARGS(monitor->path), STRING_ARGS(utfstr));
+					fullpath = path_allocate_concat(STRING_ARGS(monitor->path), STRING_ARGS(utfstr));
 
 					if (fs_is_directory(STRING_ARGS(fullpath))) {
 						// Ignore directory changes
@@ -1098,9 +1070,9 @@ _fs_monitor(void* monitorptr) {
 
 					info->FileName[numchars] = term;
 
-					info = info->NextEntryOffset ? (PFILE_NOTIFY_INFORMATION)(pointer_offset(
-					                                   info, info->NextEntryOffset)) :
-					                               nullptr;
+					info = info->NextEntryOffset ?
+					           (PFILE_NOTIFY_INFORMATION)(pointer_offset(info, info->NextEntryOffset)) :
+					           nullptr;
 				} while (info);
 			}
 		}
@@ -1113,33 +1085,31 @@ _fs_monitor(void* monitorptr) {
 		else
 			ioctl(notify_fd, FIONREAD, &avail);
 		if (avail > 0) {
-			void* buffer = memory_allocate(HASH_STREAM, (size_t)avail + 4, 8,
-			                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+			void* buffer =
+			    memory_allocate(HASH_STREAM, (size_t)avail + 4, 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 			int offset = 0;
 			ssize_t avail_read = read(notify_fd, buffer, (size_t)avail);
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while (offset < avail_read) {
 				fs_watch_t* curwatch = _fs_lookup_watch(watch, event->wd);
 				if (!curwatch) {
-					log_warnf(
-					    0, WARNING_SUSPICIOUS,
-					    STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %.*s"),
-					    event->wd, event->mask, event->cookie, (size_t)event->len, (int)event->len,
-					    (const char*)event->name);
+					log_warnf(0, WARNING_SUSPICIOUS,
+					          STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %.*s"), event->wd,
+					          event->mask, event->cookie, (size_t)event->len, (int)event->len,
+					          (const char*)event->name);
 					goto skipwatch;
 				}
 
-				string_t curpath =
-				    string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(curwatch->path));
-				curpath = string_append(STRING_ARGS(curpath), sizeof(pathbuffer), event->name,
-				                        string_length(event->name));
+				string_t curpath = string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(curwatch->path));
+				curpath =
+				    string_append(STRING_ARGS(curpath), sizeof(pathbuffer), event->name, string_length(event->name));
 
 				bool is_dir = ((event->mask & IN_ISDIR) != 0);
 
 				if ((event->mask & IN_CREATE) || (event->mask & IN_MOVED_TO)) {
 					if (is_dir)
-						_fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer),
-						                      &watch, &paths, true);
+						_fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer), &watch, &paths,
+						                      true);
 					else
 						fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(curpath));
 				}
@@ -1283,8 +1253,8 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 
 	if (fd && (mode & STREAM_ATEND)) {
 		if (fseek(fd, 0, SEEK_END))
-			log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-			          STRING_CONST("Unable to seek to end of stream '%.*s'"), (int)length, path);
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to end of stream '%.*s'"), (int)length,
+			          path);
 	}
 
 	return fd;
@@ -1312,11 +1282,8 @@ static void
 _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	/*lint -esym(970,long) */
 	if (fseek(GET_FILE(stream)->fd, (long)offset,
-	          (direction == STREAM_SEEK_BEGIN) ?
-	              SEEK_SET :
-	              ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR))) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-		          STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"), (int)offset,
+	          (direction == STREAM_SEEK_BEGIN) ? SEEK_SET : ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR))) {
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"), (int)offset,
 		          (int)direction, STRING_FORMAT(stream->path));
 	}
 }
@@ -1381,8 +1348,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 #if FOUNDATION_ARCH_X86_64
 		else {
 			LONG high = (LONG)(length >> 32LL);
-			success =
-			    (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
+			success = (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 		}
 #endif
 		if (success)
@@ -1391,8 +1357,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	}
 	if (!success) {
 		string_const_t errstr = system_error_message(0);
-		log_warnf(0, WARNING_SUSPICIOUS,
-		          STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
 		          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
 	}
 #elif FOUNDATION_PLATFORM_POSIX
@@ -1421,7 +1386,7 @@ _fs_file_flush(stream_t* stream) {
 }
 
 static size_t
-_fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
+_fs_file_read(stream_t* stream, void* buffer, size_t size) {
 	stream_file_t* file;
 	size_t was_read;
 	size_t beforepos;
@@ -1432,7 +1397,7 @@ _fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
 	file = GET_FILE(stream);
 
 	beforepos = _fs_file_tell(stream);
-	was_read = fread(buffer, 1, num_bytes, file->fd);
+	was_read = fread(buffer, 1, size, file->fd);
 	if (was_read > 0)
 		return was_read;
 
@@ -1446,7 +1411,7 @@ _fs_file_read(stream_t* stream, void* buffer, size_t num_bytes) {
 }
 
 static size_t
-_fs_file_write(stream_t* stream, const void* buffer, size_t num_bytes) {
+_fs_file_write(stream_t* stream, const void* buffer, size_t size) {
 	stream_file_t* file;
 	size_t was_written;
 	size_t beforepos;
@@ -1457,7 +1422,7 @@ _fs_file_write(stream_t* stream, const void* buffer, size_t num_bytes) {
 	file = GET_FILE(stream);
 
 	beforepos = _fs_file_tell(stream);
-	was_written = fwrite(buffer, 1, num_bytes, file->fd);
+	was_written = fwrite(buffer, 1, size, file->fd);
 	if (was_written > 0)
 		return was_written;
 
@@ -1556,8 +1521,7 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 		return 0;
 	}
 
-	file = memory_allocate(HASH_STREAM, sizeof(stream_file_t), 8,
-	                       MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	file = memory_allocate(HASH_STREAM, sizeof(stream_file_t), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	stream = GET_STREAM(file);
 	stream_initialize(stream, BUILD_DEFAULT_STREAM_BYTEORDER);
 
@@ -1579,9 +1543,8 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 int
 _fs_initialize(void) {
 #if FOUNDATION_HAVE_FS_MONITOR
-	_fs_monitors =
-	    memory_allocate(HASH_STREAM, sizeof(fs_monitor_t) * foundation_config().fs_monitor_max, 0,
-	                    MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	_fs_monitors = memory_allocate(HASH_STREAM, sizeof(fs_monitor_t) * foundation_config().fs_monitor_max, 0,
+	                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	_fs_monitor_lock = mutex_allocate(STRING_CONST("fs_monitors"));
 #else
 	_fs_monitors = 0;

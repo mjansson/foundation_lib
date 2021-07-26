@@ -1,10 +1,10 @@
-/* main.c  -  Foundation bitbuffer test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation bitbuffer test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_bitbuffer_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation bitbuffer tests"));
 	app.short_name = string_const(STRING_CONST("test_bitbuffer"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -112,13 +112,13 @@ DECLARE_TEST(bitbuffer, basics) {
 
 	EXPECT_EQ(read, 0x00000000);
 
-    //Should skip buffer[2] (0x00000078)
+	// Should skip buffer[2] (0x00000078)
 	bitbuffer_align_read(&bitbuffer, true);
 	read = bitbuffer_read32(&bitbuffer, 12);
 
 	EXPECT_EQ(read, 0x00000678);
 
-    //Re-read
+	// Re-read
 	bitbuffer_discard_read(&bitbuffer);
 	read = bitbuffer_read32(&bitbuffer, 12);
 	bitbuffer_align_read(&bitbuffer, false);
@@ -129,7 +129,7 @@ DECLARE_TEST(bitbuffer, basics) {
 
 	EXPECT_EQ(read, 0x7FFFFFFF);
 
-	//Read past end
+	// Read past end
 	read = bitbuffer_read32(&bitbuffer, 31);
 
 	EXPECT_UINTEQ(read, 1);
@@ -145,11 +145,13 @@ DECLARE_TEST(bitbuffer, readwrite) {
 	float32_cast_t convread32, convwant32;
 	float64_cast_t convread64, convwant64;
 
-	uint32_t  val32[4]  = { random32(), random32(), random32(), random32() };
-	uint64_t  val64[4]  = { random64(), random64(), random64(), random64() };
+	uint32_t val32[4] = {random32(), random32(), random32(), random32()};
+	uint64_t val64[4] = {random64(), random64(), random64(), random64()};
 	uint128_t val128[4];
-	float32_t valf32[4] = { (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized() };
-	float64_t valf64[4] = { (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized() };
+	float32_t valf32[4] = {(float32_t)random_normalized(), (float32_t)random_normalized(),
+	                       (float32_t)random_normalized(), (float32_t)random_normalized()};
+	float64_t valf64[4] = {(float64_t)random_normalized(), (float64_t)random_normalized(),
+	                       (float64_t)random_normalized(), (float64_t)random_normalized()};
 
 	unsigned int bits32[20] = {0};
 	unsigned int bits64[20] = {0};
@@ -165,7 +167,7 @@ DECLARE_TEST(bitbuffer, readwrite) {
 			bits128[ival] = random32_range(0, 129);
 		}
 
-		//Phase 1 - write data
+		// Phase 1 - write data
 		bitbuffer_initialize_buffer(&bitbuffer, buffer, 1024 * 4, false);
 
 		for (ival = 0; ival < 16; ++ival) {
@@ -209,60 +211,62 @@ DECLARE_TEST(bitbuffer, readwrite) {
 
 		for (ival = 0; ival < 16; ++ival) {
 			EXPECT_EQ(bitbuffer_read32(&bitbuffer, bits32[ival]),
-			          val32[0] & (bits32[ival]   == 32 ? (uint32_t) - 1 : (bits32[ival]   ?
-			                      (1U << bits32[ival]) - 1 : 0U)));
+			          val32[0] & (bits32[ival] == 32 ? (uint32_t)-1 : (bits32[ival] ? (1U << bits32[ival]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(&bitbuffer, bits32[ival + 1]),
-			          val32[1] & (bits32[ival + 1] == 32 ? (uint32_t) - 1 : (bits32[ival + 1] ?
-			                      (1U << bits32[ival + 1]) - 1 : 0U)));
+			          val32[1] & (bits32[ival + 1] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 1] ? (1U << bits32[ival + 1]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(&bitbuffer, bits32[ival + 2]),
-			          val32[2] & (bits32[ival + 2] == 32 ? (uint32_t) - 1 : (bits32[ival + 2] ?
-			                      (1U << bits32[ival + 2]) - 1 : 0U)));
+			          val32[2] & (bits32[ival + 2] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 2] ? (1U << bits32[ival + 2]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(&bitbuffer, bits32[ival + 3]),
-			          val32[3] & (bits32[ival + 3] == 32 ? (uint32_t) - 1 : (bits32[ival + 3] ?
-			                      (1U << bits32[ival + 3]) - 1 : 0U)));
+			          val32[3] & (bits32[ival + 3] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 3] ? (1U << bits32[ival + 3]) - 1 : 0U)));
 
 			if (!(ipass % 13))
 				bitbuffer_align_read(&bitbuffer, false);
 
-			EXPECT_EQ(bitbuffer_read64(&bitbuffer, bits64[ival]),
-			          val64[0] & (bits64[ival]   == 64 ? (uint64_t) - 1 : (bits64[ival]   ?
-			                      (1ULL << bits64[ival]) - 1 : 0ULL)));
+			EXPECT_EQ(
+			    bitbuffer_read64(&bitbuffer, bits64[ival]),
+			    val64[0] & (bits64[ival] == 64 ? (uint64_t)-1 : (bits64[ival] ? (1ULL << bits64[ival]) - 1 : 0ULL)));
 			EXPECT_EQ(bitbuffer_read64(&bitbuffer, bits64[ival + 1]),
-			          val64[1] & (bits64[ival + 1] == 64 ? (uint64_t) - 1 : (bits64[ival + 1] ?
-			                      (1ULL << bits64[ival + 1]) - 1 : 0ULL)));
+			          val64[1] & (bits64[ival + 1] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 1] ? (1ULL << bits64[ival + 1]) - 1 : 0ULL)));
 			EXPECT_EQ(bitbuffer_read64(&bitbuffer, bits64[ival + 2]),
-			          val64[2] & (bits64[ival + 2] == 64 ? (uint64_t) - 1 : (bits64[ival + 2] ?
-			                      (1ULL << bits64[ival + 2]) - 1 : 0ULL)));
+			          val64[2] & (bits64[ival + 2] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 2] ? (1ULL << bits64[ival + 2]) - 1 : 0ULL)));
 			EXPECT_EQ(bitbuffer_read64(&bitbuffer, bits64[ival + 3]),
-			          val64[3] & (bits64[ival + 3] == 64 ? (uint64_t) - 1 : (bits64[ival + 3] ?
-			                      (1ULL << bits64[ival + 3]) - 1 : 0ULL)));
+			          val64[3] & (bits64[ival + 3] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 3] ? (1ULL << bits64[ival + 3]) - 1 : 0ULL)));
 
 			writeval128 = val128[0];
-			writeval128.word[0] &= (bits128[ival] >= 64 ? (uint64_t) - 1 : (bits128[ival] ?
-			                        (1ULL << bits128[ival]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival] == 128 ? (uint64_t) - 1 : (bits128[ival] > 64 ? (1ULL <<
-			                        (bits128[ival] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival] >= 64 ? (uint64_t)-1 : (bits128[ival] ? (1ULL << bits128[ival]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival] == 128 ? (uint64_t)-1 : (bits128[ival] > 64 ? (1ULL << (bits128[ival] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(&bitbuffer, bits128[ival]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[1];
-			writeval128.word[0] &= (bits128[ival + 1] >= 64 ? (uint64_t) - 1 : (bits128[ival + 1] ?
-			                        (1ULL << bits128[ival + 1]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 1] == 128 ? (uint64_t) - 1 : (bits128[ival + 1] > 64 ?
-			                        (1ULL << (bits128[ival + 1] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 1] >= 64 ? (uint64_t)-1 : (bits128[ival + 1] ? (1ULL << bits128[ival + 1]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 1] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 1] > 64 ? (1ULL << (bits128[ival + 1] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(&bitbuffer, bits128[ival + 1]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[2];
-			writeval128.word[0] &= (bits128[ival + 2] >= 64 ? (uint64_t) - 1 : (bits128[ival + 2] ?
-			                        (1ULL << bits128[ival + 2]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 2] == 128 ? (uint64_t) - 1 : (bits128[ival + 2] > 64 ?
-			                        (1ULL << (bits128[ival + 2] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 2] >= 64 ? (uint64_t)-1 : (bits128[ival + 2] ? (1ULL << bits128[ival + 2]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 2] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 2] > 64 ? (1ULL << (bits128[ival + 2] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(&bitbuffer, bits128[ival + 2]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[3];
-			writeval128.word[0] &= (bits128[ival + 3] >= 64 ? (uint64_t) - 1 : (bits128[ival + 3] ?
-			                        (1ULL << bits128[ival + 3]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 3] == 128 ? (uint64_t) - 1 : (bits128[ival + 3] > 64 ?
-			                        (1ULL << (bits128[ival + 3] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 3] >= 64 ? (uint64_t)-1 : (bits128[ival + 3] ? (1ULL << bits128[ival + 3]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 3] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 3] > 64 ? (1ULL << (bits128[ival + 3] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(&bitbuffer, bits128[ival + 3]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 
@@ -314,11 +318,13 @@ DECLARE_TEST(bitbuffer, readwriteswap) {
 	float32_cast_t convread32, convwant32;
 	float64_cast_t convread64, convwant64;
 
-	uint32_t  val32[4]  = { random32(), random32(), random32(), random32() };
-	uint64_t  val64[4]  = { random64(), random64(), random64(), random64() };
+	uint32_t val32[4] = {random32(), random32(), random32(), random32()};
+	uint64_t val64[4] = {random64(), random64(), random64(), random64()};
 	uint128_t val128[4];
-	float32_t valf32[4] = { (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized() };
-	float64_t valf64[4] = { (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized() };
+	float32_t valf32[4] = {(float32_t)random_normalized(), (float32_t)random_normalized(),
+	                       (float32_t)random_normalized(), (float32_t)random_normalized()};
+	float64_t valf64[4] = {(float64_t)random_normalized(), (float64_t)random_normalized(),
+	                       (float64_t)random_normalized(), (float64_t)random_normalized()};
 
 	unsigned int bits32[20] = {0};
 	unsigned int bits64[20] = {0};
@@ -334,7 +340,7 @@ DECLARE_TEST(bitbuffer, readwriteswap) {
 			bits128[ival] = random32_range(0, 129);
 		}
 
-		//Phase 1 - write data
+		// Phase 1 - write data
 		bitbuffer = bitbuffer_allocate_buffer(buffer, 1024 * 4, true);
 
 		for (ival = 0; ival < 16; ++ival) {
@@ -366,7 +372,7 @@ DECLARE_TEST(bitbuffer, readwriteswap) {
 
 		bitbuffer_align_write(bitbuffer, false);
 
-		//Validate oversize writes get clamped
+		// Validate oversize writes get clamped
 		bitbuffer_write32(bitbuffer, val32[0], 64);
 		bitbuffer_write64(bitbuffer, val64[0], 128);
 		bitbuffer_write128(bitbuffer, val128[0], 256);
@@ -378,57 +384,59 @@ DECLARE_TEST(bitbuffer, readwriteswap) {
 
 		for (ival = 0; ival < 16; ++ival) {
 			EXPECT_EQ(bitbuffer_read32(bitbuffer, bits32[ival]),
-			          val32[0] & (bits32[ival]   == 32 ? (uint32_t) - 1 : (bits32[ival]   ?
-			                      (1U << bits32[ival]) - 1 : 0U)));
+			          val32[0] & (bits32[ival] == 32 ? (uint32_t)-1 : (bits32[ival] ? (1U << bits32[ival]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(bitbuffer, bits32[ival + 1]),
-			          val32[1] & (bits32[ival + 1] == 32 ? (uint32_t) - 1 : (bits32[ival + 1] ?
-			                      (1U << bits32[ival + 1]) - 1 : 0U)));
+			          val32[1] & (bits32[ival + 1] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 1] ? (1U << bits32[ival + 1]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(bitbuffer, bits32[ival + 2]),
-			          val32[2] & (bits32[ival + 2] == 32 ? (uint32_t) - 1 : (bits32[ival + 2] ?
-			                      (1U << bits32[ival + 2]) - 1 : 0U)));
+			          val32[2] & (bits32[ival + 2] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 2] ? (1U << bits32[ival + 2]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(bitbuffer, bits32[ival + 3]),
-			          val32[3] & (bits32[ival + 3] == 32 ? (uint32_t) - 1 : (bits32[ival + 3] ?
-			                      (1U << bits32[ival + 3]) - 1 : 0U)));
+			          val32[3] & (bits32[ival + 3] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 3] ? (1U << bits32[ival + 3]) - 1 : 0U)));
 
-			EXPECT_EQ(bitbuffer_read64(bitbuffer, bits64[ival]),
-			          val64[0] & (bits64[ival]   == 64 ? (uint64_t) - 1 : (bits64[ival]   ?
-			                      (1ULL << bits64[ival]) - 1 : 0ULL)));
+			EXPECT_EQ(
+			    bitbuffer_read64(bitbuffer, bits64[ival]),
+			    val64[0] & (bits64[ival] == 64 ? (uint64_t)-1 : (bits64[ival] ? (1ULL << bits64[ival]) - 1 : 0ULL)));
 			EXPECT_EQ(bitbuffer_read64(bitbuffer, bits64[ival + 1]),
-			          val64[1] & (bits64[ival + 1] == 64 ? (uint64_t) - 1 : (bits64[ival + 1] ?
-			                      (1ULL << bits64[ival + 1]) - 1 : 0ULL)));
+			          val64[1] & (bits64[ival + 1] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 1] ? (1ULL << bits64[ival + 1]) - 1 : 0ULL)));
 			EXPECT_EQ(bitbuffer_read64(bitbuffer, bits64[ival + 2]),
-			          val64[2] & (bits64[ival + 2] == 64 ? (uint64_t) - 1 : (bits64[ival + 2] ?
-			                      (1ULL << bits64[ival + 2]) - 1 : 0ULL)));
+			          val64[2] & (bits64[ival + 2] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 2] ? (1ULL << bits64[ival + 2]) - 1 : 0ULL)));
 			EXPECT_EQ(bitbuffer_read64(bitbuffer, bits64[ival + 3]),
-			          val64[3] & (bits64[ival + 3] == 64 ? (uint64_t) - 1 : (bits64[ival + 3] ?
-			                      (1ULL << bits64[ival + 3]) - 1 : 0ULL)));
+			          val64[3] & (bits64[ival + 3] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 3] ? (1ULL << bits64[ival + 3]) - 1 : 0ULL)));
 
 			writeval128 = val128[0];
-			writeval128.word[0] &= (bits128[ival] >= 64 ? (uint64_t) - 1 : (bits128[ival] ?
-			                        (1ULL << bits128[ival]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival] == 128 ? (uint64_t) - 1 : (bits128[ival] > 64 ? (1ULL <<
-			                        (bits128[ival] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival] >= 64 ? (uint64_t)-1 : (bits128[ival] ? (1ULL << bits128[ival]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival] == 128 ? (uint64_t)-1 : (bits128[ival] > 64 ? (1ULL << (bits128[ival] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[1];
-			writeval128.word[0] &= (bits128[ival + 1] >= 64 ? (uint64_t) - 1 : (bits128[ival + 1] ?
-			                        (1ULL << bits128[ival + 1]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 1] == 128 ? (uint64_t) - 1 : (bits128[ival + 1] > 64 ?
-			                        (1ULL << (bits128[ival + 1] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 1] >= 64 ? (uint64_t)-1 : (bits128[ival + 1] ? (1ULL << bits128[ival + 1]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 1] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 1] > 64 ? (1ULL << (bits128[ival + 1] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival + 1]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[2];
-			writeval128.word[0] &= (bits128[ival + 2] >= 64 ? (uint64_t) - 1 : (bits128[ival + 2] ?
-			                        (1ULL << bits128[ival + 2]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 2] == 128 ? (uint64_t) - 1 : (bits128[ival + 2] > 64 ?
-			                        (1ULL << (bits128[ival + 2] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 2] >= 64 ? (uint64_t)-1 : (bits128[ival + 2] ? (1ULL << bits128[ival + 2]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 2] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 2] > 64 ? (1ULL << (bits128[ival + 2] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival + 2]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[3];
-			writeval128.word[0] &= (bits128[ival + 3] >= 64 ? (uint64_t) - 1 : (bits128[ival + 3] ?
-			                        (1ULL << bits128[ival + 3]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 3] == 128 ? (uint64_t) - 1 : (bits128[ival + 3] > 64 ?
-			                        (1ULL << (bits128[ival + 3] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 3] >= 64 ? (uint64_t)-1 : (bits128[ival + 3] ? (1ULL << bits128[ival + 3]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 3] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 3] > 64 ? (1ULL << (bits128[ival + 3] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival + 3]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 
@@ -467,7 +475,7 @@ DECLARE_TEST(bitbuffer, readwriteswap) {
 
 		bitbuffer_align_read(bitbuffer, false);
 
-		//Validate oversize writes get clamped
+		// Validate oversize writes get clamped
 		EXPECT_EQ(bitbuffer_read32(bitbuffer, 64), val32[0]);
 		EXPECT_EQ(bitbuffer_read64(bitbuffer, 128), val64[0]);
 		EXPECT_TRUE(uint128_equal(bitbuffer_read128(bitbuffer, 256), val128[0]));
@@ -486,11 +494,13 @@ DECLARE_TEST(bitbuffer, stream) {
 	float32_cast_t convread32, convwant32;
 	float64_cast_t convread64, convwant64;
 
-	uint32_t  val32[4]  = { random32(), random32(), random32(), random32() };
-	uint64_t  val64[4]  = { random64(), random64(), random64(), random64() };
+	uint32_t val32[4] = {random32(), random32(), random32(), random32()};
+	uint64_t val64[4] = {random64(), random64(), random64(), random64()};
 	uint128_t val128[4];
-	float32_t valf32[4] = { (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized(), (float32_t)random_normalized() };
-	float64_t valf64[4] = { (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized(), (float64_t)random_normalized() };
+	float32_t valf32[4] = {(float32_t)random_normalized(), (float32_t)random_normalized(),
+	                       (float32_t)random_normalized(), (float32_t)random_normalized()};
+	float64_t valf64[4] = {(float64_t)random_normalized(), (float64_t)random_normalized(),
+	                       (float64_t)random_normalized(), (float64_t)random_normalized()};
 
 	unsigned int bits32[20] = {0};
 	unsigned int bits64[20] = {0};
@@ -508,7 +518,7 @@ DECLARE_TEST(bitbuffer, stream) {
 			bits128[ival] = random32_range(0, 129);
 		}
 
-		//Phase 1 - write data
+		// Phase 1 - write data
 		stream = fs_temporary_file();
 		EXPECT_NE(stream, 0);
 
@@ -554,57 +564,58 @@ DECLARE_TEST(bitbuffer, stream) {
 
 		for (ival = 0; ival < 16; ++ival) {
 			EXPECT_EQ(bitbuffer_read32(bitbuffer, bits32[ival]),
-			          val32[0] & (bits32[ival]   == 32 ? (uint32_t) - 1 : (bits32[ival]   ?
-			                      (1U << bits32[ival]) - 1 : 0U)));
+			          val32[0] & (bits32[ival] == 32 ? (uint32_t)-1 : (bits32[ival] ? (1U << bits32[ival]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(bitbuffer, bits32[ival + 1]),
-			          val32[1] & (bits32[ival + 1] == 32 ? (uint32_t) - 1 : (bits32[ival + 1] ?
-			                      (1U << bits32[ival + 1]) - 1 : 0U)));
+			          val32[1] & (bits32[ival + 1] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 1] ? (1U << bits32[ival + 1]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(bitbuffer, bits32[ival + 2]),
-			          val32[2] & (bits32[ival + 2] == 32 ? (uint32_t) - 1 : (bits32[ival + 2] ?
-			                      (1U << bits32[ival + 2]) - 1 : 0U)));
+			          val32[2] & (bits32[ival + 2] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 2] ? (1U << bits32[ival + 2]) - 1 : 0U)));
 			EXPECT_EQ(bitbuffer_read32(bitbuffer, bits32[ival + 3]),
-			          val32[3] & (bits32[ival + 3] == 32 ? (uint32_t) - 1 : (bits32[ival + 3] ?
-			                      (1U << bits32[ival + 3]) - 1 : 0U)));
+			          val32[3] & (bits32[ival + 3] == 32 ? (uint32_t)-1 :
+			                                               (bits32[ival + 3] ? (1U << bits32[ival + 3]) - 1 : 0U)));
 
 			EXPECT_EQ(bitbuffer_read64(bitbuffer, bits64[ival]),
-			          val64[0] & (bits64[ival]   == 64 ? (uint64_t) - 1 : (bits64[ival]   ?
-			                      (1ULL << bits64[ival]) - 1 : 0)));
+			          val64[0] & (bits64[ival] == 64 ? (uint64_t)-1 : (bits64[ival] ? (1ULL << bits64[ival]) - 1 : 0)));
 			EXPECT_EQ(bitbuffer_read64(bitbuffer, bits64[ival + 1]),
-			          val64[1] & (bits64[ival + 1] == 64 ? (uint64_t) - 1 : (bits64[ival + 1] ?
-			                      (1ULL << bits64[ival + 1]) - 1 : 0)));
+			          val64[1] & (bits64[ival + 1] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 1] ? (1ULL << bits64[ival + 1]) - 1 : 0)));
 			EXPECT_EQ(bitbuffer_read64(bitbuffer, bits64[ival + 2]),
-			          val64[2] & (bits64[ival + 2] == 64 ? (uint64_t) - 1 : (bits64[ival + 2] ?
-			                      (1ULL << bits64[ival + 2]) - 1 : 0)));
+			          val64[2] & (bits64[ival + 2] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 2] ? (1ULL << bits64[ival + 2]) - 1 : 0)));
 			EXPECT_EQ(bitbuffer_read64(bitbuffer, bits64[ival + 3]),
-			          val64[3] & (bits64[ival + 3] == 64 ? (uint64_t) - 1 : (bits64[ival + 3] ?
-			                      (1ULL << bits64[ival + 3]) - 1 : 0)));
+			          val64[3] & (bits64[ival + 3] == 64 ? (uint64_t)-1 :
+			                                               (bits64[ival + 3] ? (1ULL << bits64[ival + 3]) - 1 : 0)));
 
 			writeval128 = val128[0];
-			writeval128.word[0] &= (bits128[ival] >= 64 ? (uint64_t) - 1 : (bits128[ival] ?
-			                        (1ULL << bits128[ival]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival] == 128 ? (uint64_t) - 1 : (bits128[ival] > 64 ? (1ULL <<
-			                        (bits128[ival] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival] >= 64 ? (uint64_t)-1 : (bits128[ival] ? (1ULL << bits128[ival]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival] == 128 ? (uint64_t)-1 : (bits128[ival] > 64 ? (1ULL << (bits128[ival] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[1];
-			writeval128.word[0] &= (bits128[ival + 1] >= 64 ? (uint64_t) - 1 : (bits128[ival + 1] ?
-			                        (1ULL << bits128[ival + 1]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 1] == 128 ? (uint64_t) - 1 : (bits128[ival + 1] > 64 ?
-			                        (1ULL << (bits128[ival + 1] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 1] >= 64 ? (uint64_t)-1 : (bits128[ival + 1] ? (1ULL << bits128[ival + 1]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 1] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 1] > 64 ? (1ULL << (bits128[ival + 1] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival + 1]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[2];
-			writeval128.word[0] &= (bits128[ival + 2] >= 64 ? (uint64_t) - 1 : (bits128[ival + 2] ?
-			                        (1ULL << bits128[ival + 2]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 2] == 128 ? (uint64_t) - 1 : (bits128[ival + 2] > 64 ?
-			                        (1ULL << (bits128[ival + 2] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 2] >= 64 ? (uint64_t)-1 : (bits128[ival + 2] ? (1ULL << bits128[ival + 2]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 2] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 2] > 64 ? (1ULL << (bits128[ival + 2] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival + 2]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 			writeval128 = val128[3];
-			writeval128.word[0] &= (bits128[ival + 3] >= 64 ? (uint64_t) - 1 : (bits128[ival + 3] ?
-			                        (1ULL << bits128[ival + 3]) - 1 : 0));
-			writeval128.word[1] &= (bits128[ival + 3] == 128 ? (uint64_t) - 1 : (bits128[ival + 3] > 64 ?
-			                        (1ULL << (bits128[ival + 3] - 64)) - 1 : 0));
+			writeval128.word[0] &=
+			    (bits128[ival + 3] >= 64 ? (uint64_t)-1 : (bits128[ival + 3] ? (1ULL << bits128[ival + 3]) - 1 : 0));
+			writeval128.word[1] &=
+			    (bits128[ival + 3] == 128 ? (uint64_t)-1 :
+			                                (bits128[ival + 3] > 64 ? (1ULL << (bits128[ival + 3] - 64)) - 1 : 0));
 			readval128 = bitbuffer_read128(bitbuffer, bits128[ival + 3]);
 			EXPECT_TRUE(uint128_equal(readval128, writeval128));
 
@@ -658,15 +669,13 @@ test_bitbuffer_declare(void) {
 	ADD_TEST(bitbuffer, stream);
 }
 
-static test_suite_t test_bitbuffer_suite = {
-	test_bitbuffer_application,
-	test_bitbuffer_memory_system,
-	test_bitbuffer_config,
-	test_bitbuffer_declare,
-	test_bitbuffer_initialize,
-	test_bitbuffer_finalize,
-	0
-};
+static test_suite_t test_bitbuffer_suite = {test_bitbuffer_application,
+                                            test_bitbuffer_memory_system,
+                                            test_bitbuffer_config,
+                                            test_bitbuffer_declare,
+                                            test_bitbuffer_initialize,
+                                            test_bitbuffer_finalize,
+                                            0};
 
 #if BUILD_MONOLITHIC
 

@@ -1,10 +1,10 @@
-/* error.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* error.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -51,12 +51,12 @@ error_set_handler(error_handler_fn handler);
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 
-#define _error_context_push_proxy(...) do { \
-  _error_context_push(__VA_ARGS__); \
-  } while(0)
+#define _error_context_push_proxy(...)    \
+	do {                                  \
+		_error_context_push(__VA_ARGS__); \
+	} while (0)
 
-#define _error_context_buffer_proxy(...) \
-  _error_context_buffer(__VA_ARGS__)
+#define _error_context_buffer_proxy(...) _error_context_buffer(__VA_ARGS__)
 
 /*! Push a new error context and associated data on the error context stack.
 Both context and data must be valid for as long as it remains on the stack.
@@ -64,42 +64,43 @@ Both context and data must be valid for as long as it remains on the stack.
 \param name_length Context name length
 \param data Context data buffer
 \param data_length Context data buffer size */
-#define error_context_push(...) do { \
-  _error_context_push_proxy(__VA_ARGS__); \
-  } while(0)
+#define error_context_push(...)                 \
+	do {                                        \
+		_error_context_push_proxy(__VA_ARGS__); \
+	} while (0)
 
 /*! Pop the top error context off the error context stack */
-#define error_context_pop() do { \
-  _error_context_pop(); \
-  } while(0)
+#define error_context_pop()   \
+	do {                      \
+		_error_context_pop(); \
+	} while (0)
 
 /*! Clear the error context */
-#define error_context_clear() do { \
-  _error_context_clear(); \
-  } while(0)
+#define error_context_clear()   \
+	do {                        \
+		_error_context_clear(); \
+	} while (0)
 
 /*! Generate a error context stack description string in the given buffer, limited
 to the given size.
 \param buffer    Destination buffer
 \param capacity  Buffer capacity */
-#define error_context_buffer(...) \
-  _error_context_buffer_proxy(__VA_ARGS__)
+#define error_context_buffer(...) _error_context_buffer_proxy(__VA_ARGS__)
 
 /*! Get the current error context, or 0 if no context set/available. */
-#define error_context() \
-  _error_context()
+#define error_context() _error_context()
 
 /*! Make a local declaration depending on if error contexts are enabled in the build
 or not. If error contexts are disabled the expression will evaluate to void and not
 evaluate any code.
 \param decl Declaration */
-#define error_context_declare_local(decl) \
-  decl
+#define error_context_declare_local(decl) decl
 
 /*! Clean up thread local storage related to error context on thread exit. */
-#define error_context_thread_finalize() do { \
-  _error_context_thread_finalize(); \
-  } while(0)
+#define error_context_thread_finalize()   \
+	do {                                  \
+		_error_context_thread_finalize(); \
+	} while (0)
 
 FOUNDATION_API void
 _error_context_push(const char* name, size_t name_length, const char* data, size_t data_length);
@@ -121,12 +122,22 @@ _error_context_thread_finalize(void);
 
 #else
 
-#define error_context_push(...) do { /* */ } while(0)
-#define error_context_pop() do { /* */ } while(0)
-#define error_context_clear()  do { /* */ } while(0)
+#define error_context_push(...) \
+	do { /* */                  \
+	} while (0)
+#define error_context_pop() \
+	do { /* */              \
+	} while (0)
+#define error_context_clear() \
+	do { /* */                \
+	} while (0)
 #define error_context_buffer(str, length) string_copy(str, length, 0, 0)
 #define error_context() 0
-#define error_context_declare_local(decl) do { /* */ } while(0)
-#define error_context_thread_finalize() do { /* */ } while(0)
+#define error_context_declare_local(decl) \
+	do { /* */                            \
+	} while (0)
+#define error_context_thread_finalize() \
+	do { /* */                          \
+	} while (0)
 
 #endif

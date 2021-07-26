@@ -1,10 +1,10 @@
-/* main.c  -  Foundation semaphore test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation semaphore test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -22,7 +22,7 @@ test_semaphore_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation semaphore tests"));
 	app.short_name = string_const(STRING_CONST("test_semaphore"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -64,13 +64,13 @@ DECLARE_TEST(semaphore, initialize) {
 
 	semaphore_initialize(&sem, 1);
 	EXPECT_TRUE(semaphore_try_wait(&sem, 100));
-	semaphore_post(&sem);   //Restored value
+	semaphore_post(&sem);  // Restored value
 	semaphore_finalize(&sem);
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
 	semaphore_initialize_named(&sem, STRING_CONST("/rp-foundation-test"), 1);
 	EXPECT_TRUE(semaphore_try_wait(&sem, 100));
-	semaphore_post(&sem);   //Restored value
+	semaphore_post(&sem);  // Restored value
 	semaphore_finalize(&sem);
 #endif
 
@@ -79,7 +79,7 @@ DECLARE_TEST(semaphore, initialize) {
 	EXPECT_TRUE(semaphore_try_wait(&sem, 100));
 	EXPECT_FALSE(semaphore_try_wait(&sem, 100));
 	semaphore_post(&sem);
-	semaphore_post(&sem);   //Restored value
+	semaphore_post(&sem);  // Restored value
 	semaphore_finalize(&sem);
 
 #if !FOUNDATION_PLATFORM_IOS && !FOUNDATION_PLATFORM_ANDROID
@@ -88,7 +88,7 @@ DECLARE_TEST(semaphore, initialize) {
 	EXPECT_TRUE(semaphore_try_wait(&sem, 100));
 	EXPECT_FALSE(semaphore_try_wait(&sem, 100));
 	semaphore_post(&sem);
-	semaphore_post(&sem);   //Restored value
+	semaphore_post(&sem);  // Restored value
 	semaphore_finalize(&sem);
 #endif
 
@@ -155,10 +155,10 @@ DECLARE_TEST(semaphore, postwait) {
 }
 
 typedef struct {
-	semaphore_t   read;
-	semaphore_t   write;
-	int           loopcount;
-	atomic32_t    counter;
+	semaphore_t read;
+	semaphore_t write;
+	int loopcount;
+	atomic32_t counter;
 } semaphore_test_t;
 
 static void*
@@ -306,15 +306,13 @@ test_semaphore_declare(void) {
 	ADD_TEST(semaphore, failure);
 }
 
-static test_suite_t test_semaphore_suite = {
-	test_semaphore_application,
-	test_semaphore_memory_system,
-	test_semaphore_config,
-	test_semaphore_declare,
-	test_semaphore_initialize,
-	test_semaphore_finalize,
-	0
-};
+static test_suite_t test_semaphore_suite = {test_semaphore_application,
+                                            test_semaphore_memory_system,
+                                            test_semaphore_config,
+                                            test_semaphore_declare,
+                                            test_semaphore_initialize,
+                                            test_semaphore_finalize,
+                                            0};
 
 #if BUILD_MONOLITHIC
 

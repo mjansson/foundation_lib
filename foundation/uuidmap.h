@@ -1,10 +1,10 @@
-/* uuidmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* uuidmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -24,11 +24,11 @@ and therefor not thread safe. */
 /*! Allocate new UUID map with the given bucket count and size. Minimum bucket
 count is 13, minimum bucket size is 8. UUID map should be deallocated with a call to
 #uuidmap_deallocate
-\param buckets Bucket count
-\param bucketsize Bucket size
+\param bucket_count Bucket count
+\param bucket_size Bucket size
 \return New UUID map */
 FOUNDATION_API uuidmap_t*
-uuidmap_allocate(size_t buckets, size_t bucketsize);
+uuidmap_allocate(size_t bucket_count, size_t bucket_size);
 
 /*! Deallocate a UUID map previously allocated with #uuidmap_allocate
 \param map UUID map */
@@ -39,10 +39,10 @@ uuidmap_deallocate(uuidmap_t* map);
 count is 13, minimum bucket size is 8. UUID map should be finalized with a call to
 #uuidmap_finalize
 \param map UUID map to initialize
-\param buckets Bucket count
-\param bucketsize Bucket size */
+\param bucket_count Bucket count
+\param bucket_size Bucket size */
 FOUNDATION_API void
-uuidmap_initialize(uuidmap_t* map, size_t buckets, size_t bucketsize);
+uuidmap_initialize(uuidmap_t* map, size_t bucket_count, size_t bucket_size);
 
 /*! Finalize a UUID map previously initialized with #uuidmap_initialize and free resources
 \param map UUID map */

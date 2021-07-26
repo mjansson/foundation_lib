@@ -1,10 +1,10 @@
-/* main.c  -  Foundation hashmap test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation hashmap test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_hashmap_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation hashmap tests"));
 	app.short_name = string_const(STRING_CONST("test_hashmap"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -146,8 +146,7 @@ DECLARE_TEST(hashmap, lookup) {
 		EXPECT_EQ(prev, 0);
 	}
 
-	for (ikey = 0, key = (hash_t)4321, value = (void*)(uintptr_t)1234; ikey < 1024;
-	     ++ikey, ++key, ++value) {
+	for (ikey = 0, key = (hash_t)4321, value = (void*)(uintptr_t)1234; ikey < 1024; ++ikey, ++key, ++value) {
 		void* prev = hashmap_lookup(map, key);
 		EXPECT_EQ(prev, value);
 
@@ -169,16 +168,13 @@ test_hashmap_declare(void) {
 	ADD_TEST(hashmap, lookup);
 }
 
-
-static test_suite_t test_hashmap_suite = {
-	test_hashmap_application,
-	test_hashmap_memory_system,
-	test_hashmap_config,
-	test_hashmap_declare,
-	test_hashmap_initialize,
-	test_hashmap_finalize,
-	0
-};
+static test_suite_t test_hashmap_suite = {test_hashmap_application,
+                                          test_hashmap_memory_system,
+                                          test_hashmap_config,
+                                          test_hashmap_declare,
+                                          test_hashmap_initialize,
+                                          test_hashmap_finalize,
+                                          0};
 
 #if BUILD_MONOLITHIC
 

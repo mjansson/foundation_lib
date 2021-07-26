@@ -1,10 +1,10 @@
-/* main.c  -  Foundation string tests  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation string tests  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -13,13 +13,15 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
+#include <locale.h>
+
 static application_t
 test_string_application(void) {
 	application_t app;
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation string tests"));
 	app.short_name = string_const(STRING_CONST("test_string"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -80,29 +82,36 @@ DECLARE_TEST(string, allocate) {
 		    "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90"
 		    "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x09";
 		string_const_t substr;
-		string_t str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14,
-		         str15, str16, str17;
+		string_t str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14, str15, str16,
+		    str17;
 
 		str1 = string_clone(STRING_CONST(teststr1));
-		substr = string_substr(STRING_CONST(teststr1), 0, 3); str2 = string_clone(STRING_ARGS(substr));
-		substr = string_substr(STRING_CONST(teststr1), 0, 4); str3 = string_clone(STRING_ARGS(substr));
-		substr = string_substr(STRING_CONST(teststr1), 0, 32); str4 = string_clone(STRING_ARGS(substr));
+		substr = string_substr(STRING_CONST(teststr1), 0, 3);
+		str2 = string_clone(STRING_ARGS(substr));
+		substr = string_substr(STRING_CONST(teststr1), 0, 4);
+		str3 = string_clone(STRING_ARGS(substr));
+		substr = string_substr(STRING_CONST(teststr1), 0, 32);
+		str4 = string_clone(STRING_ARGS(substr));
 		substr = string_substr(STRING_CONST(teststr1), 0, STRING_NPOS);
 		str5 = string_clone(STRING_ARGS(substr));
 		substr = string_substr(STRING_CONST(teststr1), 5, STRING_NPOS);
 		str6 = string_clone(STRING_ARGS(substr));
 
 		str7 = string_clone(STRING_CONST(teststr2));
-		substr = string_substr(STRING_CONST(teststr2), 0, 3); str8 = string_clone(STRING_ARGS(substr));
-		substr = string_substr(STRING_CONST(teststr2), 0, 20); str9 = string_clone(STRING_ARGS(substr));
+		substr = string_substr(STRING_CONST(teststr2), 0, 3);
+		str8 = string_clone(STRING_ARGS(substr));
+		substr = string_substr(STRING_CONST(teststr2), 0, 20);
+		str9 = string_clone(STRING_ARGS(substr));
 		substr = string_substr(STRING_CONST(teststr2), 0, STRING_NPOS);
 		str10 = string_clone(STRING_ARGS(substr));
 		substr = string_substr(STRING_CONST(teststr2), 256, STRING_NPOS);
 		str11 = string_clone(STRING_ARGS(substr));
 
 		str12 = string_clone(STRING_CONST(teststr3));
-		substr = string_substr(STRING_CONST(teststr3), 0, 3); str13 = string_clone_string(substr);
-		substr = string_substr(STRING_CONST(teststr3), 0, 20); str14 = string_clone_string(substr);
+		substr = string_substr(STRING_CONST(teststr3), 0, 3);
+		str13 = string_clone_string(substr);
+		substr = string_substr(STRING_CONST(teststr3), 0, 20);
+		str14 = string_clone_string(substr);
 		substr = string_substr(STRING_CONST(teststr3), 0, STRING_NPOS);
 		str15 = string_clone(STRING_ARGS(substr));
 		substr = string_substr(STRING_CONST(teststr3), STRING_NPOS, STRING_NPOS);
@@ -124,8 +133,8 @@ DECLARE_TEST(string, allocate) {
 
 		EXPECT_EQ(0, strcmp(str12.str, teststr3));
 		EXPECT_EQ(0, strcmp(str13.str, "\x01\x02\x03"));
-		EXPECT_EQ(0, strcmp(str14.str,
-		                    "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02"));
+		EXPECT_EQ(
+		    0, strcmp(str14.str, "\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02\x03\x04\x05\x06\x07\x08\x90\x01\x02"));
 		EXPECT_EQ(0, strcmp(str15.str, teststr3));
 		EXPECT_EQ(0, strcmp(str16.str, ""));
 		EXPECT_EQ(0, str17.length);
@@ -149,8 +158,7 @@ DECLARE_TEST(string, allocate) {
 		string_deallocate(str17.str);
 	}
 	{
-		char conststr[] =
-		    "foobar barfoo foobar barfoo foobar barfoo foobar barfoo foobar barfoo foobar barfoo";
+		char conststr[] = "foobar barfoo foobar barfoo foobar barfoo foobar barfoo foobar barfoo foobar barfoo";
 		EXPECT_EQ(nullptr, string_null().str);
 		EXPECT_EQ(0, string_null().length);
 
@@ -172,27 +180,32 @@ DECLARE_TEST(string, allocate) {
 		wchar_t teststr1[] = L"test";
 		wchar_t teststr2[] = L"testing long string with more than 16 characters";
 		wchar_t teststr3[] =
-		    L"0\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009";
+		    L"0\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007"
+		    L"\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004"
+		    L"\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001"
+		    L"\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009";
 		wchar_t teststr4[] =
-		    L"Wide-char string with some strange characters: åäöÅÄÖ_________ (test utf-8 conversions with long strings)";
-		//char utfteststr4[] = "Wide-char string with some strange characters: \xC3\xA5\xC3\xA4\xC3\xB6\xC3\x85\xC3\x84\xC3\x96\xEF\xB7\xB2\xDA\x81\xED\x80\x83\xEC\x99\xA7\xEB\x96\xAF\xE7\xBF\xB3\xE5\xA1\x8C\xE1\xA7\xBC\xE1\xA7\xAD (test utf-8 conversions with long strings)";
+		    L"Wide-char string with some strange characters: åäöÅÄÖ_________ (test utf-8 conversions with long "
+		    L"strings)";
+		// char utfteststr4[] = "Wide-char string with some strange characters:
+		// \xC3\xA5\xC3\xA4\xC3\xB6\xC3\x85\xC3\x84\xC3\x96\xEF\xB7\xB2\xDA\x81\xED\x80\x83\xEC\x99\xA7\xEB\x96\xAF\xE7\xBF\xB3\xE5\xA1\x8C\xE1\xA7\xBC\xE1\xA7\xAD
+		// (test utf-8 conversions with long strings)";
 
-		string_t str1, str2, str3, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14, str15,
-		         str16, str17;
-		wchar_t* wstr1, *wstr2, *wstr3, *wstr5, *wstr6, *wstr7, *wstr8, *wstr9, *wstr10, *wstr11, *wstr12,
-		         *wstr13, *wstr14, *wstr15, *wstr16, *wstr17;
+		string_t str1, str2, str3, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17;
+		wchar_t *wstr1, *wstr2, *wstr3, *wstr5, *wstr6, *wstr7, *wstr8, *wstr9, *wstr10, *wstr11, *wstr12, *wstr13,
+		    *wstr14, *wstr15, *wstr16, *wstr17;
 		wchar_t wbuffer[512];
 		wchar_t tmpchar;
 
-		teststr4[53] = (wchar_t)0x602f;//L'ﷲ';
-		teststr4[54] = (wchar_t)0xf045;//L'ځ';
-		teststr4[55] = (wchar_t)0x1d30;//L'퀃';
-		teststr4[56] = (wchar_t)0x0378;//L'왧';
-		teststr4[57] = (wchar_t)0x0ffe;//L'떯';
-		teststr4[58] = (wchar_t)0xffe0;//L'翳';
-		teststr4[59] = (wchar_t)0x1234;//L'塌';
-		teststr4[60] = (wchar_t)0x4321;//L'᧼';
-		teststr4[61] = (wchar_t)0x0f0f;//L'᧭';
+		teststr4[53] = (wchar_t)0x602f;  // L'ﷲ';
+		teststr4[54] = (wchar_t)0xf045;  // L'ځ';
+		teststr4[55] = (wchar_t)0x1d30;  // L'퀃';
+		teststr4[56] = (wchar_t)0x0378;  // L'왧';
+		teststr4[57] = (wchar_t)0x0ffe;  // L'떯';
+		teststr4[58] = (wchar_t)0xffe0;  // L'翳';
+		teststr4[59] = (wchar_t)0x1234;  // L'塌';
+		teststr4[60] = (wchar_t)0x4321;  // L'᧼';
+		teststr4[61] = (wchar_t)0x0f0f;  // L'᧭';
 
 		str1 = string_allocate_from_wstring(teststr1, 0);
 		str2 = string_allocate_from_wstring(teststr1, 3);
@@ -247,7 +260,8 @@ DECLARE_TEST(string, allocate) {
 		EXPECT_TRUE(wstring_equal(wstr10, L""));
 		EXPECT_TRUE(wstring_equal(wstr11, L"0\x0001\x0002"));
 		EXPECT_TRUE(wstring_equal(wstr12,
-		                          L"0\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009"));
+		                          L"0\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003"
+		                          L"\x0004\x0005\x0006\x0007\x0008\x0009"));
 		EXPECT_TRUE(wstring_equal(wstr13, teststr3));
 
 		EXPECT_TRUE(wstring_equal(wstr14, L""));
@@ -259,9 +273,8 @@ DECLARE_TEST(string, allocate) {
 		teststr4[63] = tmpchar;
 
 		{
-			wchar_t wteststr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xD854, 0xDC53, 0x0032, 0 };
-			string_t utf8_teststr = string_allocate_from_wstring(wteststr,
-			                                                     sizeof(wteststr)/sizeof(wteststr[0]));
+			wchar_t wteststr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0xD854, 0xDC53, 0x0032, 0};
+			string_t utf8_teststr = string_allocate_from_wstring(wteststr, sizeof(wteststr) / sizeof(wteststr[0]));
 			wchar_t* wchar_teststr = wstring_allocate_from_string(STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wteststr, wchar_teststr));
 			wstring_deallocate(wchar_teststr);
@@ -269,13 +282,14 @@ DECLARE_TEST(string, allocate) {
 		}
 
 		{
-			uint16_t wteststr[] = { 0xFEFF, 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0xFFFE, 0x1234, 0xFF03, 0 };
+			uint16_t wteststr[] = {0xFEFF, 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02,
+			                       0xDC54, 0x0032, 0xFFFE, 0x1234, 0xFF03, 0};
 #if FOUNDATION_SIZE_WCHAR == 4
-			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x0032, 0x3412, 0x03FF, 0 };
+			wchar_t wtestcmpstr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x0032, 0x3412, 0x03FF, 0};
 #else
-			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0x3412, 0x03FF, 0 };
+			wchar_t wtestcmpstr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0x3412, 0x03FF, 0};
 #endif
-			string_t utf8_teststr = string_allocate_from_utf16(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
+			string_t utf8_teststr = string_allocate_from_utf16(wteststr, sizeof(wteststr) / sizeof(wteststr[0]));
 			wchar_t* wchar_teststr = wstring_allocate_from_string(STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wtestcmpstr, wchar_teststr));
 			wstring_deallocate(wchar_teststr);
@@ -283,13 +297,15 @@ DECLARE_TEST(string, allocate) {
 		}
 
 		{
-			uint32_t wteststr[] = { 0x0000FEFF, 0x00000100, 0x0000078f, 0x00001234, 0x0000FF03, 0x000D0854, 0x000D0C53, 0x00000032, 0xFFFE0000, 0x12340000, 0xFF030000, 0 };
+			uint32_t wteststr[] = {0x0000FEFF, 0x00000100, 0x0000078f, 0x00001234, 0x0000FF03, 0x000D0854,
+			                       0x000D0C53, 0x00000032, 0xFFFE0000, 0x12340000, 0xFF030000, 0};
 #if FOUNDATION_SIZE_WCHAR == 4
-			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x000D0C53, 0x0032, 0x3412, 0x03FF, 0 };
+			wchar_t wtestcmpstr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x000D0C53, 0x0032, 0x3412, 0x03FF, 0};
 #else
-			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0xDB03, 0xDC53, 0x0032, 0x3412, 0x03FF, 0 };
+			wchar_t wtestcmpstr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54,
+			                         0xDB03, 0xDC53, 0x0032, 0x3412, 0x03FF, 0};
 #endif
-			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
+			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr) / sizeof(wteststr[0]));
 			wchar_t* wchar_teststr = wstring_allocate_from_string(STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wtestcmpstr, wchar_teststr));
 			wstring_deallocate(wchar_teststr);
@@ -313,82 +329,85 @@ DECLARE_TEST(string, allocate) {
 		wstring_deallocate(wstr16);
 		wstring_deallocate(wstr17);
 
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str1.str, str1.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str1.str, str1.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, L""));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str2.str, 2);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str2.str, 2);
 		EXPECT_TRUE(wstring_equal(wbuffer, L"te"));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str3.str, str3.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str3.str, str3.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, teststr1));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str5.str, str5.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str5.str, str5.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, teststr1));
 
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str6.str, str6.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str6.str, str6.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, L""));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str7.str, str7.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str7.str, str7.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, L"tes"));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str8.str, str8.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str8.str, str8.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, L"testing long string "));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str9.str, str9.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str9.str, str9.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, teststr2));
 
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str10.str, str10.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str10.str, str10.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, L""));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str11.str, str11.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str11.str, str11.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, L"0\x0001\x0002"));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str12.str, str12.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str12.str, str12.length);
 		EXPECT_TRUE(wstring_equal(wbuffer,
-		                          L"0\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009"));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str13.str, str13.length);
+		                          L"0\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x0030\x0001\x0002\x0003"
+		                          L"\x0004\x0005\x0006\x0007\x0008\x0009"));
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str13.str, str13.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, teststr3));
 
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str14.str, str14.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str14.str, str14.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, L""));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str15.str, str15.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str15.str, str15.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, L"Wid"));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str17.str, str17.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str17.str, str17.length);
 		EXPECT_TRUE(wstring_equal(wbuffer, teststr4));
-		wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), str16.str, str16.length);
+		wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), str16.str, str16.length);
 		teststr4[63] = 0;
 		EXPECT_TRUE(wstring_equal(wbuffer, teststr4));
 
 		{
-			wchar_t wteststr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xD854, 0xDC53, 0x0032, 0 };
-			string_t utf8_teststr = string_allocate_from_wstring(wteststr,
-			                                                     sizeof(wteststr)/sizeof(wteststr[0]));
-			wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), STRING_ARGS(utf8_teststr));
+			wchar_t wteststr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0xD854, 0xDC53, 0x0032, 0};
+			string_t utf8_teststr = string_allocate_from_wstring(wteststr, sizeof(wteststr) / sizeof(wteststr[0]));
+			wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wteststr, wbuffer));
 			string_deallocate(utf8_teststr.str);
 		}
 
 		{
-			uint16_t wteststr[] = { 0xFEFF, 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0xFFFE, 0x1234, 0xFF03, 0 };
+			uint16_t wteststr[] = {0xFEFF, 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02,
+			                       0xDC54, 0x0032, 0xFFFE, 0x1234, 0xFF03, 0};
 #if FOUNDATION_SIZE_WCHAR == 4
-			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x0032, 0x3412, 0x03FF, 0 };
+			wchar_t wtestcmpstr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x0032, 0x3412, 0x03FF, 0};
 #else
-			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0x3412, 0x03FF, 0 };
+			wchar_t wtestcmpstr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0x0032, 0x3412, 0x03FF, 0};
 #endif
-			string_t utf8_teststr = string_allocate_from_utf16(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
-			wstring_from_string(wbuffer, sizeof(wbuffer)/sizeof(wbuffer[0]), STRING_ARGS(utf8_teststr));
+			string_t utf8_teststr = string_allocate_from_utf16(wteststr, sizeof(wteststr) / sizeof(wteststr[0]));
+			wstring_from_string(wbuffer, sizeof(wbuffer) / sizeof(wbuffer[0]), STRING_ARGS(utf8_teststr));
 			EXPECT_TRUE(wstring_equal(wtestcmpstr, wbuffer));
-			EXPECT_EQ(wstring_length(wbuffer), (sizeof(wtestcmpstr)/sizeof(wtestcmpstr[0]))-1);
+			EXPECT_EQ(wstring_length(wbuffer), (sizeof(wtestcmpstr) / sizeof(wtestcmpstr[0])) - 1);
 			string_deallocate(utf8_teststr.str);
 		}
 
 		{
 			size_t expected_length;
-			uint32_t wteststr[] = { 0x0000FEFF, 0x00000100, 0x0000078f, 0x00001234, 0x0000FF03, 0x000D0854, 0x000D0C53, 0x00000032, 0xFFFE0000, 0x12340000, 0xFF030000, 0 };
+			uint32_t wteststr[] = {0x0000FEFF, 0x00000100, 0x0000078f, 0x00001234, 0x0000FF03, 0x000D0854,
+			                       0x000D0C53, 0x00000032, 0xFFFE0000, 0x12340000, 0xFF030000, 0};
 #if FOUNDATION_SIZE_WCHAR == 4
-			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x000D0C53, 0x0032, 0x3412, 0x03FF, 0 };
+			wchar_t wtestcmpstr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0x000D0854, 0x000D0C53, 0x0032, 0x3412, 0x03FF, 0};
 #else
-			wchar_t wtestcmpstr[] = { 0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54, 0xDB03, 0xDC53, 0x0032, 0x3412, 0x03FF, 0 };
+			wchar_t wtestcmpstr[] = {0x0100, 0x078f, 0x1234, 0xFF03, 0xDB02, 0xDC54,
+			                         0xDB03, 0xDC53, 0x0032, 0x3412, 0x03FF, 0};
 #endif
-			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr)/sizeof(wteststr[0]));
+			string_t utf8_teststr = string_allocate_from_utf32(wteststr, sizeof(wteststr) / sizeof(wteststr[0]));
 			wstring_from_string(wbuffer, 6, STRING_ARGS(utf8_teststr));
 #if FOUNDATION_SIZE_WCHAR == 4
 			expected_length = 5;
 #else
-			//Final glyph > 0x10FFFF will not be output since it requires
-			//two 16-bit wide characters which will not fit in given buffer
+			// Final glyph > 0x10FFFF will not be output since it requires
+			// two 16-bit wide characters which will not fit in given buffer
 			expected_length = 4;
 			EXPECT_EQ(wbuffer[4], 0);
 #endif
@@ -484,72 +503,66 @@ DECLARE_TEST(string, queries) {
 		EXPECT_EQ(string_length(""), 0);
 		EXPECT_EQ(string_length("test"), 4);
 		EXPECT_EQ(string_length("test\0test"), 4);
-		EXPECT_EQ(string_length("test test test test test test test test test test test test test test "),
-		          70);
+		EXPECT_EQ(string_length("test test test test test test test test test test test test test test "), 70);
 	}
 	{
 		//"®᧼aҖ<BOM>𤭢b<INV>c" where <BOM> is byte order mark, will be treated as two glyphs,
-		//and <INV> is an utf-8 invalid 6-byte sequence (but we treat is as one glyph, like wtf-8)
-		unsigned char utfstr[] = { 0xC2, 0xAE, 0xE1, 0xA7, 0xBC, 0x61, 0xD2, 0x96, 0xFE, 0xFF,
-		                           0xF0, 0xA4, 0xAD, 0xA2, 0x62, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x63, 0
-		                         };
-		//Invalid, byte sequence is incomplete, but should be safe in string_glyphs/string_glyph calls
-		unsigned char invalidstr[] = { 0xFC, 0xA4, 0 };
-		unsigned char twostr[] = { 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0 };
-		unsigned char bomstr[] = { 0xFF, 0xFE, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0 };
+		// and <INV> is an utf-8 invalid 6-byte sequence (but we treat is as one glyph, like wtf-8)
+		unsigned char utfstr[] = {0xC2, 0xAE, 0xE1, 0xA7, 0xBC, 0x61, 0xD2, 0x96, 0xFE, 0xFF, 0xF0, 0xA4,
+		                          0xAD, 0xA2, 0x62, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x63, 0};
+		// Invalid, byte sequence is incomplete, but should be safe in string_glyphs/string_glyph calls
+		unsigned char invalidstr[] = {0xFC, 0xA4, 0};
+		unsigned char twostr[] = {0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0};
+		unsigned char bomstr[] = {0xFF, 0xFE, 0xFC, 0xA4, 0xA3, 0xA2, 0xA0, 0xA1, 0x62, 0};
 		size_t consumed, offset;
 
 		EXPECT_EQ(string_glyphs(nullptr, 0), 0);
 		EXPECT_EQ(string_glyphs("foobar", 0), 0);
 		EXPECT_EQ(string_glyphs("foobar", 4), 4);
-		EXPECT_INTEQ(string_glyphs((const char*)invalidstr, sizeof(invalidstr)-1), 1);
-		EXPECT_INTEQ(string_glyphs((const char*)twostr, sizeof(twostr)-1), 2);
-		EXPECT_INTEQ(string_glyphs((const char*)bomstr, sizeof(bomstr)-1), 4);
-		EXPECT_INTEQ(string_glyphs((const char*)utfstr, sizeof(utfstr)-1), 10);
+		EXPECT_INTEQ(string_glyphs((const char*)invalidstr, sizeof(invalidstr) - 1), 1);
+		EXPECT_INTEQ(string_glyphs((const char*)twostr, sizeof(twostr) - 1), 2);
+		EXPECT_INTEQ(string_glyphs((const char*)bomstr, sizeof(bomstr) - 1), 4);
+		EXPECT_INTEQ(string_glyphs((const char*)utfstr, sizeof(utfstr) - 1), 10);
 
 		offset = 0;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0xAE);//'®'
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), 0xAE);  //'®'
 		EXPECT_EQ(consumed, 2);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0x19FC); //L'᧼'
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), 0x19FC);  // L'᧼'
 		EXPECT_EQ(consumed, 3);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'a');
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), (uint32_t)L'a');
 		EXPECT_EQ(consumed, 1);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0x496); //L'Җ'
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), 0x496);  // L'Җ'
 		EXPECT_EQ(consumed, 2);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed),
-		          (uint32_t)0xFE & 0x3F);
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), (uint32_t)0xFE & 0x3F);
 		EXPECT_EQ(consumed, 1);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed),
-		          (uint32_t)0xFF & 0x3F);
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), (uint32_t)0xFF & 0x3F);
 		EXPECT_EQ(consumed, 1);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0x24B62); //'𤭢'
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), 0x24B62);  //'𤭢'
 		EXPECT_EQ(consumed, 4);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'b');
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), (uint32_t)L'b');
 		EXPECT_EQ(consumed, 1);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed),
-		          (uint32_t)0x248E2821);
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), (uint32_t)0x248E2821);
 		EXPECT_EQ(consumed, 6);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), (uint32_t)L'c');
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), (uint32_t)L'c');
 		EXPECT_EQ(consumed, 1);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr)-1, offset, &consumed), 0);
+		EXPECT_EQ(string_glyph((const char*)utfstr, sizeof(utfstr) - 1, offset, &consumed), 0);
 		EXPECT_EQ(consumed, 0);
 
 		offset = 0;
-		EXPECT_INTEQ(string_glyph((const char*)invalidstr, sizeof(invalidstr)-1, offset, &consumed),
-		             0x24000000);
+		EXPECT_INTEQ(string_glyph((const char*)invalidstr, sizeof(invalidstr) - 1, offset, &consumed), 0x24000000);
 		EXPECT_EQ(consumed, 2);
 		offset += consumed;
-		EXPECT_EQ(string_glyph((const char*)invalidstr, sizeof(invalidstr)-1, offset, &consumed), 0);
+		EXPECT_EQ(string_glyph((const char*)invalidstr, sizeof(invalidstr) - 1, offset, &consumed), 0);
 		EXPECT_EQ(consumed, 0);
 	}
 	{
@@ -561,11 +574,10 @@ DECLARE_TEST(string, queries) {
 		EXPECT_EQ(string_hash("foundation string", 10), HASH_FOUNDATION);
 	}
 	{
-		char teststr[]  = "";
+		char teststr[] = "";
 		char teststr2[] = "test";
 		char teststr3[] = "testing long string with more than 16 characters";
-		char teststr4[] =
-		    "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
+		char teststr4[] = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
 
 		string_const_t str1 = string_substr(STRING_CONST(teststr), 0, 0);
 		string_const_t str2 = string_substr(STRING_CONST(teststr2), 0, 4);
@@ -588,31 +600,27 @@ DECLARE_TEST(string, queries) {
 		EXPECT_SIZEEQ(strlen(teststr4) - 10, str9.length);
 	}
 	{
-		//Only ASCII characters, so wstring->string conversion should not introduce any extra UTF-8 sequences
-		wchar_t teststr[]  = L"";
+		// Only ASCII characters, so wstring->string conversion should not introduce any extra UTF-8 sequences
+		wchar_t teststr[] = L"";
 		wchar_t teststr2[] = L"test";
 		wchar_t teststr3[] = L"testing long string with more than 16 characters";
-		wchar_t teststr4[] =
-		    L"01234567890123456789012345678901234567890123456789012345678901234567890123456789";
+		wchar_t teststr4[] = L"01234567890123456789012345678901234567890123456789012345678901234567890123456789";
 
 		string_t str1 = string_allocate_from_wstring(teststr, (sizeof(teststr) / sizeof(teststr[0])) - 1);
-		string_t str2 = string_allocate_from_wstring(teststr2,
-		                                             (sizeof(teststr2) / sizeof(teststr2[0])) - 1);
+		string_t str2 = string_allocate_from_wstring(teststr2, (sizeof(teststr2) / sizeof(teststr2[0])) - 1);
 		string_t str3 = string_allocate_from_wstring(teststr3, 0);
 		string_t str4 = string_allocate_from_wstring(teststr3, 10);
-		string_t str5 = string_allocate_from_wstring(teststr3,
-		                                             (sizeof(teststr3) / sizeof(teststr3[0])) - 1);
-		string_t str6 = string_allocate_from_wstring(teststr4,
-		                                             (sizeof(teststr4) / sizeof(teststr4[0])) - 1);
+		string_t str5 = string_allocate_from_wstring(teststr3, (sizeof(teststr3) / sizeof(teststr3[0])) - 1);
+		string_t str6 = string_allocate_from_wstring(teststr4, (sizeof(teststr4) / sizeof(teststr4[0])) - 1);
 		string_t str7 = string_allocate_from_wstring(teststr4, 20);
 
-		EXPECT_EQ(0, str1.str[ str1.length ]);
-		EXPECT_EQ(0, str2.str[ str2.length ]);
-		EXPECT_EQ(0, str3.str[ str3.length ]);
-		EXPECT_EQ(0, str4.str[ str4.length ]);
-		EXPECT_EQ(0, str5.str[ str5.length ]);
-		EXPECT_EQ(0, str6.str[ str6.length ]);
-		EXPECT_EQ(0, str7.str[ str7.length ]);
+		EXPECT_EQ(0, str1.str[str1.length]);
+		EXPECT_EQ(0, str2.str[str2.length]);
+		EXPECT_EQ(0, str3.str[str3.length]);
+		EXPECT_EQ(0, str4.str[str4.length]);
+		EXPECT_EQ(0, str5.str[str5.length]);
+		EXPECT_EQ(0, str6.str[str6.length]);
+		EXPECT_EQ(0, str7.str[str7.length]);
 
 		EXPECT_SIZEEQ(wcslen(teststr), str1.length);
 		EXPECT_SIZEEQ(wcslen(teststr2), str2.length);
@@ -664,21 +672,20 @@ DECLARE_TEST(string, queries) {
 		EXPECT_TRUE(string_equal_substr_nocase(STRING_CONST("Foo"), 4, STRING_CONST("foo"), STRING_NPOS));
 		EXPECT_TRUE(string_equal_substr_nocase(STRING_CONST("foo"), 0, STRING_CONST("Foo"), 0));
 		EXPECT_TRUE(string_equal_substr_nocase(STRING_CONST("FoO"), 0, STRING_CONST("foo"), 0));
-		EXPECT_TRUE(string_equal_substr_nocase(STRING_ARGS(string_empty()), 0, STRING_ARGS(string_null()),
-		                                       0));
+		EXPECT_TRUE(string_equal_substr_nocase(STRING_ARGS(string_empty()), 0, STRING_ARGS(string_null()), 0));
 	}
 	{
 		string_const_t emptystr = string_null();
 		string_const_t shortstr = string_const(STRING_CONST("short string"));
-		string_const_t longstr  = string_const(
-		                              STRING_CONST("testing utility string methods like finds, split, merge, explode and similar."));
+		string_const_t longstr =
+		    string_const(STRING_CONST("testing utility string methods like finds, split, merge, explode and similar."));
 		{
-			size_t find     = string_find(STRING_ARGS(longstr), ' ', 0);
-			size_t find2    = string_find(STRING_ARGS(longstr), 12, 0);
-			size_t find3    = string_find(STRING_ARGS(emptystr), ' ', 0);
-			size_t find4    = string_find(STRING_ARGS(shortstr), ' ', 0);
-			size_t find5    = string_find(STRING_ARGS(shortstr), 'z', 0);
-			size_t findofs  = string_find(STRING_ARGS(longstr), ' ', find);
+			size_t find = string_find(STRING_ARGS(longstr), ' ', 0);
+			size_t find2 = string_find(STRING_ARGS(longstr), 12, 0);
+			size_t find3 = string_find(STRING_ARGS(emptystr), ' ', 0);
+			size_t find4 = string_find(STRING_ARGS(shortstr), ' ', 0);
+			size_t find5 = string_find(STRING_ARGS(shortstr), 'z', 0);
+			size_t findofs = string_find(STRING_ARGS(longstr), ' ', find);
 			size_t findofs2 = string_find(STRING_ARGS(longstr), ' ', find + 1);
 			size_t findofs3 = string_find(STRING_ARGS(longstr), 'z', 10);
 			size_t findofs4 = string_find(STRING_ARGS(emptystr), 'z', STRING_NPOS);
@@ -704,12 +711,12 @@ DECLARE_TEST(string, queries) {
 			EXPECT_EQ(findofs9, STRING_NPOS);
 		}
 		{
-			size_t rfind     = string_rfind(STRING_ARGS(longstr), ' ', STRING_NPOS);
-			size_t rfind2    = string_rfind(STRING_ARGS(longstr), ';', STRING_NPOS);
-			size_t rfind3    = string_rfind(STRING_ARGS(emptystr), ';', STRING_NPOS);
-			size_t rfind4    = string_rfind(STRING_ARGS(shortstr), 's', STRING_NPOS);
-			size_t rfind5    = string_rfind(STRING_ARGS(shortstr), 'z', STRING_NPOS);
-			size_t rfindofs  = string_rfind(STRING_ARGS(longstr), ' ', rfind);
+			size_t rfind = string_rfind(STRING_ARGS(longstr), ' ', STRING_NPOS);
+			size_t rfind2 = string_rfind(STRING_ARGS(longstr), ';', STRING_NPOS);
+			size_t rfind3 = string_rfind(STRING_ARGS(emptystr), ';', STRING_NPOS);
+			size_t rfind4 = string_rfind(STRING_ARGS(shortstr), 's', STRING_NPOS);
+			size_t rfind5 = string_rfind(STRING_ARGS(shortstr), 'z', STRING_NPOS);
+			size_t rfindofs = string_rfind(STRING_ARGS(longstr), ' ', rfind);
 			size_t rfindofs2 = string_rfind(STRING_ARGS(longstr), ' ', rfind - 1);
 			size_t rfindofs3 = string_rfind(STRING_ARGS(longstr), ' ', longstr.length - 1);
 			size_t rfindofs4 = string_rfind(STRING_ARGS(emptystr), ' ', 0);
@@ -731,26 +738,24 @@ DECLARE_TEST(string, queries) {
 			EXPECT_EQ(rfindofs7, 0U);
 		}
 		{
-			size_t findstr     = string_find_string(STRING_ARGS(longstr), STRING_CONST("st"), 0);
-			size_t findstr2    = string_find_string(STRING_ARGS(longstr), STRING_CONST("xwqz"), 0);
-			size_t findstr3    = string_find_string(STRING_ARGS(emptystr), STRING_CONST("xwqz"), 0);
-			size_t findstr4    = string_find_string(STRING_ARGS(longstr), STRING_CONST(""), 0);
-			size_t findstr5    = string_find_string(STRING_ARGS(longstr), STRING_CONST("dslike"), 0);
-			size_t findstr6    = string_find_string(STRING_ARGS(shortstr), STRING_CONST("rt"), 0);
-			size_t findstr7    = string_find_string(STRING_ARGS(shortstr),
-			                                        STRING_CONST("long key that does not exist"), 0);
-			size_t findstr8    = string_find_string(STRING_ARGS(shortstr), STRING_CONST("so"), 0);
-			size_t findstrofs   = string_find_string(STRING_ARGS(longstr), STRING_CONST("st"), findstr);
-			size_t findstrofs2  = string_find_string(STRING_ARGS(longstr), STRING_CONST("st"), findstr + 1);
-			size_t findstrofs3  = string_find_string(STRING_ARGS(longstr), STRING_CONST("xwqz"),
-			                                         longstr.length);
-			size_t findstrofs4  = string_find_string(STRING_ARGS(emptystr), STRING_CONST("xwqz"),
-			                                         emptystr.length);
-			size_t findstrofs5  = string_find_string(STRING_ARGS(shortstr), STRING_CONST(""), 5);
-			size_t findstrofs6  = string_find_string(STRING_ARGS(shortstr), STRING_CONST("string"), 0);
-			size_t findstrofs7  = string_find_string(STRING_ARGS(shortstr), STRING_CONST("string"), 7);
-			size_t findstrofs8  = string_find_string(STRING_ARGS(longstr), STRING_CONST("utility"), 14);
-			size_t findstrofs9  = string_find_string(STRING_ARGS(longstr), STRING_CONST(""), longstr.length);
+			size_t findstr = string_find_string(STRING_ARGS(longstr), STRING_CONST("st"), 0);
+			size_t findstr2 = string_find_string(STRING_ARGS(longstr), STRING_CONST("xwqz"), 0);
+			size_t findstr3 = string_find_string(STRING_ARGS(emptystr), STRING_CONST("xwqz"), 0);
+			size_t findstr4 = string_find_string(STRING_ARGS(longstr), STRING_CONST(""), 0);
+			size_t findstr5 = string_find_string(STRING_ARGS(longstr), STRING_CONST("dslike"), 0);
+			size_t findstr6 = string_find_string(STRING_ARGS(shortstr), STRING_CONST("rt"), 0);
+			size_t findstr7 =
+			    string_find_string(STRING_ARGS(shortstr), STRING_CONST("long key that does not exist"), 0);
+			size_t findstr8 = string_find_string(STRING_ARGS(shortstr), STRING_CONST("so"), 0);
+			size_t findstrofs = string_find_string(STRING_ARGS(longstr), STRING_CONST("st"), findstr);
+			size_t findstrofs2 = string_find_string(STRING_ARGS(longstr), STRING_CONST("st"), findstr + 1);
+			size_t findstrofs3 = string_find_string(STRING_ARGS(longstr), STRING_CONST("xwqz"), longstr.length);
+			size_t findstrofs4 = string_find_string(STRING_ARGS(emptystr), STRING_CONST("xwqz"), emptystr.length);
+			size_t findstrofs5 = string_find_string(STRING_ARGS(shortstr), STRING_CONST(""), 5);
+			size_t findstrofs6 = string_find_string(STRING_ARGS(shortstr), STRING_CONST("string"), 0);
+			size_t findstrofs7 = string_find_string(STRING_ARGS(shortstr), STRING_CONST("string"), 7);
+			size_t findstrofs8 = string_find_string(STRING_ARGS(longstr), STRING_CONST("utility"), 14);
+			size_t findstrofs9 = string_find_string(STRING_ARGS(longstr), STRING_CONST(""), longstr.length);
 			size_t findstrofs10 = string_find_string(STRING_ARGS(longstr), STRING_CONST(""), STRING_NPOS);
 			size_t findstrofs11 = string_find_string(STRING_ARGS(longstr), STRING_CONST("string"), STRING_NPOS);
 
@@ -775,15 +780,13 @@ DECLARE_TEST(string, queries) {
 			EXPECT_EQ(findstrofs11, STRING_NPOS);
 		}
 		{
-			size_t rfindstr     = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(", "), STRING_NPOS);
-			size_t rfindstr2    = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(":;"), STRING_NPOS);
-			size_t rfindstr3    = string_rfind_string(STRING_ARGS(emptystr), STRING_CONST(":;"), STRING_NPOS);
-			size_t rfindstr4    = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(""), STRING_NPOS);
-			size_t rfindstr5    = string_rfind_string(STRING_ARGS(shortstr), STRING_CONST("string"),
-			                                          STRING_NPOS);
-			size_t rfindstr6    = string_rfind_string(STRING_ARGS(shortstr), STRING_CONST(" tring"),
-			                                          STRING_NPOS);
-			size_t rfindstrofs  = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(", "), rfindstr);
+			size_t rfindstr = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(", "), STRING_NPOS);
+			size_t rfindstr2 = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(":;"), STRING_NPOS);
+			size_t rfindstr3 = string_rfind_string(STRING_ARGS(emptystr), STRING_CONST(":;"), STRING_NPOS);
+			size_t rfindstr4 = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(""), STRING_NPOS);
+			size_t rfindstr5 = string_rfind_string(STRING_ARGS(shortstr), STRING_CONST("string"), STRING_NPOS);
+			size_t rfindstr6 = string_rfind_string(STRING_ARGS(shortstr), STRING_CONST(" tring"), STRING_NPOS);
+			size_t rfindstrofs = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(", "), rfindstr);
 			size_t rfindstrofs2 = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(", "), rfindstr - 1);
 			size_t rfindstrofs3 = string_rfind_string(STRING_ARGS(longstr), STRING_CONST(":;"), 0);
 			size_t rfindstrofs4 = string_rfind_string(STRING_ARGS(emptystr), STRING_CONST(":;"), 0);
@@ -806,22 +809,20 @@ DECLARE_TEST(string, queries) {
 			EXPECT_EQ(rfindstrofs7, STRING_NPOS);
 		}
 		{
-			size_t findof        = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), 0);
-			size_t findof2       = string_find_first_of(STRING_ARGS(longstr), STRING_CONST(";:"), 0);
-			size_t findof3       = string_find_first_of(STRING_ARGS(emptystr), STRING_CONST(""), 0);
-			size_t findof4       = string_find_first_of(STRING_ARGS(emptystr), STRING_CONST(" "), 0);
-			size_t findof5       = string_find_first_of(STRING_ARGS(shortstr), STRING_CONST(""), 0);
-			size_t findofofs     = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), findof);
-			size_t findofofs2    = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), findof - 1);
-			size_t findofofs3    = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), findof + 1);
-			size_t findofofs4    = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"),
-			                                            longstr.length);
-			size_t findofofs5    = string_find_first_of(STRING_ARGS(emptystr), STRING_CONST(""),
-			                                            emptystr.length);
-			size_t findofofs6    = string_find_first_of(STRING_ARGS(shortstr), STRING_CONST("string"), 6);
-			size_t findofofs7    = string_find_first_of(STRING_ARGS(shortstr), STRING_CONST(""), 6);
-			size_t findofofs8    = string_find_first_of(STRING_ARGS(longstr), STRING_CONST(""), 10);
-			size_t findofofs9    = string_find_first_of(STRING_ARGS(longstr), STRING_CONST(""), longstr.length);
+			size_t findof = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), 0);
+			size_t findof2 = string_find_first_of(STRING_ARGS(longstr), STRING_CONST(";:"), 0);
+			size_t findof3 = string_find_first_of(STRING_ARGS(emptystr), STRING_CONST(""), 0);
+			size_t findof4 = string_find_first_of(STRING_ARGS(emptystr), STRING_CONST(" "), 0);
+			size_t findof5 = string_find_first_of(STRING_ARGS(shortstr), STRING_CONST(""), 0);
+			size_t findofofs = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), findof);
+			size_t findofofs2 = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), findof - 1);
+			size_t findofofs3 = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), findof + 1);
+			size_t findofofs4 = string_find_first_of(STRING_ARGS(longstr), STRING_CONST("ui"), longstr.length);
+			size_t findofofs5 = string_find_first_of(STRING_ARGS(emptystr), STRING_CONST(""), emptystr.length);
+			size_t findofofs6 = string_find_first_of(STRING_ARGS(shortstr), STRING_CONST("string"), 6);
+			size_t findofofs7 = string_find_first_of(STRING_ARGS(shortstr), STRING_CONST(""), 6);
+			size_t findofofs8 = string_find_first_of(STRING_ARGS(longstr), STRING_CONST(""), 10);
+			size_t findofofs9 = string_find_first_of(STRING_ARGS(longstr), STRING_CONST(""), longstr.length);
 
 			EXPECT_EQ(findof, 4U);
 			EXPECT_EQ(findof2, STRING_NPOS);
@@ -839,17 +840,15 @@ DECLARE_TEST(string, queries) {
 			EXPECT_EQ(findofofs9, STRING_NPOS);
 		}
 		{
-			size_t findnotof     = string_find_first_not_of(STRING_ARGS(longstr), STRING_CONST("testing "), 0);
-			size_t findnotof2    = string_find_first_not_of(STRING_ARGS(longstr), STRING_ARGS(longstr), 0);
-			size_t findnotof3    = string_find_first_not_of(STRING_ARGS(shortstr), STRING_CONST(""), 0);
-			size_t findnotofofs  = string_find_first_not_of(STRING_ARGS(longstr), STRING_CONST("testing "),
-			                                                findnotof);
-			size_t findnotofofs2 = string_find_first_not_of(STRING_ARGS(longstr), STRING_CONST("testing "),
-			                                                findnotof + 1);
-			size_t findnotofofs3 = string_find_first_not_of(STRING_ARGS(longstr), STRING_CONST("testing "),
-			                                                longstr.length);
-			size_t findnotofofs4 = string_find_first_not_of(STRING_ARGS(shortstr), STRING_CONST(""),
-			                                                shortstr.length);
+			size_t findnotof = string_find_first_not_of(STRING_ARGS(longstr), STRING_CONST("testing "), 0);
+			size_t findnotof2 = string_find_first_not_of(STRING_ARGS(longstr), STRING_ARGS(longstr), 0);
+			size_t findnotof3 = string_find_first_not_of(STRING_ARGS(shortstr), STRING_CONST(""), 0);
+			size_t findnotofofs = string_find_first_not_of(STRING_ARGS(longstr), STRING_CONST("testing "), findnotof);
+			size_t findnotofofs2 =
+			    string_find_first_not_of(STRING_ARGS(longstr), STRING_CONST("testing "), findnotof + 1);
+			size_t findnotofofs3 =
+			    string_find_first_not_of(STRING_ARGS(longstr), STRING_CONST("testing "), longstr.length);
+			size_t findnotofofs4 = string_find_first_not_of(STRING_ARGS(shortstr), STRING_CONST(""), shortstr.length);
 
 			EXPECT_EQ(findnotof, 8U);
 			EXPECT_EQ(findnotof2, STRING_NPOS);
@@ -860,24 +859,17 @@ DECLARE_TEST(string, queries) {
 			EXPECT_EQ(findnotofofs4, STRING_NPOS);
 		}
 		{
-			size_t findlastof        = string_find_last_of(STRING_ARGS(longstr), STRING_CONST("xp"),
-			                                               STRING_NPOS);
-			size_t findlastof2       = string_find_last_of(STRING_ARGS(longstr), STRING_CONST(";:"),
-			                                               STRING_NPOS);
-			size_t findlastof3       = string_find_last_of(STRING_ARGS(emptystr), STRING_CONST(""),
-			                                               STRING_NPOS);
-			size_t findlastof4       = string_find_last_of(STRING_ARGS(shortstr), STRING_CONST(""),
-			                                               STRING_NPOS);
-			size_t findlastofofs     = string_find_last_of(STRING_ARGS(longstr), STRING_CONST("xp"),
-			                                               findlastof);
-			size_t findlastofofs2    = string_find_last_of(STRING_ARGS(longstr), STRING_CONST("xp"),
-			                                               findlastof - 2);
-			size_t findlastofofs3    = string_find_last_of(STRING_ARGS(longstr), STRING_CONST("xp"), 0);
-			size_t findlastofofs4    = string_find_last_of(STRING_ARGS(emptystr), STRING_CONST(""), 0);
-			size_t findlastofofs5    = string_find_last_of(STRING_ARGS(shortstr), STRING_CONST(""), 5);
-			size_t findlastofofs6    = string_find_last_of(STRING_ARGS(shortstr), STRING_CONST(""),
-			                                               shortstr.length);
-			size_t findlastofofs7    = string_find_last_of(STRING_ARGS(shortstr), STRING_CONST("short"), 5);
+			size_t findlastof = string_find_last_of(STRING_ARGS(longstr), STRING_CONST("xp"), STRING_NPOS);
+			size_t findlastof2 = string_find_last_of(STRING_ARGS(longstr), STRING_CONST(";:"), STRING_NPOS);
+			size_t findlastof3 = string_find_last_of(STRING_ARGS(emptystr), STRING_CONST(""), STRING_NPOS);
+			size_t findlastof4 = string_find_last_of(STRING_ARGS(shortstr), STRING_CONST(""), STRING_NPOS);
+			size_t findlastofofs = string_find_last_of(STRING_ARGS(longstr), STRING_CONST("xp"), findlastof);
+			size_t findlastofofs2 = string_find_last_of(STRING_ARGS(longstr), STRING_CONST("xp"), findlastof - 2);
+			size_t findlastofofs3 = string_find_last_of(STRING_ARGS(longstr), STRING_CONST("xp"), 0);
+			size_t findlastofofs4 = string_find_last_of(STRING_ARGS(emptystr), STRING_CONST(""), 0);
+			size_t findlastofofs5 = string_find_last_of(STRING_ARGS(shortstr), STRING_CONST(""), 5);
+			size_t findlastofofs6 = string_find_last_of(STRING_ARGS(shortstr), STRING_CONST(""), shortstr.length);
+			size_t findlastofofs7 = string_find_last_of(STRING_ARGS(shortstr), STRING_CONST("short"), 5);
 
 			EXPECT_EQ(findlastof, 59U);
 			EXPECT_EQ(findlastof2, STRING_NPOS);
@@ -892,29 +884,23 @@ DECLARE_TEST(string, queries) {
 			EXPECT_EQ(findlastofofs7, 4U);
 		}
 		{
-			size_t findlastnotof     = string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(" similar."),
-			                                                   STRING_NPOS);
-			size_t findlastnotof2    = string_find_last_not_of(STRING_ARGS(longstr), STRING_ARGS(longstr),
-			                                                   STRING_NPOS);
-			size_t findlastnotof3    = string_find_last_not_of(STRING_ARGS(emptystr), STRING_CONST(""),
-			                                                   STRING_NPOS);
-			size_t findlastnotof4    = string_find_last_not_of(STRING_ARGS(shortstr), STRING_CONST(""),
-			                                                   STRING_NPOS);
-			size_t findlastnotof5    = string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(" similar"),
-			                                                   STRING_NPOS);
-			size_t findlastnotofofs  = string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(" similar."),
-			                                                   findlastnotof);
-			size_t findlastnotofofs2 = string_find_last_not_of(STRING_ARGS(longstr),
-			                                                   STRING_CONST(" and similar."), findlastnotof - 1);
+			size_t findlastnotof =
+			    string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(" similar."), STRING_NPOS);
+			size_t findlastnotof2 = string_find_last_not_of(STRING_ARGS(longstr), STRING_ARGS(longstr), STRING_NPOS);
+			size_t findlastnotof3 = string_find_last_not_of(STRING_ARGS(emptystr), STRING_CONST(""), STRING_NPOS);
+			size_t findlastnotof4 = string_find_last_not_of(STRING_ARGS(shortstr), STRING_CONST(""), STRING_NPOS);
+			size_t findlastnotof5 =
+			    string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(" similar"), STRING_NPOS);
+			size_t findlastnotofofs =
+			    string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(" similar."), findlastnotof);
+			size_t findlastnotofofs2 =
+			    string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(" and similar."), findlastnotof - 1);
 			size_t findlastnotofofs3 = string_find_last_not_of(STRING_ARGS(longstr), STRING_ARGS(longstr), 0);
 			size_t findlastnotofofs4 = string_find_last_not_of(STRING_ARGS(emptystr), STRING_CONST(""), 0);
-			size_t findlastnotofofs5 = string_find_last_not_of(STRING_ARGS(shortstr), STRING_CONST("string"),
-			                                                   5);
-			size_t findlastnotofofs6 = string_find_last_not_of(STRING_ARGS(shortstr), STRING_CONST("string "),
-			                                                   5);
+			size_t findlastnotofofs5 = string_find_last_not_of(STRING_ARGS(shortstr), STRING_CONST("string"), 5);
+			size_t findlastnotofofs6 = string_find_last_not_of(STRING_ARGS(shortstr), STRING_CONST("string "), 5);
 			size_t findlastnotofofs7 = string_find_last_not_of(STRING_ARGS(shortstr), STRING_CONST(""), 5);
-			size_t findlastnotofofs8 = string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(""),
-			                                                   longstr.length);
+			size_t findlastnotofofs8 = string_find_last_not_of(STRING_ARGS(longstr), STRING_CONST(""), longstr.length);
 
 			EXPECT_EQ(findlastnotof, 67U);
 			EXPECT_EQ(findlastnotof2, STRING_NPOS);
@@ -1017,8 +1003,8 @@ DECLARE_TEST(string, append) {
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
-	val = string_append_varg(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(shortstr),
-	                         STRING_ARGS(emptystr), STRING_ARGS(shortstr), STRING_ARGS(emptystr), nullptr);
+	val = string_append_varg(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(shortstr), STRING_ARGS(emptystr),
+	                         STRING_ARGS(shortstr), STRING_ARGS(emptystr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortshortshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
@@ -1047,8 +1033,7 @@ DECLARE_TEST(string, append) {
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
 	val = string_append(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(longstr));
-	EXPECT_STRINGEQ(val, string_const(
-	                    STRING_CONST("shortlong long long long long long long long long")));
+	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortlong long long long long long long long long")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
 	val = string_append(STRING_ARGS_CAPACITY(val), STRING_ARGS(longstr));
@@ -1056,13 +1041,13 @@ DECLARE_TEST(string, append) {
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
 	val = string_append(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(shortstr));
-	EXPECT_STRINGEQ(val, string_const(
-	                    STRING_CONST("long long long long long long long long longshort")));
+	EXPECT_STRINGEQ(val, string_const(STRING_CONST("long long long long long long long long longshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
 	val = string_append(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(longstr));
-	EXPECT_STRINGEQ(val, string_const(
-	                    STRING_CONST("long long long long long long long long longlong long long long long long long long long")));
+	EXPECT_STRINGEQ(val,
+	                string_const(STRING_CONST(
+	                    "long long long long long long long long longlong long long long long long long long long")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
 	val = string_append_varg(buffer, 0, sizeof(buffer), STRING_ARGS(longstr), STRING_ARGS(emptystr),
@@ -1072,23 +1057,22 @@ DECLARE_TEST(string, append) {
 	                                               "shortlong long long long long long long long longshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
-	val = string_append_varg(val.str, 0, 32, STRING_ARGS(shortstr), STRING_ARGS(emptystr),
-	                         STRING_ARGS(longstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
-	                         STRING_ARGS(longstr), STRING_ARGS(nullstr), nullptr);
+	val = string_append_varg(val.str, 0, 32, STRING_ARGS(shortstr), STRING_ARGS(emptystr), STRING_ARGS(longstr),
+	                         STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr), STRING_ARGS(longstr),
+	                         STRING_ARGS(nullstr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortlong long long long long l")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
-	val = string_append_varg(STRING_ARGS(val), sizeof(buffer), nullptr, (size_t)0,
-	                         STRING_ARGS(emptystr),
+	val = string_append_varg(STRING_ARGS(val), sizeof(buffer), nullptr, (size_t)0, STRING_ARGS(emptystr),
 	                         STRING_ARGS(shortstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
 	                         STRING_ARGS(nullstr), nullptr, (size_t)32, STRING_ARGS(longstr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("long long long long long long long long long"
 	                                               "shortlong long long long long long long long longshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
-	val = string_append_varg(STRING_ARGS(val), 2, nullptr, (size_t)0, STRING_ARGS(emptystr),
-	                         STRING_ARGS(shortstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
-	                         STRING_ARGS(nullstr), nullptr, (size_t)32, STRING_ARGS(longstr), nullptr);
+	val = string_append_varg(STRING_ARGS(val), 2, nullptr, (size_t)0, STRING_ARGS(emptystr), STRING_ARGS(shortstr),
+	                         STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr), STRING_ARGS(nullstr),
+	                         nullptr, (size_t)32, STRING_ARGS(longstr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("l")));
 
 	return 0;
@@ -1139,7 +1123,7 @@ DECLARE_TEST(string, prepend) {
 
 	val = string_clone(STRING_ARGS(shortstr));
 	val = string_prepend(STRING_ARGS(val), val.length, STRING_CONST("nullstr"));
-	EXPECT_STRINGEQ(val, string_const(STRING_ARGS(shortstr)-1));
+	EXPECT_STRINGEQ(val, string_const(STRING_ARGS(shortstr) - 1));
 	string_deallocate(val.str);
 
 	val = string_clone(STRING_ARGS(shortstr));
@@ -1156,8 +1140,8 @@ DECLARE_TEST(string, prepend) {
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
-	val = string_prepend_varg(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(shortstr),
-	                          STRING_ARGS(emptystr), STRING_ARGS(shortstr), STRING_ARGS(emptystr), nullptr);
+	val = string_prepend_varg(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(shortstr), STRING_ARGS(emptystr),
+	                          STRING_ARGS(shortstr), STRING_ARGS(emptystr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortshortshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
@@ -1186,8 +1170,7 @@ DECLARE_TEST(string, prepend) {
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
 	val = string_prepend(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(longstr));
-	EXPECT_STRINGEQ(val, string_const(
-	                    STRING_CONST("long long long long long long long long longshort")));
+	EXPECT_STRINGEQ(val, string_const(STRING_CONST("long long long long long long long long longshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
 	val = string_prepend(STRING_ARGS_CAPACITY(val), STRING_ARGS(longstr));
@@ -1195,34 +1178,34 @@ DECLARE_TEST(string, prepend) {
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
 	val = string_prepend(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(shortstr));
-	EXPECT_STRINGEQ(val, string_const(
-	                    STRING_CONST("shortlong long long long long long long long long")));
+	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortlong long long long long long long long long")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
 	val = string_prepend(STRING_ARGS(val), sizeof(buffer), STRING_ARGS(longstr));
-	EXPECT_STRINGEQ(val, string_const(
-	                    STRING_CONST("long long long long long long long long longlong long long long long long long long long")));
+	EXPECT_STRINGEQ(val,
+	                string_const(STRING_CONST(
+	                    "long long long long long long long long longlong long long long long long long long long")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
 	val = string_prepend_varg(buffer, 0, sizeof(buffer), STRING_ARGS(longstr), STRING_ARGS(emptystr),
 	                          STRING_ARGS(shortstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
 	                          STRING_ARGS(nullstr), nullptr);
-	EXPECT_STRINGEQ(val, string_const(
-	                    STRING_CONST("shortlong long long long long long long long longshortlong long long long long long long long long")));
+	EXPECT_STRINGEQ(
+	    val,
+	    string_const(STRING_CONST(
+	        "shortlong long long long long long long long longshortlong long long long long long long long long")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(longstr));
-	val = string_prepend_varg(val.str, 0, 32, STRING_ARGS(shortstr), STRING_ARGS(emptystr),
-	                          STRING_ARGS(longstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
-	                          STRING_ARGS(longstr), STRING_ARGS(nullstr), nullptr);
+	val = string_prepend_varg(val.str, 0, 32, STRING_ARGS(shortstr), STRING_ARGS(emptystr), STRING_ARGS(longstr),
+	                          STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr), STRING_ARGS(longstr),
+	                          STRING_ARGS(nullstr), nullptr);
 	EXPECT_STRINGEQ(val, string_const(STRING_CONST("g long long long long longshort")));
 
 	val = string_copy(buffer, sizeof(buffer), STRING_ARGS(shortstr));
-	val = string_prepend_varg(STRING_ARGS(val), sizeof(buffer), nullptr, (size_t)0,
-	                          STRING_ARGS(emptystr),
+	val = string_prepend_varg(STRING_ARGS(val), sizeof(buffer), nullptr, (size_t)0, STRING_ARGS(emptystr),
 	                          STRING_ARGS(shortstr), STRING_ARGS(longstr), STRING_ARGS(emptystr), STRING_ARGS(shortstr),
 	                          STRING_ARGS(nullstr), nullptr);
-	EXPECT_STRINGEQ(val, string_const(
-	                    STRING_CONST("shortlong long long long long long long long longshortshort")));
+	EXPECT_STRINGEQ(val, string_const(STRING_CONST("shortlong long long long long long long long longshortshort")));
 
 	return 0;
 }
@@ -1249,8 +1232,7 @@ string_allocate_concat_vlist_wrapper(int token, ...) {
 }
 
 static string_t
-string_merge_vlist_wrapper(char* dst, size_t capacity, const char* delimiter, size_t delim_length,
-                           ...) {
+string_merge_vlist_wrapper(char* dst, size_t capacity, const char* delimiter, size_t delim_length, ...) {
 	va_list list;
 	string_t result;
 	va_start(list, delim_length);
@@ -1260,7 +1242,7 @@ string_merge_vlist_wrapper(char* dst, size_t capacity, const char* delimiter, si
 }
 
 #define SHORTSTRING "short"
-#define LONGSTRING  "long string with dynamic buffer storage but with no real useful data"
+#define LONGSTRING "long string with dynamic buffer storage but with no real useful data"
 
 DECLARE_TEST(string, utility) {
 	{
@@ -1299,8 +1281,9 @@ DECLARE_TEST(string, utility) {
 	}
 	{
 		string_const_t explodearr[32];
-		string_const_t explodestr = string_const(
-		                                STRING_CONST("  .,testing,    .,utility.,string  methods ..., like,,,finds  split..merge     .,.explode.and. .., ., similar   .,,,. "));
+		string_const_t explodestr =
+		    string_const(STRING_CONST("  .,testing,    .,utility.,string  methods ..., like,,,finds  split..merge     "
+		                              ".,.explode.and. .., ., similar   .,,,. "));
 
 		string_t mergestr = string_clone(STRING_CONST("    testing   merge string   "));
 		string_t mergestr2 = string_clone(STRING_CONST(" ., testing, .merge.string,. "));
@@ -1401,19 +1384,19 @@ DECLARE_TEST(string, utility) {
 		EXPECT_EQ(merged.str[0], 0);
 		EXPECT_EQ(merged.length, 0);
 
-		merged = string_merge_varg(buffer, 0, STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
-		                           STRING_CONST(LONGSTRING), nullptr);
+		merged = string_merge_varg(buffer, 0, STRING_CONST("foo"), STRING_CONST(SHORTSTRING), STRING_CONST(LONGSTRING),
+		                           nullptr);
 		EXPECT_EQ(merged.str, buffer);
 		EXPECT_EQ(merged.length, 0);
 
-		merged = string_merge_varg(buffer, 1, STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
-		                           STRING_CONST(LONGSTRING), nullptr);
+		merged = string_merge_varg(buffer, 1, STRING_CONST("foo"), STRING_CONST(SHORTSTRING), STRING_CONST(LONGSTRING),
+		                           nullptr);
 		EXPECT_EQ(merged.str, buffer);
 		EXPECT_EQ(merged.str[0], 0);
 		EXPECT_EQ(merged.length, 0);
 
-		merged = string_merge_varg(buffer, 2, STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
-		                           STRING_CONST(LONGSTRING), nullptr);
+		merged = string_merge_varg(buffer, 2, STRING_CONST("foo"), STRING_CONST(SHORTSTRING), STRING_CONST(LONGSTRING),
+		                           nullptr);
 		EXPECT_EQ(merged.str, buffer);
 		EXPECT_EQ(merged.str[0], SHORTSTRING[0]);
 		EXPECT_EQ(merged.str[1], 0);
@@ -1433,15 +1416,16 @@ DECLARE_TEST(string, utility) {
 
 		merged = string_merge_varg(buffer, sizeof(buffer), STRING_CONST("foo"), STRING_CONST(SHORTSTRING),
 		                           STRING_CONST(LONGSTRING), STRING_CONST(LONGSTRING), STRING_CONST("bar"), nullptr);
-		EXPECT_STRINGEQ(merged, string_const(STRING_CONST(SHORTSTRING "foo" LONGSTRING "foo" LONGSTRING
-		                                                  "foo" "bar")));
+		EXPECT_STRINGEQ(merged, string_const(STRING_CONST(SHORTSTRING "foo" LONGSTRING "foo" LONGSTRING "foo"
+		                                                              "bar")));
 
-		merged = string_merge_varg(buffer, 4, STRING_CONST("foo"), STRING_CONST("bar"),
-		                           STRING_CONST(LONGSTRING), STRING_CONST(LONGSTRING), STRING_CONST("bar"), nullptr);
+		merged = string_merge_varg(buffer, 4, STRING_CONST("foo"), STRING_CONST("bar"), STRING_CONST(LONGSTRING),
+		                           STRING_CONST(LONGSTRING), STRING_CONST("bar"), nullptr);
 		EXPECT_STRINGEQ(merged, string_const(STRING_CONST("bar")));
 
-		merged = string_merge_vlist_wrapper(buffer, 0, STRING_CONST("foo"), STRING_CONST("bar"),
-		                                    STRING_CONST(LONGSTRING), STRING_CONST(LONGSTRING), STRING_CONST("bar"), nullptr);
+		merged =
+		    string_merge_vlist_wrapper(buffer, 0, STRING_CONST("foo"), STRING_CONST("bar"), STRING_CONST(LONGSTRING),
+		                               STRING_CONST(LONGSTRING), STRING_CONST("bar"), nullptr);
 		EXPECT_EQ(merged.str, buffer);
 		EXPECT_EQ(merged.length, 0);
 
@@ -1478,21 +1462,17 @@ DECLARE_TEST(string, utility) {
 		EXPECT_CONSTSTRINGEQ(splitright2, string_null());
 		EXPECT_EQ(splitright2.str, splitstr.str + splitstr.length);
 
-		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 0, 4),
-		                     string_const(STRING_CONST("test")));
+		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 0, 4), string_const(STRING_CONST("test")));
 		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 0, 14),
 		                     string_const(STRING_CONST("testing substr")));
 		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 0, 20),
 		                     string_const(STRING_CONST("testing substr")));
-		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 3, 20),
-		                     string_const(STRING_CONST("ting substr")));
-		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 3, 11),
-		                     string_const(STRING_CONST("ting substr")));
+		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 3, 20), string_const(STRING_CONST("ting substr")));
+		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 3, 11), string_const(STRING_CONST("ting substr")));
 		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 3, 1), string_const(STRING_CONST("t")));
 		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 3, 0), string_const(STRING_CONST("")));
 		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 20, 0), string_const(STRING_CONST("")));
-		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 20, 20),
-		                     string_const(STRING_CONST("")));
+		EXPECT_CONSTSTRINGEQ(string_substr(STRING_ARGS(substrtest), 20, 20), string_const(STRING_CONST("")));
 
 		{
 			string_t replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing replace"));
@@ -1511,23 +1491,21 @@ DECLARE_TEST(string, utility) {
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("testing testtestrep")));
 
 			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST(""));
-			replacestr = string_replace(STRING_ARGS(replacestr), sizeof(buffer), STRING_CONST("foo"),
-			                            STRING_CONST("bar"), true);
+			replacestr =
+			    string_replace(STRING_ARGS(replacestr), sizeof(buffer), STRING_CONST("foo"), STRING_CONST("bar"), true);
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("")));
 
 			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("repppppppppp"));
-			replacestr = string_replace(STRING_ARGS(replacestr), sizeof(buffer), STRING_CONST("rep"),
-			                            STRING_CONST("re"), true);
+			replacestr =
+			    string_replace(STRING_ARGS(replacestr), sizeof(buffer), STRING_CONST("rep"), STRING_CONST("re"), true);
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("re")));
 
 			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing replace"));
-			replacestr = string_replace(replacestr.str, 7, 7, STRING_CONST("ting"),
-			                            STRING_CONST("1234"), true);
+			replacestr = string_replace(replacestr.str, 7, 7, STRING_CONST("ting"), STRING_CONST("1234"), true);
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("tes1234")));
 
 			replacestr = string_copy(buffer, sizeof(buffer), STRING_CONST("testing replace"));
-			replacestr = string_replace(replacestr.str, 7, 7, STRING_CONST("ting"),
-			                            STRING_CONST("12345"), true);
+			replacestr = string_replace(replacestr.str, 7, 7, STRING_CONST("ting"), STRING_CONST("12345"), true);
 			EXPECT_STRINGEQ(replacestr, string_const(STRING_CONST("tes1234")));
 			EXPECT_EQ(replacestr.str[7], ' ');
 
@@ -1657,8 +1635,7 @@ DECLARE_TEST(string, utility) {
 		EXPECT_NE(concatstr.str, nullptr);
 		string_deallocate(concatstr.str);
 
-		concatstr = string_allocate_concat_varg(nullptr, (size_t)0, nullptr, (size_t)0, "", (size_t)0,
-		                                        nullptr);
+		concatstr = string_allocate_concat_varg(nullptr, (size_t)0, nullptr, (size_t)0, "", (size_t)0, nullptr);
 		EXPECT_STRINGEQ(concatstr, string_empty());
 		EXPECT_NE(concatstr.str, nullptr);
 		string_deallocate(concatstr.str);
@@ -1668,20 +1645,17 @@ DECLARE_TEST(string, utility) {
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING)));
 		string_deallocate(concatstr.str);
 
-		concatstr = string_allocate_concat_varg(nullptr, (size_t)0, nullptr, (size_t)0,
-		                                        STRING_CONST(LONGSTRING LONGSTRING),
-		                                        STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING),
-		                                        nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING
-		                                                     SHORTSTRING)));
+		concatstr =
+		    string_allocate_concat_varg(nullptr, (size_t)0, nullptr, (size_t)0, STRING_CONST(LONGSTRING LONGSTRING),
+		                                STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING SHORTSTRING)));
 		string_deallocate(concatstr.str);
 
-		concatstr = string_allocate_concat_varg(STRING_CONST(""), STRING_CONST(LONGSTRING),
-		                                        STRING_CONST(LONGSTRING LONGSTRING),
-		                                        STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING),
-		                                        nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING LONGSTRING SHORTSTRING
-		                                                     SHORTSTRING)));
+		concatstr =
+		    string_allocate_concat_varg(STRING_CONST(""), STRING_CONST(LONGSTRING), STRING_CONST(LONGSTRING LONGSTRING),
+		                                STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr,
+		                string_const(STRING_CONST(LONGSTRING LONGSTRING LONGSTRING SHORTSTRING SHORTSTRING)));
 		string_deallocate(concatstr.str);
 
 		concatstr = string_allocate_concat_vlist_wrapper(0, nullptr, 0, nullptr, 0, nullptr);
@@ -1699,26 +1673,20 @@ DECLARE_TEST(string, utility) {
 		string_deallocate(concatstr.str);
 
 		concatstr = string_allocate_concat_vlist_wrapper(0, STRING_CONST(LONGSTRING LONGSTRING),
-		                                                 STRING_CONST(SHORTSTRING),
-		                                                 STRING_CONST(SHORTSTRING),
-		                                                 nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING
-		                                                     SHORTSTRING)));
+		                                                 STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING SHORTSTRING)));
 		string_deallocate(concatstr.str);
 
 		concatstr = string_allocate_concat_vlist_wrapper(0, STRING_CONST(LONGSTRING LONGSTRING),
-		                                                 STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING),
-		                                                 nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING
-		                                                     SHORTSTRING)));
+		                                                 STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING SHORTSTRING)));
 		string_deallocate(concatstr.str);
 
 		concatstr = string_allocate_concat_vlist_wrapper(0, STRING_CONST(""), STRING_CONST(LONGSTRING),
-		                                                 STRING_CONST(LONGSTRING LONGSTRING),
-		                                                 STRING_CONST(SHORTSTRING), STRING_CONST(SHORTSTRING),
-		                                                 nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING LONGSTRING SHORTSTRING
-		                                                     SHORTSTRING)));
+		                                                 STRING_CONST(LONGSTRING LONGSTRING), STRING_CONST(SHORTSTRING),
+		                                                 STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr,
+		                string_const(STRING_CONST(LONGSTRING LONGSTRING LONGSTRING SHORTSTRING SHORTSTRING)));
 		string_deallocate(concatstr.str);
 
 		concatstr = string_concat(nullptr, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr));
@@ -1777,22 +1745,21 @@ DECLARE_TEST(string, utility) {
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("lon")));
 
 		concatstr = string_concat(buf, 0, STRING_ARGS(teststr3), STRING_ARGS(clonestr3));
-		EXPECT_EQ(buf[0], 'l');   //Expect buf to be unchanged from previous test
+		EXPECT_EQ(buf[0], 'l');  // Expect buf to be unchanged from previous test
 		EXPECT_EQ(concatstr.length, 0);
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("")));
 
-		concatstr = string_concat_varg(nullptr, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr),
-		                               nullptr);
+		concatstr = string_concat_varg(nullptr, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr), nullptr);
 		EXPECT_EQ(concatstr.str, nullptr);
 		EXPECT_EQ(concatstr.length, 0);
 
-		concatstr = string_concat_varg(buf, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr),
-		                               STRING_CONST(LONGSTRING), nullptr);
+		concatstr =
+		    string_concat_varg(buf, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr), STRING_CONST(LONGSTRING), nullptr);
 		EXPECT_EQ(concatstr.str, buf);
 		EXPECT_EQ(concatstr.length, 0);
 
-		concatstr = string_concat_varg(buf, sizeof(buf), nullptr, (size_t)0, nullptr, (size_t)0,
-		                               STRING_CONST(""), nullptr);
+		concatstr =
+		    string_concat_varg(buf, sizeof(buf), nullptr, (size_t)0, nullptr, (size_t)0, STRING_CONST(""), nullptr);
 		EXPECT_EQ(concatstr.str, buf);
 		EXPECT_EQ(concatstr.length, 0);
 
@@ -1810,14 +1777,15 @@ DECLARE_TEST(string, utility) {
 
 		concatstr = string_concat_varg(buf, sizeof(buf), STRING_CONST("foobar"), "testing", (size_t)4,
 		                               STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar" "test" LONGSTRING SHORTSTRING)));
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar"
+		                                                     "test" LONGSTRING SHORTSTRING)));
 
-		concatstr = string_concat_varg(buf, 10, STRING_CONST("foobar"), "testing", (size_t)4,
-		                               STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar" "tes")));
+		concatstr = string_concat_varg(buf, 10, STRING_CONST("foobar"), "testing", (size_t)4, STRING_CONST(LONGSTRING),
+		                               STRING_CONST(SHORTSTRING), nullptr);
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar"
+		                                                     "tes")));
 
-		concatstr = string_concat_vlist_wrapper(nullptr, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr),
-		                                        nullptr);
+		concatstr = string_concat_vlist_wrapper(nullptr, 0, STRING_ARGS(clonestr), STRING_ARGS(teststr), nullptr);
 		EXPECT_EQ(concatstr.str, nullptr);
 		EXPECT_EQ(concatstr.length, 0);
 
@@ -1831,13 +1799,11 @@ DECLARE_TEST(string, utility) {
 		EXPECT_EQ(concatstr.str, buf);
 		EXPECT_EQ(concatstr.length, 0);
 
-		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), clonestr3.str, (size_t)0, teststr.str,
-		                                        (size_t)0,
+		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), clonestr3.str, (size_t)0, teststr.str, (size_t)0,
 		                                        STRING_CONST(LONGSTRING), nullptr);
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING)));
 
-		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), STRING_CONST(LONGSTRING), teststr.str,
-		                                        (size_t)0,
+		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), STRING_CONST(LONGSTRING), teststr.str, (size_t)0,
 		                                        STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST(LONGSTRING LONGSTRING SHORTSTRING)));
 
@@ -1845,14 +1811,15 @@ DECLARE_TEST(string, utility) {
 		                                        STRING_CONST(SHORTSTRING), nullptr);
 		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("test" SHORTSTRING)));
 
-		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), STRING_CONST("foobar"), "testing",
-		                                        (size_t)4,
+		concatstr = string_concat_vlist_wrapper(buf, sizeof(buf), STRING_CONST("foobar"), "testing", (size_t)4,
 		                                        STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar" "test" LONGSTRING SHORTSTRING)));
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar"
+		                                                     "test" LONGSTRING SHORTSTRING)));
 
 		concatstr = string_concat_vlist_wrapper(buf, 10, STRING_CONST("foobar"), "testing", (size_t)4,
 		                                        STRING_CONST(LONGSTRING), STRING_CONST(SHORTSTRING), nullptr);
-		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar" "tes")));
+		EXPECT_STRINGEQ(concatstr, string_const(STRING_CONST("foobar"
+		                                                     "tes")));
 
 		string_deallocate(teststr.str);
 		string_deallocate(clonestr.str);
@@ -1868,12 +1835,11 @@ DECLARE_TEST(string, utility) {
 #undef LONGSTRING
 
 static string_t
-string_allocate_vformat_wrapper(const char* format, size_t length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 1, 3);
+string_allocate_vformat_wrapper(const char* format, size_t length, ...) FOUNDATION_ATTRIBUTE4(format, printf, 1, 3);
 
 static string_t
 string_vformat_wrapper(char* buffer, size_t capacity, const char* format, size_t length, ...)
-FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
+    FOUNDATION_ATTRIBUTE4(format, printf, 3, 5);
 
 static string_t
 string_allocate_vformat_wrapper(const char* format, size_t length, ...) {
@@ -1895,15 +1861,15 @@ string_vformat_wrapper(char* buffer, size_t capacity, const char* format, size_t
 	return result;
 }
 
-
 DECLARE_TEST(string, format) {
 	char buffer[256];
 	{
 		int64_t ival = -1;
 		uint64_t uval = 0x123456789abULL;
-		const char longstr[] = "A really long string"
-		                       "to force reallocation of output buffer in format loop, which"
-		                       "should be length + 32 bytes by default... this is more!";
+		const char longstr[] =
+		    "A really long string"
+		    "to force reallocation of output buffer in format loop, which"
+		    "should be length + 32 bytes by default... this is more!";
 		string_t teststr;
 
 		teststr = string_allocate_format(STRING_CONST("%" PRId64), ival);
@@ -1911,11 +1877,11 @@ DECLARE_TEST(string, format) {
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(STRING_CONST("0x%" PRIx64), ival);
-		EXPECT_STRINGEQ(teststr,  string_const(STRING_CONST("0xffffffffffffffff")));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("0xffffffffffffffff")));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(STRING_CONST("%016" PRIX64), uval);
-		EXPECT_STRINGEQ(teststr,  string_const(STRING_CONST("00000123456789AB")));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("00000123456789AB")));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(nullptr, 0);
@@ -1924,7 +1890,7 @@ DECLARE_TEST(string, format) {
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format(STRING_CONST("%s"), longstr);
-		EXPECT_STRINGEQ(teststr,  string_const(STRING_CONST(longstr)));
+		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST(longstr)));
 		string_deallocate(teststr.str);
 
 		teststr = string_allocate_format("%s", 0, longstr);
@@ -1932,8 +1898,8 @@ DECLARE_TEST(string, format) {
 		EXPECT_EQ(teststr.length, 0);
 		string_deallocate(teststr.str);
 
-		//This test passed invalid data (string not zero terminated at the given length)
-		//Verify the function uses the entire string literal
+		// This test passed invalid data (string not zero terminated at the given length)
+		// Verify the function uses the entire string literal
 		teststr = string_allocate_format("%s", 1, longstr);
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST(longstr)));
 		string_deallocate(teststr.str);
@@ -1956,17 +1922,18 @@ DECLARE_TEST(string, format) {
 		EXPECT_EQ(teststr.str, buffer);
 		EXPECT_EQ(teststr.length, 0);
 
-		//This test passed invalid data (string not zero terminated at the given length)
-		//Verify the function uses the entire string literal
+		// This test passed invalid data (string not zero terminated at the given length)
+		// Verify the function uses the entire string literal
 		teststr = string_format(buffer, sizeof(buffer), "%d", 1, 10);
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("10")));
 	}
 	{
 		int64_t ival = -1;
 		uint64_t uval = 0x123456789abULL;
-		const char longstr[] = "A really long string"
-		                       "to force reallocation of output buffer in format loop, which"
-		                       "should be length + 32 bytes by default... this is more!";
+		const char longstr[] =
+		    "A really long string"
+		    "to force reallocation of output buffer in format loop, which"
+		    "should be length + 32 bytes by default... this is more!";
 		string_t teststr;
 
 		teststr = string_allocate_vformat_wrapper(STRING_CONST("%" PRId64), ival);
@@ -1995,8 +1962,8 @@ DECLARE_TEST(string, format) {
 		EXPECT_EQ(teststr.length, 0);
 		string_deallocate(teststr.str);
 
-		//This test passed invalid data (string not zero terminated at the given length)
-		//Verify the function uses the entire string literal
+		// This test passed invalid data (string not zero terminated at the given length)
+		// Verify the function uses the entire string literal
 		teststr = string_allocate_vformat_wrapper("%s", 1, longstr);
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST(longstr)));
 		string_deallocate(teststr.str);
@@ -2023,8 +1990,8 @@ DECLARE_TEST(string, format) {
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("fooba")));
 		EXPECT_EQ(teststr.length, 5);
 
-		//This test passed invalid data (string not zero terminated at the given length)
-		//Verify the function uses the entire string literal
+		// This test passed invalid data (string not zero terminated at the given length)
+		// Verify the function uses the entire string literal
 		teststr = string_vformat_wrapper(buffer, sizeof(buffer), "%d", 1, 10);
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("10")));
 	}
@@ -2043,10 +2010,9 @@ DECLARE_TEST(string, format) {
 		EXPECT_STRINGEQ(teststr3, string_const(STRING_CONST("0000012")));
 	}
 	{
-		string_t teststr1 = string_allocate_format(STRING_CONST("0x%" PRIfixPTR), (uintptr_t)nullptr);
-		string_t teststr2 = string_allocate_format(STRING_CONST("0x%" PRIfixPTR), (uintptr_t)((void*) - 1));
-		string_t teststr3 = string_allocate_format(STRING_CONST("0x%" PRIfixPTR),
-		                                           (uintptr_t)((void*)0x1234abULL));
+		string_t teststr1 = string_allocate_format(STRING_CONST("0x%" PRIfixPTR), (uintptr_t) nullptr);
+		string_t teststr2 = string_allocate_format(STRING_CONST("0x%" PRIfixPTR), (uintptr_t)((void*)-1));
+		string_t teststr3 = string_allocate_format(STRING_CONST("0x%" PRIfixPTR), (uintptr_t)((void*)0x1234abULL));
 
 #if FOUNDATION_SIZE_POINTER == 8
 		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("0x0000000000000000")));
@@ -2063,24 +2029,22 @@ DECLARE_TEST(string, format) {
 		string_deallocate(teststr3.str);
 	}
 	{
-		string_t teststr1 = string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIfixPTR),
-		                                  (uintptr_t)nullptr);
+		string_t teststr1 = string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIfixPTR), (uintptr_t) nullptr);
 #if FOUNDATION_SIZE_POINTER == 8
 		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("0x0000000000000000")));
 #else
 		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("0x00000000")));
 #endif
 
-		string_t teststr2 = string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIfixPTR),
-		                                  (uintptr_t)((void*) - 1));
+		string_t teststr2 =
+		    string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIfixPTR), (uintptr_t)((void*)-1));
 #if FOUNDATION_SIZE_POINTER == 8
 		EXPECT_STRINGEQ(teststr2, string_const(STRING_CONST("0xFFFFFFFFFFFFFFFF")));
 #else
 		EXPECT_STRINGEQ(teststr2, string_const(STRING_CONST("0xFFFFFFFF")));
 #endif
 
-		string_t teststr3 = string_format(buffer, 8, STRING_CONST("0x%" PRIfixPTR),
-		                                  (uintptr_t)((void*)0x1234abULL));
+		string_t teststr3 = string_format(buffer, 8, STRING_CONST("0x%" PRIfixPTR), (uintptr_t)((void*)0x1234abULL));
 #if FOUNDATION_SIZE_POINTER == 8
 		EXPECT_STRINGEQ(teststr3, string_const(STRING_CONST("0x00000")));
 #else
@@ -2158,8 +2122,7 @@ DECLARE_TEST(string, convert) {
 	str = string_from_uint128(buffer, 3, uint128_make(0x1234567890234567ULL, 0x2345678902345678ULL));
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("12")));
 
-	str = string_from_uint128(buffer, sizeof(buffer), uint128_make(0xa234567890234567ULL,
-	                          0xb345678902345678ULL));
+	str = string_from_uint128(buffer, sizeof(buffer), uint128_make(0xa234567890234567ULL, 0xb345678902345678ULL));
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("a234567890234567b345678902345678")));
 
 	conststr = string_from_uint128_static(uint128_make(0x1234567890234567ULL, 0x2345678902345678ULL));
@@ -2173,33 +2136,46 @@ DECLARE_TEST(string, convert) {
 	EXPECT_EQ(str.str[0], 0);
 	EXPECT_EQ(str.length, 0);
 
-	str = string_from_uint256(buffer, 3, uint256_make(0x1234567890234567ULL, 0x2345678902345678ULL, 0x3456789023456789ULL, 0x4567890234567890ULL));
+	str = string_from_uint256(
+	    buffer, 3,
+	    uint256_make(0x1234567890234567ULL, 0x2345678902345678ULL, 0x3456789023456789ULL, 0x4567890234567890ULL));
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("12")));
 
-	str = string_from_uint256(buffer, sizeof(buffer), uint256_make(0xa234567890234567ULL,
-	                          0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL));
-	EXPECT_STRINGEQ(str, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb78")));
+	str = string_from_uint256(
+	    buffer, sizeof(buffer),
+	    uint256_make(0xa234567890234567ULL, 0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL));
+	EXPECT_STRINGEQ(str,
+	                string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb78")));
 
-	conststr = string_from_uint256_static(uint256_make(0xa234567890234567ULL, 0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL));
-	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb78")));
+	conststr = string_from_uint256_static(
+	    uint256_make(0xa234567890234567ULL, 0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL));
+	EXPECT_CONSTSTRINGEQ(
+	    conststr, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb78")));
 
 	str = string_from_uint512(buffer, 1, uint512_make(1, 2, 3, 4, 5, 6, 7, 8));
 	EXPECT_EQ(str.str, buffer);
 	EXPECT_EQ(str.str[0], 0);
 	EXPECT_EQ(str.length, 0);
 
-	str = string_from_uint512(buffer, 3, uint512_make(0x1234567890234567ULL, 0x2345678902345678ULL, 0x3456789023456789ULL, 0x4567890234567890ULL,
-		0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
+	str = string_from_uint512(
+	    buffer, 3,
+	    uint512_make(0x1234567890234567ULL, 0x2345678902345678ULL, 0x3456789023456789ULL, 0x4567890234567890ULL,
+	                 0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("12")));
 
-	str = string_from_uint512(buffer, sizeof(buffer), uint512_make(0xa234567890234567ULL,
-	                          0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL,
-	                          0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
-	EXPECT_STRINGEQ(str, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb7898f08afab5bfeb9d96913cecaf618430c5557794f244d66b2f3ae1c5b212218a")));
+	str = string_from_uint512(
+	    buffer, sizeof(buffer),
+	    uint512_make(0xa234567890234567ULL, 0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL,
+	                 0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb7898f"
+	                                               "08afab5bfeb9d96913cecaf618430c5557794f244d66b2f3ae1c5b212218a")));
 
-	conststr = string_from_uint512_static(uint512_make(0xa234567890234567ULL, 0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL,
-		0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
-	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb7898f08afab5bfeb9d96913cecaf618430c5557794f244d66b2f3ae1c5b212218a")));
+	conststr = string_from_uint512_static(
+	    uint512_make(0xa234567890234567ULL, 0xb345678902345678ULL, 0x38fa67e10d0b7e01ULL, 0xa8326fd6752bcb78ULL,
+	                 0x98f08afab5bfeb9dULL, 0x96913cecaf618430ULL, 0xc5557794f244d66bULL, 0x2f3ae1c5b212218aULL));
+	EXPECT_CONSTSTRINGEQ(conststr,
+	                     string_const(STRING_CONST("a234567890234567b34567890234567838fa67e10d0b7e01a8326fd6752bcb7898f"
+	                                               "08afab5bfeb9d96913cecaf618430c5557794f244d66b2f3ae1c5b212218a")));
 
 	str = string_from_real(buffer, 0, 1, 0, 0, '=');
 	EXPECT_EQ(str.str, buffer);
@@ -2216,8 +2192,8 @@ DECLARE_TEST(string, convert) {
 	str = string_from_real(buffer, 3, REAL_C(1.1), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.")));
 
-	str = string_from_real(buffer, sizeof(buffer), REAL_C(1.1), 0, 0, '=');
-	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.1")));
+	str = string_from_real(buffer, sizeof(buffer), REAL_C(1.5), 0, 0, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.5")));
 
 	str = string_from_real(buffer, sizeof(buffer), REAL_C(0.1), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============0.1")));
@@ -2225,13 +2201,49 @@ DECLARE_TEST(string, convert) {
 	str = string_from_real(buffer, sizeof(buffer), -REAL_C(0.0), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("===============0")));
 
-	conststr = string_from_real_static(REAL_C(1.1), 0, 0, '=');
-	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.1")));
+	conststr = string_from_real_static(REAL_C(1.5), 0, 0, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.5")));
 
 	conststr = string_from_real_static(REAL_C(0.1), 8, 16, '=');
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("=============0.1")));
 
 	conststr = string_from_real_static(-REAL_C(0.0), 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
+
+	str = string_from_float32(buffer, sizeof(buffer), 1.5f, 0, 0, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.5")));
+
+	str = string_from_float32(buffer, sizeof(buffer), 0.1f, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============0.1")));
+
+	str = string_from_float32(buffer, sizeof(buffer), -0.0f, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("===============0")));
+
+	conststr = string_from_float32_static(1.5f, 0, 0, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.5")));
+
+	conststr = string_from_float32_static(0.1f, 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("=============0.1")));
+
+	conststr = string_from_float32_static(-0.0f, 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
+
+	str = string_from_float64(buffer, sizeof(buffer), 1.5, 0, 0, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.5")));
+
+	str = string_from_float64(buffer, sizeof(buffer), 0.1, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("=============0.1")));
+
+	str = string_from_float64(buffer, sizeof(buffer), -0.0, 8, 16, '=');
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("===============0")));
+
+	conststr = string_from_float64_static(1.5, 0, 0, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("1.5")));
+
+	conststr = string_from_float64_static(0.1, 8, 16, '=');
+	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("=============0.1")));
+
+	conststr = string_from_float64_static(-0.0, 8, 16, '=');
 	EXPECT_CONSTSTRINGEQ(conststr, string_const(STRING_CONST("===============0")));
 
 	str = string_from_time(buffer, 0, time_system(), false);
@@ -2338,23 +2350,21 @@ DECLARE_TEST(string, convert) {
 	EXPECT_UINT64EQ(string_to_uint64("1", 0, false), 0);
 	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("1"), false), 1);
 	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("1234567890123456789asv"), false), 1234567890123456789LL);
-	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("-1234567890123456789asv"), false),
-	             (uint64_t)-1234567890123456789);
+	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("-1234567890123456789asv"), false), (uint64_t)-1234567890123456789);
 	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("abcdef123456"), false), 0);
 	EXPECT_UINT64EQ(string_to_uint64(STRING_CONST("abcdef123456"), true), 0xabcdef123456ULL);
 	EXPECT_UINT64EQ(string_to_uint64("abcdef123456", 5, true), 0xabcdeULL);
 
 	EXPECT_TRUE(uint128_equal(string_to_uint128(nullptr, 0), uint128_make(0, 0)));
-	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 0), uint128_make(0,
-	                          0)));
-	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 12), uint128_make(0,
-	                          0x1234567890abULL)));
+	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 0), uint128_make(0, 0)));
+	EXPECT_TRUE(
+	    uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 12), uint128_make(0, 0x1234567890abULL)));
 	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef00112233aabbccdd", 24),
 	                          uint128_make(0x12345678ULL, 0x90abcdef00112233ULL)));
 	EXPECT_TRUE(uint128_equal(string_to_uint128(STRING_CONST("1234567890abcdef00112233aabbccdd")),
 	                          uint128_make(0x1234567890abcdefULL, 0x00112233aabbccddULL)));
-	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567 890abcdef00112233aabbccdd", 24),
-	                          uint128_make(0, 0x1234567ULL)));
+	EXPECT_TRUE(
+	    uint128_equal(string_to_uint128("1234567 890abcdef00112233aabbccdd", 24), uint128_make(0, 0x1234567ULL)));
 	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef001U12233aabbccdd", 24),
 	                          uint128_make(0x0123, 0x4567890abcdef001ULL)));
 	EXPECT_TRUE(uint128_equal(string_to_uint128("1234567890abcdef0011223U3aabbccdd", 24),
@@ -2363,102 +2373,101 @@ DECLARE_TEST(string, convert) {
 	                          uint128_make(0x012345678, 0x90abcdef00112233ULL)));
 
 	EXPECT_TRUE(uint256_equal(string_to_uint256(nullptr, 0), uint256_make(0, 0, 0, 0)));
+	EXPECT_TRUE(uint256_equal(string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 0),
+	                          uint256_make(0, 0, 0, 0)));
+	EXPECT_TRUE(uint256_equal(string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 12),
+	                          uint256_make(0, 0, 0, 0x1234567890abULL)));
+	EXPECT_TRUE(uint256_equal(string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 24),
+	                          uint256_make(0, 0, 0x12345678ULL, 0x90abcdef00112233ULL)));
+	EXPECT_TRUE(uint256_equal(string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 34),
+	                          uint256_make(0, 0x12, 0x34567890abcdef00ULL, 0x112233aabbccdd74ULL)));
 	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 0),
-	                uint256_make(0, 0, 0, 0)));
+	    string_to_uint256(STRING_CONST("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21")),
+	    uint256_make(0x1234567890abcdefULL, 0x00112233aabbccddULL, 0x744b5a85f8e5446aULL, 0xae9c8eb4bb7ffe21ULL)));
+	EXPECT_TRUE(
+	    uint256_equal(string_to_uint256("123456789 0abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 57),
+	                  uint256_make(0, 0, 0, 0x123456789ULL)));
+	EXPECT_TRUE(
+	    uint256_equal(string_to_uint256("1234567890abcdef0011U2233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 57),
+	                  uint256_make(0, 0, 0x1234ULL, 0x567890abcdef0011ULL)));
+	EXPECT_TRUE(
+	    uint256_equal(string_to_uint256("1234567890abcdef00112233aabbccdd744b5Ua85f8e5446aae9c8eb4bb7ffe21", 57),
+	                  uint256_make(0, 0x12345ULL, 0x67890abcdef00112ULL, 0x233aabbccdd744b5ULL)));
 	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 12),
-	                uint256_make(0, 0, 0, 0x1234567890abULL)));
+	    string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4Ubb7ffe21", 57),
+	    uint256_make(0x12345678ULL, 0x90abcdef00112233ULL, 0xaabbccdd744b5a85ULL, 0xf8e5446aae9c8eb4ULL)));
 	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 24),
-	                uint256_make(0, 0, 0x12345678ULL, 0x90abcdef00112233ULL)));
-	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 34),
-	                uint256_make(0, 0x12, 0x34567890abcdef00ULL, 0x112233aabbccdd74ULL)));
-	EXPECT_TRUE(uint256_equal(string_to_uint256(
-	                              STRING_CONST("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21")),
-	                          uint256_make(0x1234567890abcdefULL, 0x00112233aabbccddULL, 0x744b5a85f8e5446aULL,
-	                                       0xae9c8eb4bb7ffe21ULL)));
-	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("123456789 0abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 57),
-	                uint256_make(0, 0, 0, 0x123456789ULL)));
-	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("1234567890abcdef0011U2233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe21", 57),
-	                uint256_make(0, 0, 0x1234ULL, 0x567890abcdef0011ULL)));
-	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("1234567890abcdef00112233aabbccdd744b5Ua85f8e5446aae9c8eb4bb7ffe21", 57),
-	                uint256_make(0, 0x12345ULL, 0x67890abcdef00112ULL, 0x233aabbccdd744b5ULL)));
-	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4Ubb7ffe21", 57),
-	                uint256_make(0x12345678ULL, 0x90abcdef00112233ULL, 0xaabbccdd744b5a85ULL, 0xf8e5446aae9c8eb4ULL)));
-	EXPECT_TRUE(uint256_equal(
-	                string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bUb7ffe21", 57),
-	                uint256_make(0x123456789ULL, 0x0abcdef00112233aULL, 0xabbccdd744b5a85fULL, 0x8e5446aae9c8eb4bULL)));
+	    string_to_uint256("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bUb7ffe21", 57),
+	    uint256_make(0x123456789ULL, 0x0abcdef00112233aULL, 0xabbccdd744b5a85fULL, 0x8e5446aae9c8eb4bULL)));
 
 	EXPECT_TRUE(uint512_equal(string_to_uint512(nullptr, 0), uint512_make(0, 0, 0, 0, 0, 0, 0, 0)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a1"
+	                                            "9049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            0),
+	                          uint512_make(0, 0, 0, 0, 0, 0, 0, 0)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a1"
+	                                            "9049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            12),
+	                          uint512_make(0, 0, 0, 0, 0, 0, 0, 0x1234567890abULL)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a1"
+	                                            "9049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            24),
+	                          uint512_make(0, 0, 0, 0, 0, 0, 0x12345678ULL, 0x90abcdef00112233ULL)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a1"
+	                                            "9049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            34),
+	                          uint512_make(0, 0, 0, 0, 0, 0x12, 0x34567890abcdef00ULL, 0x112233aabbccdd74ULL)));
 	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  0),
-	                uint512_make(0, 0, 0, 0, 0, 0, 0, 0)));
+	    string_to_uint512(STRING_CONST("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b"
+	                                   "1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f")),
+	    uint512_make(0x1234567890abcdefULL, 0x00112233aabbccddULL, 0x744b5a85f8e5446aULL, 0xae9c8eb4bb7ffe21ULL,
+	                 0x4ba3a19049fb49b1ULL, 0xb17e56ff1ef93d9cULL, 0xaa47e331a5f14af4ULL, 0x81d3f864b3f0bf2fULL)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("123456789 "
+	                                            "0abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b"
+	                                            "1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            117),
+	                          uint512_make(0, 0, 0, 0, 0, 0, 0, 0x123456789ULL)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("1234567890abcdef0011U2233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a"
+	                                            "19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            117),
+	                          uint512_make(0, 0, 0, 0, 0, 0, 0x1234ULL, 0x567890abcdef0011ULL)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("1234567890abcdef00112233aabbccdd744b5Ua85f8e5446aae9c8eb4bb7ffe214ba3a"
+	                                            "19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            117),
+	                          uint512_make(0, 0, 0, 0, 0, 0x12345ULL, 0x67890abcdef00112ULL, 0x233aabbccdd744b5ULL)));
 	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  12),
-	                uint512_make(0, 0, 0, 0, 0, 0, 0, 0x1234567890abULL)));
+	    string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4Ubb7ffe214ba3a19049fb49b1b17e56ff1ef"
+	                      "93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                      117),
+	    uint512_make(0, 0, 0, 0, 0x12345678ULL, 0x90abcdef00112233ULL, 0xaabbccdd744b5a85ULL, 0xf8e5446aae9c8eb4ULL)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3Ua"
+	                                            "19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            117),
+	                          uint512_make(0, 0, 0, 0x01234ULL, 0x567890abcdef0011ULL, 0x2233aabbccdd744bULL,
+	                                       0x5a85f8e5446aae9cULL, 0x8eb4bb7ffe214ba3ULL)));
+	EXPECT_TRUE(uint512_equal(string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a1"
+	                                            "9049fb49b1b1U7e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
+	                                            117),
+	                          uint512_make(0, 0, 0x012ULL, 0x34567890abcdef00ULL, 0x112233aabbccdd74ULL,
+	                                       0x4b5a85f8e5446aaeULL, 0x9c8eb4bb7ffe214bULL, 0xa3a19049fb49b1b1ULL)));
 	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  24),
-	                uint512_make(0, 0, 0, 0, 0, 0, 0x12345678ULL, 0x90abcdef00112233ULL)));
+	    string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef9"
+	                      "3d9caa47e331a5fU14af481d3f864b3f0bf2f",
+	                      117),
+	    uint512_make(0, 0x01234567890aULL, 0xbcdef00112233aabULL, 0xbccdd744b5a85f8eULL, 0x5446aae9c8eb4bb7ULL,
+	                 0xffe214ba3a19049fULL, 0xb49b1b17e56ff1efULL, 0x93d9caa47e331a5fULL)));
 	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  34),
-	                uint512_make(0, 0, 0, 0, 0, 0x12, 0x34567890abcdef00ULL, 0x112233aabbccdd74ULL)));
-	EXPECT_TRUE(uint512_equal(string_to_uint512(
-	                              STRING_CONST("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f")),
-	                          uint512_make(0x1234567890abcdefULL, 0x00112233aabbccddULL, 0x744b5a85f8e5446aULL,
-	                                       0xae9c8eb4bb7ffe21ULL, 0x4ba3a19049fb49b1ULL, 0xb17e56ff1ef93d9cULL,
-	                                       0xaa47e331a5f14af4ULL, 0x81d3f864b3f0bf2fULL)));
+	    string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef9"
+	                      "3d9caa47e331a5f14af481d3Uf864b3f0bf2f",
+	                      117),
+	    uint512_make(0x01234ULL, 0x567890abcdef0011ULL, 0x2233aabbccdd744bULL, 0x5a85f8e5446aae9cULL,
+	                 0x8eb4bb7ffe214ba3ULL, 0xa19049fb49b1b17eULL, 0x56ff1ef93d9caa47ULL, 0xe331a5f14af481d3ULL)));
 	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("123456789 0abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  117),
-	                uint512_make(0, 0, 0, 0, 0, 0, 0, 0x123456789ULL)));
-	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef0011U2233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  117),
-	                uint512_make(0, 0, 0, 0, 0, 0, 0x1234ULL, 0x567890abcdef0011ULL)));
-	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5Ua85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  117),
-	                uint512_make(0, 0, 0, 0, 0, 0x12345ULL, 0x67890abcdef00112ULL, 0x233aabbccdd744b5ULL)));
-	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4Ubb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  117),
-	                uint512_make(0, 0, 0, 0, 0x12345678ULL, 0x90abcdef00112233ULL, 0xaabbccdd744b5a85ULL,
-	                             0xf8e5446aae9c8eb4ULL)));
-	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3Ua19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  117),
-	                uint512_make(0, 0, 0, 0x01234ULL, 0x567890abcdef0011ULL, 0x2233aabbccdd744bULL,
-	                             0x5a85f8e5446aae9cULL, 0x8eb4bb7ffe214ba3ULL)));
-	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b1U7e56ff1ef93d9caa47e331a5f14af481d3f864b3f0bf2f",
-	                                  117),
-	                uint512_make(0, 0, 0x012ULL, 0x34567890abcdef00ULL, 0x112233aabbccdd74ULL, 0x4b5a85f8e5446aaeULL,
-	                             0x9c8eb4bb7ffe214bULL, 0xa3a19049fb49b1b1ULL)));
-	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5fU14af481d3f864b3f0bf2f",
-	                                  117),
-	                uint512_make(0, 0x01234567890aULL, 0xbcdef00112233aabULL, 0xbccdd744b5a85f8eULL,
-	                             0x5446aae9c8eb4bb7ULL, 0xffe214ba3a19049fULL, 0xb49b1b17e56ff1efULL, 0x93d9caa47e331a5fULL)));
-	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3Uf864b3f0bf2f",
-	                                  117),
-	                uint512_make(0x01234ULL, 0x567890abcdef0011ULL, 0x2233aabbccdd744bULL, 0x5a85f8e5446aae9cULL,
-	                             0x8eb4bb7ffe214ba3ULL, 0xa19049fb49b1b17eULL, 0x56ff1ef93d9caa47ULL, 0xe331a5f14af481d3ULL)));
-	EXPECT_TRUE(uint512_equal(
-	                string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef93d9caa47e331a5f14af481d3fU864b3f0bf2f",
-	                                  117),
-	                uint512_make(0x012345ULL, 0x67890abcdef00112ULL, 0x233aabbccdd744b5ULL, 0xa85f8e5446aae9c8ULL,
-	                             0xeb4bb7ffe214ba3aULL, 0x19049fb49b1b17e5ULL, 0x6ff1ef93d9caa47eULL, 0x331a5f14af481d3fULL)));
+	    string_to_uint512("1234567890abcdef00112233aabbccdd744b5a85f8e5446aae9c8eb4bb7ffe214ba3a19049fb49b1b17e56ff1ef9"
+	                      "3d9caa47e331a5f14af481d3fU864b3f0bf2f",
+	                      117),
+	    uint512_make(0x012345ULL, 0x67890abcdef00112ULL, 0x233aabbccdd744b5ULL, 0xa85f8e5446aae9c8ULL,
+	                 0xeb4bb7ffe214ba3aULL, 0x19049fb49b1b17e5ULL, 0x6ff1ef93d9caa47eULL, 0x331a5f14af481d3fULL)));
 
 	EXPECT_REALEQ(string_to_float32(nullptr, 0), 0);
 	EXPECT_REALEQ(string_to_float32(STRING_CONST("0")), 0);
@@ -2486,10 +2495,8 @@ DECLARE_TEST(string, convert) {
 
 	EXPECT_TRUE(uuid_equal(string_to_uuid(nullptr, 0), uuid_null()));
 	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("0")), uuid_null()));
-	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("6ba7b810-9dad-11d1-80b4-00c04fd430c8")),
-	                       UUID_DNS));
-	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("00000000-0000-0000-0000-000000000000")),
-	                       uuid_null()));
+	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("6ba7b810-9dad-11d1-80b4-00c04fd430c8")), UUID_DNS));
+	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("00000000-0000-0000-0000-000000000000")), uuid_null()));
 	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("0-0-0-0-0")), uuid_null()));
 	EXPECT_TRUE(uuid_equal(string_to_uuid(STRING_CONST("just-string")), uuid_null()));
 
@@ -2497,15 +2504,30 @@ DECLARE_TEST(string, convert) {
 	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 0).version, uint128_make(0, 0)));
 	EXPECT_TRUE(uint128_equal(string_to_version(STRING_CONST("1.2.3-4-2abversion")).version,
 	                          version_make(1, 2, 3, 4, 0x2ab).version));
-	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-2abc", 8).version, version_make(1, 2, 3, 4,
-	                          0).version));
-	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 6).version, version_make(1, 2, 3, 0,
-	                          0).version));
-	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 3).version, version_make(1, 2, 0, 0,
-	                          0).version));
+	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-2abc", 8).version, version_make(1, 2, 3, 4, 0).version));
+	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 6).version, version_make(1, 2, 3, 0, 0).version));
+	EXPECT_TRUE(uint128_equal(string_to_version("1.2.3-4-5", 3).version, version_make(1, 2, 0, 0, 0).version));
 
 	return 0;
 }
+
+/*
+TODO: Make string conversion routines locale-invariant
+DECLARE_TEST(string, locale) {
+    const char* test_locales[] = {"C", "", "en-US", "sv-SE"};
+
+    for (size_t iloc = 0, lcount = sizeof(test_locales) / sizeof(test_locales[0]); iloc < lcount; ++iloc) {
+        setlocale(LC_ALL, test_locales[iloc]);
+
+        string_const_t str = string_from_real_static(0, 0, 0, 0);
+        EXPECT_CONSTSTRINGEQ(str, string_const(STRING_CONST("0")));
+        str = string_from_real_static(1.5, 0, 0, 0);
+        EXPECT_CONSTSTRINGEQ(str, string_const(STRING_CONST("1.5")));
+    }
+
+    return 0;
+}
+*/
 
 static void
 test_string_declare(void) {
@@ -2516,17 +2538,16 @@ test_string_declare(void) {
 	ADD_TEST(string, prepend);
 	ADD_TEST(string, format);
 	ADD_TEST(string, convert);
+	// ADD_TEST(string, locale);
 }
 
-static test_suite_t test_string_suite = {
-	test_string_application,
-	test_string_memory_system,
-	test_string_config,
-	test_string_declare,
-	test_string_initialize,
-	test_string_finalize,
-	0
-};
+static test_suite_t test_string_suite = {test_string_application,
+                                         test_string_memory_system,
+                                         test_string_config,
+                                         test_string_declare,
+                                         test_string_initialize,
+                                         test_string_finalize,
+                                         0};
 
 #if BUILD_MONOLITHIC
 

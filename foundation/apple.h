@@ -1,10 +1,10 @@
-/* apple.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* apple.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -23,17 +23,17 @@ multiple or missing definitions.
 <code>#include <Foundation/Foundation.h></code> in system headers will actually map
 to our foundation/foundation.h \endinternal */
 
-//We need to pull in all foundation headers here to make sure everything is included
-//before overriding types, in case the system framework includes maps back to
-//our headers.
+// We need to pull in all foundation headers here to make sure everything is included
+// before overriding types, in case the system framework includes maps back to
+// our headers.
 #include <foundation/foundation.h>
 
 #if FOUNDATION_PLATFORM_APPLE
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wpedantic"
-#  pragma clang diagnostic ignored "-Wreserved-id-macro"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
 #endif
 
 #define __error_t_defined 1
@@ -60,20 +60,21 @@ to our foundation/foundation.h \endinternal */
 #undef thread_terminate
 
 #ifdef __OBJC__
-#  include_next <Foundation/Foundation.h>
-#  import <CoreFoundation/CoreFoundation.h>
-#  if FOUNDATION_PLATFORM_MACOS
-#    import <AppKit/AppKit.h>
-#  elif FOUNDATION_PLATFORM_IOS
-#    import <UIKit/UIKit.h>
-#    import <QuartzCore/QuartzCore.h>
-#  endif
+#include_next <Foundation/Foundation.h>
+#import <CoreFoundation/CoreFoundation.h>
+#if FOUNDATION_PLATFORM_MACOS
+#import <AppKit/AppKit.h>
+#elif FOUNDATION_PLATFORM_IOS
+#import <UIKit/UIKit.h>
+#import <QuartzCore/QuartzCore.h>
+#endif
 #else
-#  include <CoreFoundation/CoreFoundation.h>
-#  if FOUNDATION_PLATFORM_MACOS
-#    include <Carbon/Carbon.h>
-#    include <ApplicationServices/ApplicationServices.h>
-#  endif
+#include <CoreFoundation/CoreFoundation.h>
+#if FOUNDATION_PLATFORM_MACOS
+#include <CoreServices/CoreServices.h>
+#include <Carbon/Carbon.h>
+#include <ApplicationServices/ApplicationServices.h>
+#endif
 #endif
 
 #include <unistd.h>
@@ -91,7 +92,7 @@ to our foundation/foundation.h \endinternal */
 #undef uuid_t
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #endif
 
 #endif

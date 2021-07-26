@@ -1,10 +1,10 @@
-/* system.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* system.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -33,10 +33,10 @@
 #include <sys/sysctl.h>
 
 extern unsigned int
-_system_process_info_processor_count(void);
+system_process_info_processor_count(void);
 
 extern int
-_system_show_alert(const char*, size_t, const char*, size_t, int);
+system_show_alert(const char*, size_t, const char*, size_t, int);
 
 #endif
 
@@ -115,8 +115,7 @@ static char*
 _system_buffer() {
 	char* buffer = get_thread_system_buffer();
 	if (!buffer) {
-		buffer = memory_allocate(0, SYSTEM_BUFFER_SIZE + 1, 0,
-		                         MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		buffer = memory_allocate(0, SYSTEM_BUFFER_SIZE + 1, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_system_buffer(buffer);
 	}
 	return buffer;
@@ -179,10 +178,9 @@ system_error_message(int code) {
 
 	errmsg = _system_buffer();
 	errmsg[0] = 0;
-	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0,
-	               (unsigned int)code & 0xBFFFFFFF,
-	               0 /*LANG_SYSTEM_DEFAULT*/ /*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/,
-	               errmsg, SYSTEM_BUFFER_SIZE, 0);
+	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, (unsigned int)code & 0xBFFFFFFF,
+	               0 /*LANG_SYSTEM_DEFAULT*/ /*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg,
+	               SYSTEM_BUFFER_SIZE, 0);
 	return string_strip(errmsg, string_length(errmsg), STRING_CONST(STRING_WHITESPACE));
 }
 
@@ -210,8 +208,8 @@ system_hostid(void) {
 		_system_library_iphlpapi = library_load(STRING_CONST("iphlpapi"));
 	if (_system_library_iphlpapi) {
 		/*lint -e{611} */
-		get_adapters_info = (DWORD(STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(
-		    _system_library_iphlpapi, STRING_CONST("GetAdaptersInfo"));
+		get_adapters_info = (DWORD(STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(_system_library_iphlpapi,
+		                                                                              STRING_CONST("GetAdaptersInfo"));
 	}
 	if (!get_adapters_info)
 		return 0;
@@ -246,11 +244,9 @@ system_hardware_threads(void) {
 	object_t kernel_lib = library_load(STRING_CONST("kernel32"));
 	if (kernel_lib) {
 		WORD(STDCALL * get_group_count)
-		(void) = (WORD(STDCALL*)(void))library_symbol(kernel_lib,
-		                                              STRING_CONST("GetActiveProcessorGroupCount"));
+		(void) = (WORD(STDCALL*)(void))library_symbol(kernel_lib, STRING_CONST("GetActiveProcessorGroupCount"));
 		DWORD(STDCALL * get_processor_count)
-		(WORD) = (DWORD(STDCALL*)(WORD))library_symbol(kernel_lib,
-		                                               STRING_CONST("GetActiveProcessorCount"));
+		(WORD) = (DWORD(STDCALL*)(WORD))library_symbol(kernel_lib, STRING_CONST("GetActiveProcessorCount"));
 
 		if (get_group_count && get_processor_count) {
 			int group_count = get_group_count();
@@ -299,11 +295,9 @@ _system_user_locale(void) {
 			uint32_t value;
 		} locale_data;
 		string_t locale_string;
-		if (get_locale_info(0 /*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c /*LOCALE_SNAME*/,
-		                    locale_sname, 32) > 0) {
-			locale_string =
-			    string_convert_utf16(locale_data.buffer, sizeof(locale_data.buffer),
-			                         (uint16_t*)locale_sname, wstring_length(locale_sname));
+		if (get_locale_info(0 /*LOCALE_NAME_USER_DEFAULT*/, 0x0000005c /*LOCALE_SNAME*/, locale_sname, 32) > 0) {
+			locale_string = string_convert_utf16(locale_data.buffer, sizeof(locale_data.buffer),
+			                                     (uint16_t*)locale_sname, wstring_length(locale_sname));
 			if (string_match_pattern(STRING_ARGS(locale_string), STRING_CONST("?"
 			                                                                  "?"
 			                                                                  "-"
@@ -439,8 +433,8 @@ _system_hostid_lookup(int sock, struct ifreq* ifr) {
 	} hostid;
 
 	if (ioctl(sock, SIOCGIFHWADDR, ifr) < 0) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL,
-		          STRING_CONST("Unable to get hw address for interface %s"), ifr->ifr_name);
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get hw address for interface %s"),
+		          ifr->ifr_name);
 		return 0;
 	}
 
@@ -463,8 +457,7 @@ system_hostid(void) {
 	struct ifreq* ifrarr;
 	int sock = socket(PF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) {
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL,
-		         STRING_CONST("Unable to lookup system hostid (no socket)"));
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to lookup system hostid (no socket)"));
 		return 0;
 	}
 
@@ -482,13 +475,11 @@ system_hostid(void) {
 				hostid = _system_hostid_lookup(sock, ifr);
 			}
 		} else {
-			log_warn(0, WARNING_SYSTEM_CALL_FAIL,
-			         STRING_CONST("Unable to lookup system hostid (query ioctl failed)"));
+			log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to lookup system hostid (query ioctl failed)"));
 		}
 		memory_deallocate(ifrarr);
 	} else {
-		log_warn(0, WARNING_SYSTEM_CALL_FAIL,
-		         STRING_CONST("Unable to lookup system hostid (ioctl failed)"));
+		log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to lookup system hostid (ioctl failed)"));
 	}
 
 	close(sock);
@@ -544,7 +535,7 @@ system_hostid(void) {
 size_t
 system_hardware_threads(void) {
 #if FOUNDATION_PLATFORM_APPLE
-	return _system_process_info_processor_count();
+	return system_process_info_processor_count();
 #elif FOUNDATION_PLATFORM_ANDROID
 	return (size_t)android_getCpuCount();
 #elif FOUNDATION_PLATFORM_BSD
@@ -730,8 +721,8 @@ system_post_event(foundation_event_id event) {
 }
 
 bool
-system_message_box(const char* title, size_t title_length, const char* message,
-                   size_t message_length, bool cancel_button) {
+system_message_box(const char* title, size_t title_length, const char* message, size_t message_length,
+                   bool cancel_button) {
 	if (environment_application()->flags & APPLICATION_UTILITY)
 		return true;
 
@@ -740,8 +731,7 @@ system_message_box(const char* title, size_t title_length, const char* message,
 	FOUNDATION_UNUSED(title_length);
 	return (MessageBoxA(0, message, title, cancel_button ? MB_OKCANCEL : MB_OK) == IDOK);
 #elif FOUNDATION_PLATFORM_APPLE
-	return _system_show_alert(title, title_length, message, message_length, cancel_button ? 1 : 0) >
-	       0;
+	return system_show_alert(title, title_length, message, message_length, cancel_button ? 1 : 0) > 0;
 #elif 0  // FOUNDATION_PLATFORM_LINUX
 	char* buf = string_format("%s\n\n%s\n", title, message);
 	pid_t pid = fork();
@@ -753,9 +743,8 @@ system_message_box(const char* title, size_t title_length, const char* message,
 			break;
 
 		case 0:
-			execlp("xmessage", "xmessage", "-buttons",
-			       cancel_button ? "OK:101,Cancel:102" : "OK:101", "-default", "OK", "-center", buf,
-			       (char*)0);
+			execlp("xmessage", "xmessage", "-buttons", cancel_button ? "OK:101,Cancel:102" : "OK:101", "-default", "OK",
+			       "-center", buf, (char*)0);
 			_exit(-1);
 			break;
 

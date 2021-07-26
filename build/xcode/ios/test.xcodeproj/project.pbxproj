@@ -625,7 +625,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0920;
-				ORGANIZATIONNAME = "Rampant Pixels AB";
+				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					455519F21938D40000CF089B = {
 						DevelopmentTeam = TDSNBN44YV;
@@ -814,7 +814,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = TDSNBN44YV;
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.rampantpixels.foundation.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.maniccoder.foundation.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -903,7 +903,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = TDSNBN44YV;
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.rampantpixels.foundation.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.maniccoder.foundation.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -1066,7 +1066,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = TDSNBN44YV;
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.rampantpixels.foundation.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.maniccoder.foundation.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -1082,7 +1082,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = TDSNBN44YV;
 				INFOPLIST_FILE = "../../../test/all/ios/test-all.plist";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.rampantpixels.foundation.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.maniccoder.foundation.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;

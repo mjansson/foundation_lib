@@ -1,10 +1,10 @@
-/* foundation.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* foundation.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -43,6 +43,7 @@ Wrapper for foundation library headers and main entry/exit points */
 #include <foundation/md5.h>
 #include <foundation/array.h>
 #include <foundation/bitbuffer.h>
+#include <foundation/bucketarray.h>
 #include <foundation/hashmap.h>
 #include <foundation/uuidmap.h>
 #include <foundation/hashtable.h>
@@ -88,8 +89,7 @@ library and initialize all functionality.
 \param config       Application configuration
 \return             0 if initialization successful, <0 if error */
 FOUNDATION_API int
-foundation_initialize(const memory_system_t memory, const application_t application,
-                      const foundation_config_t config);
+foundation_initialize(const memory_system_t memory, const application_t application, const foundation_config_t config);
 
 /*! Main exit point. Call this in your #main_finalize function to cleanup the foundation library
 and terminate all functionality. */
@@ -110,4 +110,3 @@ foundation_config(void);
 \return Version of foundation library */
 FOUNDATION_API version_t
 foundation_version(void);
-

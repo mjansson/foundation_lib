@@ -1,10 +1,10 @@
-/* assetstream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* assetstream.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support data
  * types and functions to write applications and games in a platform-independent fashion. The latest
  * source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without any
  * restrictions.
@@ -138,20 +138,18 @@ asset_stream_open(const char* path, size_t length, unsigned int mode) {
 		if (*pathptr == '/')
 			++path;
 	} else {
-		finalpath =
-		    string_concat(buffer, sizeof(buffer), "asset://", path[0] == '/' ? 7 : 8, path, length);
+		finalpath = string_concat(buffer, sizeof(buffer), "asset://", path[0] == '/' ? 7 : 8, path, length);
 		pathptr = finalpath.str + 8;
 	}
 	if (*pathptr == '/')
 		++path;
 
-	AAsset* assetobj =
-	    AAssetManager_open(android_app()->activity->assetManager, pathptr, AASSET_MODE_RANDOM);
+	AAsset* assetobj = AAssetManager_open(android_app()->activity->assetManager, pathptr, AASSET_MODE_RANDOM);
 	if (!assetobj)
 		return 0;
 
-	stream_asset_t* asset = memory_allocate(HASH_STREAM, sizeof(stream_asset_t), 8,
-	                                        MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	stream_asset_t* asset =
+	    memory_allocate(HASH_STREAM, sizeof(stream_asset_t), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	stream_t* stream = (stream_t*)asset;
 
 	stream_initialize(stream, BUILD_DEFAULT_STREAM_BYTEORDER);

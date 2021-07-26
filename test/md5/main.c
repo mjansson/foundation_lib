@@ -1,10 +1,10 @@
-/* main.c  -  Foundation md5 test  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation md5 test  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -19,7 +19,7 @@ test_md5_application(void) {
 	memset(&app, 0, sizeof(app));
 	app.name = string_const(STRING_CONST("Foundation md5 tests"));
 	app.short_name = string_const(STRING_CONST("test_md5"));
-	app.company = string_const(STRING_CONST("Rampant Pixels"));
+	app.company = string_const(STRING_CONST(""));
 	app.flags = APPLICATION_UTILITY;
 	app.exception_handler = test_exception_handler;
 	return app;
@@ -69,22 +69,38 @@ DECLARE_TEST(md5, empty) {
 }
 
 static const char* digest_test_string =
-    "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"
+    "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"
+    "ASDln0"
+    "5zw39XL8McmojqPmn41Y6CRNwZbKo0PZofDpbAMr1uu8GJIocbEBFzsyKo62FlQh1pjm9jBeoEJIHLv4ixQn77l4M7zbRHgJDIVy0vvpNEzxFRyD3Z"
+    "5OrJvr"
+    "sUpwyXzcX3cYoezA2ob0ECsSk9lki8SDaCRpMxC1x0vKLCdKBHIV0IOgSZcMQCz11enNRDsCxuG45EsFQfiw2gmfcg7nI4tfEAW6DdExDWcpE3yDD2"
+    "GaFs9S"
+    "1q90mhlzTrlUZSir0Grc0qRetsmqwxh90SG6nEawLgL8B0G7xX2vHswwrF4pubz3vFwJkTczMsSsJI1UzEoMk61hwWzNwmFmEo8joMK832IZFOsSfm"
+    "8cPA88"
+    "FLj0yFMEkjdaidPV87f7uLFgjUYUrHDqdaOKuic7H1KTavXV6u61RxXYWwUxtXuZTza61Q8T1wK4UAo2i9upbkymYeCPD9BP7DsZDtB3qEBRDIOxqM"
+    "GCNf3n"
+    "FORbM5AeuTIqzFfHTAVhxXkJ8OYO6SOFfneaysmbMO4P7IukWr6ixML7XVON6th8YKv0bSReXpzuG4addOWT8OISopcOWYdhe5kKUETueVLPEYZy5N"
+    "K7SXjk"
+    "uMNwOsG9tdQFtsf3IewcAIKNFwkgO93uqANFfzg2f2gdjiYczmwv63gXjuYEGuBAcZELYmwkItqtNoacvIfJERfIpY6Uuh2VR0CxQzM0jEsG2FdsTI"
+    "Ykq4Jq"
+    "cm5lsAnA25cWtb5GGTyNOuRUpHZKgefrkUrAjV2KvEVMEe8Fk3p8xKny8mEUNPhjrhp7HJpOoNTrHB4dOG2RXCS5vQE3GwoI24amSSGQ24OluuDfVb"
+    "q4mWbv"
+    "1R6Q90UKkMUhfWYI46sHo975SlG2svsFuvzAusHKdwnj7U1Q9V0NS4no8jBFcTQ6pj1VJsuC1whEbaHRcRdbdLtOf8bMlf93sTfE8EKX2yE9YYTgWd"
+    "BoNlde"
+    "3yAERyj4M0W7nxACUmbApU4MZJq9c24cJwoLwyDiqwClAQm2KBtUvunraZCDK9095QlE00MjeiVthceVe3XlyoKEpZqOMqpntf90H7awqkG54Nq3G1"
+    "8UYd4l"
+    "zpAcJpLilhlxvvNy1Y81buCaakocAYal3gnvCYuw2BaXn1fWq5jgR2dfgryYatgcdAk1fmbCgE4oMq0B8EM1tDIG6xVL1iKs1IcRp767NtsOjAAQuP"
+    "TpHII4"
+    "quYpacd1BCbvg65lVIFEVkRINy0Bkj4VthWMuEeuPN84Ndg8GVu7zGROhuZZz1WTp9dkUhYip6AfAiX1N2VKsC2JTPIcZKjB8rCTqhLe7ykxF8qfYx"
+    "4I87ek"
+    "12RIGfldhteCORpOqLVC4qtIBLADIavjgWpum3evffwtDjbZFPY0yIzUV0hsLX8HuRqyg0KlkZ0aCfOArN9V24Ql97Iwy5L7FTu6PKVEGFmwNcFKUg"
+    "KruRKt"
+    "GS12sUmTo5AgZBCEI0Z2rBbhHO1xwrb2k3fqjOSFoUhYe5SUMc0copW1cRzJwOCLscJSfOf8iCKlszCgiK3AHsS7jxNIEi89gBAOPbeGnN8DmqFIAg"
+    "4MCMQx"
+    "hnNzsTlvy8tDzg36k8SFzn9mqRvLvbPzX2jr52wBSEgKDXJoXCeTFOTLWKProh9WWkYlohtmGTtNoK8dm7G2qbZ6X3UpIBHJajF6ZPbTVGR4Q9Fm0b"
+    "ck2dR7"
+    "0uW4zk9cK7xBaqlRE6ifUPUEFvcIu8Ltar1TrxtVvpX6yF6drz9nJEViYSmbafZYiQnKRib0RhN1zRzBYQlQUrAvFx7T2mS65jbp8jIVlNrVnG2g5j"
+    "47hgL4"
     "QLd6uVg78HZXW68Yf6ZJp8EKN7eRsPcUZDNTOsJXp96CXORuhKOw1ZsCmXZVgmj9AUUAriR9YCVbmSPm";
 
 DECLARE_TEST(md5, reference) {
@@ -167,13 +183,13 @@ DECLARE_TEST(md5, streams) {
 	digest = stream_md5(test_stream);
 	stream_deallocate(test_stream);
 
-	EXPECT_TRUE(uint128_equal(digest, uint128_make(
-	                              byteorder_bigendian64(0x230e0a23943c7d13ULL), byteorder_bigendian64(0xd2ccac7ec9df4d0cULL))));
+	EXPECT_TRUE(uint128_equal(digest, uint128_make(byteorder_bigendian64(0x230e0a23943c7d13ULL),
+	                                               byteorder_bigendian64(0xd2ccac7ec9df4d0cULL))));
 
 	unix_stream = buffer_stream_allocate((void*)unix_buffer, STREAM_IN, string_length(unix_buffer),
 	                                     string_length(unix_buffer), false, false);
-	windows_stream = buffer_stream_allocate((void*)windows_buffer, STREAM_IN,
-	                                        string_length(windows_buffer), string_length(windows_buffer), false, false);
+	windows_stream = buffer_stream_allocate((void*)windows_buffer, STREAM_IN, string_length(windows_buffer),
+	                                        string_length(windows_buffer), false, false);
 
 	stream_set_binary(unix_stream, false);
 	stream_set_binary(windows_stream, false);
@@ -181,8 +197,8 @@ DECLARE_TEST(md5, streams) {
 	unix_digest = stream_md5(unix_stream);
 	windows_digest = stream_md5(windows_stream);
 
-	EXPECT_TRUE(uint128_equal(unix_digest, uint128_make(
-	                              byteorder_bigendian64(0xcf32b789c7e77197ULL), byteorder_bigendian64(0x2bff28c36c601093ULL))));
+	EXPECT_TRUE(uint128_equal(unix_digest, uint128_make(byteorder_bigendian64(0xcf32b789c7e77197ULL),
+	                                                    byteorder_bigendian64(0x2bff28c36c601093ULL))));
 	EXPECT_TRUE(uint128_equal(unix_digest, windows_digest));
 
 	stream_set_binary(unix_stream, true);
@@ -197,19 +213,17 @@ DECLARE_TEST(md5, streams) {
 	stream_deallocate(unix_stream);
 	stream_deallocate(windows_stream);
 
-	EXPECT_TRUE(uint128_equal(unix_digest, uint128_make(
-	                              byteorder_bigendian64(0xcf32b789c7e77197ULL), byteorder_bigendian64(0x2bff28c36c601093ULL))));
-	EXPECT_TRUE(uint128_equal(windows_digest, uint128_make(
-	                              byteorder_bigendian64(0xf77d63bbe1df9334ULL), byteorder_bigendian64(0x24d5cb05cd503e44ULL))));
+	EXPECT_TRUE(uint128_equal(unix_digest, uint128_make(byteorder_bigendian64(0xcf32b789c7e77197ULL),
+	                                                    byteorder_bigendian64(0x2bff28c36c601093ULL))));
+	EXPECT_TRUE(uint128_equal(windows_digest, uint128_make(byteorder_bigendian64(0xf77d63bbe1df9334ULL),
+	                                                       byteorder_bigendian64(0x24d5cb05cd503e44ULL))));
 	EXPECT_TRUE(!uint128_equal(unix_digest, windows_digest));
 
-	unix_stream = buffer_stream_allocate(nullptr, STREAM_IN | STREAM_OUT,
-	                                     128 * 1024, 128 * 1024, true, true);
-	windows_stream = buffer_stream_allocate(nullptr, STREAM_IN | STREAM_OUT,
-	                                        128 * 1024, 128 * 1024, true, true);
+	unix_stream = buffer_stream_allocate(nullptr, STREAM_IN | STREAM_OUT, 128 * 1024, 128 * 1024, true, true);
+	windows_stream = buffer_stream_allocate(nullptr, STREAM_IN | STREAM_OUT, 128 * 1024, 128 * 1024, true, true);
 
 	ichunks = 0;
-	while ((ichunks+1) * 3 < 128 * 1024) {
+	while ((ichunks + 1) * 3 < 128 * 1024) {
 		stream_write(unix_stream, STRING_CONST("a\n"));
 		stream_write(windows_stream, STRING_CONST("a\r\n"));
 		++ichunks;
@@ -236,15 +250,13 @@ test_md5_declare(void) {
 	ADD_TEST(md5, streams);
 }
 
-static test_suite_t test_md5_suite = {
-	test_md5_application,
-	test_md5_memory_system,
-	test_md5_config,
-	test_md5_declare,
-	test_md5_initialize,
-	test_md5_finalize,
-	0
-};
+static test_suite_t test_md5_suite = {test_md5_application,
+                                      test_md5_memory_system,
+                                      test_md5_config,
+                                      test_md5_declare,
+                                      test_md5_initialize,
+                                      test_md5_finalize,
+                                      0};
 
 #if BUILD_MONOLITHIC
 

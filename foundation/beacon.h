@@ -1,10 +1,10 @@
-/* beacon.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* beacon.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -91,9 +91,8 @@ beacon_remove_handle(beacon_t* beacon, void* handle);
 
 #endif
 
-#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || \
-    FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_BSD || \
-    FOUNDATION_PLATFORM_WINDOWS
+#if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_APPLE || \
+    FOUNDATION_PLATFORM_BSD || FOUNDATION_PLATFORM_WINDOWS
 
 /*! Add another event source to the beacon, for example a socket,
 a pipe or another beacon. Any file descriptor handle that can be used

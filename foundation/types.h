@@ -1,10 +1,10 @@
-/* types.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* types.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -417,6 +417,10 @@ typedef int64_t ssize_t;
 #endif
 #endif
 
+typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+
 /*! Hash value */
 typedef uint64_t hash_t;
 /*! Tick type used for absolute time measurements or timestamps */
@@ -466,6 +470,8 @@ typedef struct beacon_t beacon_t;
 typedef struct bitbuffer_t bitbuffer_t;
 /*! Blowfish cipher instance */
 typedef struct blowfish_t blowfish_t;
+/*! Bucketized array for POD types */
+typedef struct bucketarray_t bucketarray_t;
 /*! Error frame holding debug data for an entry in the frame stack in the error context */
 typedef struct error_frame_t error_frame_t;
 /*! Error context holding error frame stack for a thread */
@@ -577,9 +583,8 @@ processing and return a code indicating if execution can continue or need to be 
 \param msg_length Length of assert message
 \return 1 if assert was not handled and execution should break, 0 if assert handled and
         execution can continue */
-typedef int (*assert_handler_fn)(hash_t context, const char* condition, size_t cond_length,
-                                 const char* file, size_t file_length, unsigned int line,
-                                 const char* msg, size_t msg_length);
+typedef int (*assert_handler_fn)(hash_t context, const char* condition, size_t cond_length, const char* file,
+                                 size_t file_length, unsigned int line, const char* msg, size_t msg_length);
 
 /*! Log output handler. Called after each log message processed and output by
 the log functions.
@@ -587,8 +592,7 @@ the log functions.
 \param severity Log severity
 \param msg Log message
 \param length Length of message */
-typedef void (*log_handler_fn)(hash_t context, error_level_t severity, const char* msg,
-                               size_t length);
+typedef void (*log_handler_fn)(hash_t context, error_level_t severity, const char* msg, size_t length);
 
 /* JSON parsing handler
 \param path Path of data being parsed
@@ -596,9 +600,9 @@ typedef void (*log_handler_fn)(hash_t context, error_level_t severity, const cha
 \param buffer Data buffer
 \param size Size of data buffer
 \param tokens Tokens array
-\param numtokens Number of tokens */
+\param token_count Number of tokens */
 typedef void (*json_handler_fn)(const char* path, size_t path_size, const char* buffer, size_t size,
-                                const json_token_t* tokens, size_t numtokens);
+                                const json_token_t* tokens, size_t token_count);
 
 /*! Memory tracker dump handler
 \param addr Address of allocated region
@@ -606,8 +610,7 @@ typedef void (*json_handler_fn)(const char* path, size_t path_size, const char* 
 \param trace Stack trace of allocation (if any, otherwise null)
 \param depth Depth of stack trace
 \return 0 to continue dumping allocations, non-zero to stop dump */
-typedef int (*memory_tracker_handler_fn)(const void* addr, size_t size, void* const* trace,
-                                         size_t depth);
+typedef int (*memory_tracker_handler_fn)(const void* addr, size_t size, void* const* trace, size_t depth);
 
 /*! Subsystem initialization function prototype. Return value should be the success
 state of initialization
@@ -626,8 +629,7 @@ provide an implementation with this prototype for allocating memory
 \param align Aligmnent requirement
 \param hint Memory hints
 \return Pointer to allocated memory block if successful, 0 if error */
-typedef void* (*memory_allocate_fn)(hash_t context, size_t size, unsigned int align,
-                                    unsigned int hint);
+typedef void* (*memory_allocate_fn)(hash_t context, size_t size, unsigned int align, unsigned int hint);
 
 /*! Memory system reallocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for reallocating memory
@@ -637,8 +639,7 @@ provide an implementation with this prototype for reallocating memory
 \param oldsize Size of previous memory block
 \param hint Memory hints
 \return Pointer to allocated memory block if successful, 0 if error */
-typedef void* (*memory_reallocate_fn)(void* p, size_t size, unsigned int align, size_t oldsize,
-                                      unsigned int hint);
+typedef void* (*memory_reallocate_fn)(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint);
 
 /*! Memory system deallocation function prototype. Implementation of a memory system must
 provide an implementation with this prototype for deallocating memory
@@ -1020,6 +1021,22 @@ struct bitbuffer_t {
 	uint64_t count_write;
 };
 
+/*! Bucketized array for POD types that are safe to memcpy/memmove */
+struct bucketarray_t {
+	//! Array of buckets
+	void** bucket;
+	//! Size of data type stored in array
+	size_t element_size;
+	//! Mask for intra-bucket index
+	size_t bucket_mask;
+	//! Bits to shift to get bucket index
+	size_t bucket_shift;
+	//! Number of currently allocated buckets
+	size_t bucket_count;
+	//! Number of elements stored in array
+	size_t count;
+};
+
 /*! Data for a frame in the error context stack */
 struct error_frame_t {
 	/*! Frame description */
@@ -1121,17 +1138,17 @@ struct hashmap_node_t {
 
 /*! Declare an inlined hashmap of given size */
 #define FOUNDATION_DECLARE_HASHMAP(size) \
-	size_t num_buckets;                  \
-	size_t num_nodes;                    \
+	size_t bucket_count;                 \
+	size_t node_count;                   \
 	hashmap_node_t* bucket[size]
 
 /*! Hash map container, mapping hash values to data pointers */
 struct hashmap_t {
 	/*!
-	\var num_buckets
+	\var bucket_count
 	Number of buckets in the hash map
 
-	\var num_nodes
+	\var node_count
 	Total number of nodes in the hash map across all buckets
 
 	\var bucket
@@ -1158,17 +1175,17 @@ struct uuidmap_node_t {
 
 /*! Declare an inlined uuidmap of given size */
 #define FOUNDATION_DECLARE_UUIDMAP(size) \
-	size_t num_buckets;                  \
-	size_t num_nodes;                    \
+	size_t bucket_count;                 \
+	size_t node_count;                   \
 	uuidmap_node_t* bucket[size]
 
 /*! UUID hash map container, mapping uuid values to data pointers */
 struct uuidmap_t {
 	/*!
-	\var num_buckets
+	\var bucket_count
 	Number of buckets in the uuid hash map
 
-	\var num_nodes
+	\var node_count
 	Total number of nodes in the uuid hash map across all buckets
 
 	\var bucket
@@ -1303,7 +1320,7 @@ struct radixsort_t {
 /*! Compiled regular expression */
 struct regex_t {
 	/*! Counter during regex matching keeping number of currently captured substrings */
-	unsigned int num_captures;
+	unsigned int capture_count;
 	/*! Length of the compiled code array */
 	size_t code_length;
 	/*! Capacity of the code array (number of bytes) */
@@ -1502,18 +1519,19 @@ platform compatibility. Use the macro as first declaration in a stream struct:
   int       some_other_data;
   //[...]
 };</code> */
-#define FOUNDATION_DECLARE_STREAM         \
-	unsigned int type : 16;               \
-	unsigned int sequential : 1;          \
-	unsigned int reliable : 1;            \
-	unsigned int inorder : 1;             \
-	unsigned int swap : 1;                \
-	unsigned int byteorder : 1;           \
-	unsigned int persistent : 1;          \
-	unsigned int unused_streamflags : 10; \
-	unsigned int mode;                    \
-	string_t path;                        \
-	string_const_t mime_type;             \
+#define FOUNDATION_DECLARE_STREAM        \
+	unsigned int type : 16;              \
+	unsigned int sequential : 1;         \
+	unsigned int reliable : 1;           \
+	unsigned int inorder : 1;            \
+	unsigned int swap : 1;               \
+	unsigned int byteorder : 1;          \
+	unsigned int persistent : 1;         \
+	unsigned int compressed : 1;         \
+	unsigned int unused_streamflags : 9; \
+	unsigned int mode;                   \
+	string_t path;                       \
+	string_const_t mime_type;            \
 	stream_vtable_t* vtable
 
 /*! Base stream type from which all streams are derived. All stream-based designs

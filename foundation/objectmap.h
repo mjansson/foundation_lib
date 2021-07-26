@@ -1,10 +1,10 @@
-/* objectmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* objectmap.h  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -29,10 +29,10 @@ reference counted data in the library. Capacity of a map is fixed at allocation.
 
 /*! Allocate storage for new map with the given number of object slots. The object map
 should be deallocated with a call to #objectmap_deallocate.
-\param size Number of slots
+\param count Slot count
 \return New object map */
 FOUNDATION_API objectmap_t*
-objectmap_allocate(size_t size);
+objectmap_allocate(size_t count);
 
 /*! Deallocate an object map previously allocated with a call to #objectmap_allocate.
 Does not free the stored objects, only map storage.
@@ -43,9 +43,9 @@ objectmap_deallocate(objectmap_t* map);
 /*! Initialize object mapwith the given number of object slots. The object map
 should be finalized with a call to #objectmap_finalize.
 \param map Object map
-\param size Number of slots */
+\param count Slot count */
 FOUNDATION_API void
-objectmap_initialize(objectmap_t* map, size_t size);
+objectmap_initialize(objectmap_t* map, size_t count);
 
 /*! Finalize an object map previously initialized with a call to #objectmap_initialize.
 Does not free the stored objects.

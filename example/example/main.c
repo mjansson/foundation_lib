@@ -1,10 +1,10 @@
-/* main.c  -  Foundation example application  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation example application  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -32,27 +32,26 @@ event_loop(void* arg) {
 
 	// Run this loop until a FOUNDATIONEVENT_TERMINATE event is posted
 	while (!example_terminate) {
-
 		// Process all pending events in the event stream
 		block = event_stream_process(stream);
 		event = 0;
 		while ((event = event_next(block, event))) {
 			switch (event->id) {
-			case FOUNDATIONEVENT_START:
-				break;
+				case FOUNDATIONEVENT_START:
+					break;
 
-			case FOUNDATIONEVENT_TERMINATE:
-				// Trigger flag and beacon
-				example_terminate = true;
-				beacon_fire(&example_trigger);
-				break;
+				case FOUNDATIONEVENT_TERMINATE:
+					// Trigger flag and beacon
+					example_terminate = true;
+					beacon_fire(&example_trigger);
+					break;
 
-			case FOUNDATIONEVENT_FOCUS_GAIN:
-			case FOUNDATIONEVENT_FOCUS_LOST:
-				break;
+				case FOUNDATIONEVENT_FOCUS_GAIN:
+				case FOUNDATIONEVENT_FOCUS_LOST:
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 
@@ -89,15 +88,15 @@ set_suitable_working_directory(void) {
 	string_const_t working_dir = environment_executable_directory();
 	do {
 		last_dir = working_dir;
-		config_dir = path_concat(buffer, sizeof(buffer), STRING_ARGS(working_dir), STRING_CONST("config"));
+		config_dir =
+		    path_concat(buffer, sizeof(buffer), STRING_ARGS(working_dir), STRING_CONST("config"));
 		if (fs_is_directory(STRING_ARGS(config_dir))) {
 			found = true;
 			break;
 		}
 
 		working_dir = path_directory_name(STRING_ARGS(working_dir));
-	}
-	while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
+	} while (!string_equal(STRING_ARGS(working_dir), STRING_ARGS(last_dir)));
 
 	// Set found working directory
 	if (found)
@@ -123,7 +122,7 @@ main_initialize(void) {
 	memset(&application, 0, sizeof(application));
 	application.name = string_const(STRING_CONST("Foundation example application"));
 	application.short_name = string_const(STRING_CONST("example"));
-	application.company = string_const(STRING_CONST("Rampant Pixels"));
+	application.company = string_const(STRING_CONST("Foo Bar Inc"));
 	application.version = foundation_version();
 	application.flags = APPLICATION_UTILITY;
 	application.exception_handler = example_exception_handler;
@@ -147,29 +146,26 @@ static void
 do_parse_config(const char* buffer, size_t size, json_token_t* tokens, size_t numtokens) {
 	FOUNDATION_UNUSED(size);
 
-	for (size_t tok = numtokens ? tokens[0].child : 0; tok &&
-	        tok < numtokens; tok = tokens[tok].sibling) {
-
+	for (size_t tok = numtokens ? tokens[0].child : 0; tok && tok < numtokens;
+	     tok = tokens[tok].sibling) {
 		string_const_t id = json_token_identifier(buffer, tokens + tok);
-		if ((tokens[tok].type == JSON_OBJECT) && string_equal(STRING_ARGS(id), STRING_CONST("example_object"))) {
-
-			for (size_t restok = tokens[tok].child; restok &&
-			        (restok < numtokens); restok = tokens[restok].sibling) {
-
+		if ((tokens[tok].type == JSON_OBJECT) &&
+		    string_equal(STRING_ARGS(id), STRING_CONST("example_object"))) {
+			for (size_t restok = tokens[tok].child; restok && (restok < numtokens);
+			     restok = tokens[restok].sibling) {
 				string_const_t resid = json_token_identifier(buffer, tokens + restok);
 				if (tokens[restok].type == JSON_STRING) {
 					hash_t idhash = hash(STRING_ARGS(resid));
 					hash_t wantedhash = hash(STRING_CONST("sub_variable"));
 
 					if (idhash == wantedhash) {
-						//Do something with value here
-						//string_const_t value = json_token_value(buffer, tokens + restok);
+						// Do something with value here
+						// string_const_t value = json_token_value(buffer, tokens + restok);
 					}
 				}
 			}
 		}
 	}
-
 }
 
 /* Read configuration files in "config" subdirectory */
@@ -183,7 +179,6 @@ static void
 do_compute_and_magic(void) {
 	// Just wait for teminate flag
 	while (!example_terminate) {
-
 		// Process system events
 		system_process_events();
 
@@ -205,8 +200,8 @@ main_run(void* main_arg) {
 	beacon_initialize(&example_trigger);
 
 	// Start event thread
-	thread_initialize(&event_thread, event_loop, system_event_stream(), STRING_CONST("event_thread"),
-	                  THREAD_PRIORITY_NORMAL, 0);
+	thread_initialize(&event_thread, event_loop, system_event_stream(),
+	                  STRING_CONST("event_thread"), THREAD_PRIORITY_NORMAL, 0);
 	thread_start(&event_thread);
 
 	// Do configuration
@@ -230,4 +225,3 @@ main_finalize(void) {
 	// Finalize the library
 	foundation_finalize();
 }
-

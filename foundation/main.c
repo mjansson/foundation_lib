@@ -1,10 +1,10 @@
-/* main.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson / Rampant Pixels
+/* main.c  -  Foundation library  -  Public Domain  -  2013 Mattias Jansson
  *
  * This library provides a cross-platform foundation library in C11 providing basic support
  * data types and functions to write applications and games in a platform-independent fashion.
  * The latest source code is always available at
  *
- * https://github.com/rampantpixels/foundation_lib
+ * https://github.com/mjansson/foundation_lib
  *
  * This library is put in the public domain; you can redistribute it and/or modify it without
  * any restrictions.
@@ -16,12 +16,12 @@
 #if !BUILD_DYNAMIC_LINK
 
 #if FOUNDATION_PLATFORM_TIZEN
-#  include <foundation/tizen.h>
+#include <foundation/tizen.h>
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-#  include <foundation/windows.h>
+#include <foundation/windows.h>
 
 static BOOL STDCALL
 _main_console_handler(DWORD control_type) {
@@ -30,27 +30,27 @@ _main_console_handler(DWORD control_type) {
 	bool handled = true;
 
 	switch (control_type) {
-	case CTRL_C_EVENT:
-		control_name = "CTRL_C";
-		post_terminate = true;
-		break;
-	case CTRL_BREAK_EVENT:
-		control_name = "CTRL_BREAK";
-		break;
-	case CTRL_CLOSE_EVENT:
-		control_name = "CTRL_CLOSE";
-		post_terminate = true;
-		break;
-	case CTRL_LOGOFF_EVENT:
-		control_name = "CTRL_LOGOFF";
-		break;
-	case CTRL_SHUTDOWN_EVENT:
-		control_name = "CTRL_SHUTDOWN";
-		post_terminate = true;
-		break;
-	default:
-		handled = false;
-		break;
+		case CTRL_C_EVENT:
+			control_name = "CTRL_C";
+			post_terminate = true;
+			break;
+		case CTRL_BREAK_EVENT:
+			control_name = "CTRL_BREAK";
+			break;
+		case CTRL_CLOSE_EVENT:
+			control_name = "CTRL_CLOSE";
+			post_terminate = true;
+			break;
+		case CTRL_LOGOFF_EVENT:
+			control_name = "CTRL_LOGOFF";
+			break;
+		case CTRL_SHUTDOWN_EVENT:
+			control_name = "CTRL_SHUTDOWN";
+			post_terminate = true;
+			break;
+		default:
+			handled = false;
+			break;
 	}
 	log_infof(0, STRING_CONST("Caught console control: %s (%lu)"), control_name, control_type);
 	if (post_terminate) {
@@ -68,10 +68,10 @@ _main_console_handler(DWORD control_type) {
 }
 
 /*! Win32 UI application entry point, credits to Microsoft for ignoring yet another standard... */
-#  if FOUNDATION_COMPILER_MSVC
+#if FOUNDATION_COMPILER_MSVC
 FOUNDATION_API int APIENTRY
 WinMain(HINSTANCE, HINSTANCE, LPSTR, int);
-#  endif
+#endif
 
 int STDCALL
 WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
@@ -99,11 +99,8 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 		const application_t* app = environment_application();
 		string_const_t aname = app->short_name;
 		string_const_t vstr = string_from_version_static(app->version);
-		name = string_allocate_concat_varg(
-		           aname.length ? aname.str : "unknown", aname.length ? aname.length : 7,
-		           STRING_CONST("-"),
-		           STRING_ARGS(vstr),
-		           nullptr);
+		name = string_allocate_concat_varg(aname.length ? aname.str : "unknown", aname.length ? aname.length : 7,
+		                                   STRING_CONST("-"), STRING_ARGS(vstr), nullptr);
 
 		if (app->exception_handler)
 			exception_set_handler(app->exception_handler, STRING_ARGS(name));
@@ -141,11 +138,20 @@ static void
 sighandler(int sig) {
 	const char* signame = "UNKNOWN";
 	switch (sig) {
-	case SIGKILL: signame = "SIGKILL"; break;
-	case SIGTERM: signame = "SIGTERM"; break;
-	case SIGQUIT: signame = "SIGQUIT"; break;
-	case SIGINT:  signame = "SIGINT"; break;
-	default: break;
+		case SIGKILL:
+			signame = "SIGKILL";
+			break;
+		case SIGTERM:
+			signame = "SIGTERM";
+			break;
+		case SIGQUIT:
+			signame = "SIGQUIT";
+			break;
+		case SIGINT:
+			signame = "SIGINT";
+			break;
+		default:
+			break;
 	}
 	log_infof(0, STRING_CONST("Caught signal: %s (%d)"), signame, sig);
 	system_post_event(FOUNDATIONEVENT_TERMINATE);
@@ -175,30 +181,30 @@ main(int argc, char** argv)
 
 #if FOUNDATION_PLATFORM_POSIX
 
-	//Set signal handlers
+	// Set signal handlers
 	{
 		struct sigaction action;
 		memset(&action, 0, sizeof(action));
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
 #endif
 
-		//Signals we process globally
+		// Signals we process globally
 		action.sa_handler = sighandler;
 		sigaction(SIGKILL, &action, 0);
 		sigaction(SIGTERM, &action, 0);
 		sigaction(SIGQUIT, &action, 0);
-		sigaction(SIGINT,  &action, 0);
+		sigaction(SIGINT, &action, 0);
 		sigaction(SIGABRT, &action, 0);
 
-		//Ignore sigpipe
+		// Ignore sigpipe
 		action.sa_handler = SIG_IGN;
 		sigaction(SIGPIPE, &action, 0);
 
 #if FOUNDATION_COMPILER_CLANG
-#  pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #endif
 	}
 
@@ -227,7 +233,7 @@ main(int argc, char** argv)
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
-#  if FOUNDATION_PLATFORM_MACOS
+#if FOUNDATION_PLATFORM_MACOS
 	if (!(environment_application()->flags & (APPLICATION_UTILITY | APPLICATION_DAEMON))) {
 		delegate_start_main_ns_thread();
 
@@ -236,28 +242,27 @@ main(int argc, char** argv)
 		extern int NSApplicationMain(int argc, char* argv[]);
 		ret = NSApplicationMain(argc, argv);
 
-#  elif FOUNDATION_PLATFORM_IOS
+#elif FOUNDATION_PLATFORM_IOS
 	{
 		delegate_start_main_ns_thread();
 
 		thread_exit();
 
-		extern int UIApplicationMain(int argc, char* argv[], void* principalClassName,
-		                             void* delegateClassName);
+		extern int UIApplicationMain(int argc, char* argv[], void* principalClassName, void* delegateClassName);
 		ret = UIApplicationMain(argc, (char**)argv, 0, 0);
 
-#  endif
-		//NSApplicationMain and UIApplicationMain never returns though
+#endif
+		// NSApplicationMain and UIApplicationMain never returns though
 		return ret;
 	}
 #endif
 
 #if !FOUNDATION_PLATFORM_IOS
 
-#  if FOUNDATION_PLATFORM_TIZEN
+#if FOUNDATION_PLATFORM_TIZEN
 	tizen_start_main_thread();
 	ret = tizen_app_main(argc, argv);
-#  else
+#else
 	{
 		string_t name;
 		const application_t* app = environment_application();
@@ -266,8 +271,8 @@ main(int argc, char** argv)
 			string_const_t aname = app->short_name;
 			if (!aname.length)
 				aname = string_const(STRING_CONST("unknown"));
-			name = string_allocate_format(STRING_CONST("%.*s-%.*s"), (int)aname.length, aname.str,
-			                              (int)vstr.length, vstr.str);
+			name = string_allocate_format(STRING_CONST("%.*s-%.*s"), (int)aname.length, aname.str, (int)vstr.length,
+			                              vstr.str);
 		}
 
 		if (app->exception_handler)
@@ -279,7 +284,7 @@ main(int argc, char** argv)
 
 		string_deallocate(name.str);
 	}
-#  endif
+#endif
 
 	main_finalize();
 
@@ -299,7 +304,7 @@ main(int argc, char** argv)
 
 /*! Android native glue entry point */
 void
-android_main(struct android_app * app) {
+android_main(struct android_app* app) {
 	if (!app)
 		return;
 	android_entry(app);
