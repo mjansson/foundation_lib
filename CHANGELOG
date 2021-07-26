@@ -4,7 +4,21 @@ Make radixsort have a dynamic index type based on max size during initialization
 data type from radixsort_sort should be cast to the correct type (uint16_t or uint32_t) based
 on sort context indextype (RADIXSORT_INDEX16 or RADIXSORT_INDEX32 respectively)
 
-Use clang format for automatic source formatting (many whitespace changes)
+Use clang format for automatic source formatting (many whitespace changes), and rename
+"num" variables and arguments to "count" for counting items/things, and "size" for byte
+size of things.
+
+Add a bucketized array for lower cost growing for large arrays
+
+Add function to query if a thread has finished execution (thread_is_finished)
+
+Added macro for more readable uuid constant declarations (uuid_decl)
+
+Buffer stream path now includes address for end of buffer
+
+Added a compressed flag to stream flag bitfield
+
+Updated ninja build script to support Visual Studio 2022
 
 
 1.6.1
