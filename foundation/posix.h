@@ -80,6 +80,10 @@ Safe inclusion of posix headers */
 #include <sys/epoll.h>
 #endif
 
+#if !FOUNDATION_PLATFORM_ANDROID
+#  include <execinfo.h>
+#endif
+
 #undef radixsort
 
 #if FOUNDATION_PLATFORM_APPLE

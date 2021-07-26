@@ -18,9 +18,6 @@
 #  include <Psapi.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #  include <foundation/posix.h>
-#  if !FOUNDATION_PLATFORM_ANDROID
-#    include <execinfo.h>
-#  endif
 #endif
 
 #if FOUNDATION_PLATFORM_ANDROID
