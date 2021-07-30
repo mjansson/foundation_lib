@@ -1,3 +1,7 @@
+1.6.3
+
+Add hashmap_foreach utility function to call a function for each value in a hashmap
+
 1.6.2
 
 Make radixsort have a dynamic index type based on max size during initialization. Returned

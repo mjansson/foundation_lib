@@ -133,3 +133,12 @@ hashmap_clear(hashmap_t* map) {
 		array_clear(map->bucket[ibucket]);
 	map->node_count = 0;
 }
+
+void
+hashmap_foreach(hashmap_t* map, void (*fn)(void*)) {
+	for (size_t ibucket = 0; ibucket < map->bucket_count; ++ibucket) {
+		hashmap_node_t* bucket = map->bucket[ibucket];
+		for (size_t inode = 0, nsize = array_size(bucket); inode < nsize; ++inode)
+			fn(bucket[inode].value);
+	}
+}
