@@ -56,6 +56,11 @@ error_set_handler(error_handler_fn handler);
 		_error_context_push(__VA_ARGS__); \
 	} while (0)
 
+#define _error_context_push_format_proxy(...)    \
+	do {                                         \
+		_error_context_push_format(__VA_ARGS__); \
+	} while (0)
+
 #define _error_context_buffer_proxy(...) _error_context_buffer(__VA_ARGS__)
 
 /*! Push a new error context and associated data on the error context stack.
@@ -67,6 +72,19 @@ Both context and data must be valid for as long as it remains on the stack.
 #define error_context_push(...)                 \
 	do {                                        \
 		_error_context_push_proxy(__VA_ARGS__); \
+	} while (0)
+
+/*! Push a new error context and associated formatted data on the error context stack.
+Both context and data must be valid for as long as it remains on the stack.
+\param name Context name
+\param name_length Context name length
+\param data Context data buffer
+\param data_length Context data buffer size
+\param data_format Context data format string
+\param data_format_length Context data format string length */
+#define error_context_push_format(...)                 \
+	do {                                               \
+		_error_context_push_format_proxy(__VA_ARGS__); \
 	} while (0)
 
 /*! Pop the top error context off the error context stack */
@@ -106,6 +124,10 @@ FOUNDATION_API void
 _error_context_push(const char* name, size_t name_length, const char* data, size_t data_length);
 
 FOUNDATION_API void
+_error_context_push_format(const char* name, size_t name_length, char* data, size_t data_length,
+                           const char* data_format, size_t data_format_length, ...);
+
+FOUNDATION_API void
 _error_context_pop(void);
 
 FOUNDATION_API void
@@ -124,6 +146,9 @@ _error_context_thread_finalize(void);
 
 #define error_context_push(...) \
 	do { /* */                  \
+	} while (0)
+#define error_context_push_format(...) \
+	do { /* */                         \
 	} while (0)
 #define error_context_pop() \
 	do { /* */              \

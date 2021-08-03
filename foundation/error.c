@@ -13,6 +13,8 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
+#include <stdarg.h>
+
 FOUNDATION_DECLARE_THREAD_LOCAL(error_t, error, 0)  // 0 = ERROR_NONE
 FOUNDATION_DECLARE_THREAD_LOCAL(error_handler_fn, error_handler, 0)
 
@@ -61,6 +63,31 @@ _error_context_push(const char* name, size_t name_length, const char* data, size
 	context->frame[context->depth].name.length = name ? name_length : 11;
 	context->frame[context->depth].data.str = data ? data : "<nothing>";
 	context->frame[context->depth].data.length = data ? data_length : 9;
+	if (context->depth < foundation_config().error_context_depth - 1)
+		++context->depth;
+}
+
+void
+_error_context_push_format(const char* name, size_t name_length, char* data, size_t data_length,
+                           const char* data_format, size_t data_format_length, ...) {
+	error_context_t* context = get_thread_error_context();
+	if (!context) {
+		size_t capacity = sizeof(error_context_t) + (sizeof(error_frame_t) * foundation_config().error_context_depth);
+		context = memory_allocate(0, capacity, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		set_thread_error_context(context);
+	}
+	// Format the data string
+	string_t data_string = string(0, 0);
+	if (data_length && data_format_length) {
+		va_list data_list;
+		va_start(data_list, data_format_length);
+		data_string = string_vformat(data, data_length, data_format, data_format_length, data_list);
+		va_end(data_list);
+	}
+	context->frame[context->depth].name.str = name ? name : "<something>";
+	context->frame[context->depth].name.length = name ? name_length : 11;
+	context->frame[context->depth].data.str = data_string.length ? data_string.str : "<nothing>";
+	context->frame[context->depth].data.length = data_string.length ? data_string.length : 9;
 	if (context->depth < foundation_config().error_context_depth - 1)
 		++context->depth;
 }
