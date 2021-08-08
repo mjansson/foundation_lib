@@ -58,7 +58,8 @@ number of currently stored elements.
 
 /*!  Get number of currently stored elements.
 \param array Array pointer */
-#define array_size(array) (_array_verify(array) ? _array_rawsize_const(array) : 0)
+#define array_count(array) (_array_verify(array) ? _array_rawsize_const(array) : 0)
+#define array_size(array) array_count(array)
 
 /*! Add or remove elements without initialization, if size is positive or negative respectively.
 Sets new size to array_size(array)+count and allocates new storage if new size is larger than
@@ -85,9 +86,9 @@ capacity. Value of the expression is the size of the destination array after cop
 #define array_copy(dst, src)                                                                                          \
 	((_array_verify(src) && _array_elementsize(src) == _array_elementsize(dst) &&                                     \
 	  _array_maybegrowfixed((dst), (_array_rawsize_const(src) - (_array_verify(dst) ? (_array_rawsize(dst)) : 0)))) ? \
-	     (memcpy((dst), (src), (_array_rawsize_const(src)) * _array_elementsize(src)),                                \
+         (memcpy((dst), (src), (_array_rawsize_const(src)) * _array_elementsize(src)),                                \
 	      (_array_rawsize(dst) = _array_rawsize_const(src))) :                                                        \
-	     array_clear(dst))
+         array_clear(dst))
 
 /*! Add element at end of array with assignment. Value of expression is new array pointer.
 \param array   Array pointer
@@ -101,8 +102,8 @@ is new array pointer.
 \param elementptr Pointer to new element */
 #define array_push_memcpy(array, elementptr) /*lint -e{506,522}*/                               \
 	(_array_maybegrow(array, 1) ?                                                               \
-	     (memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array)) : \
-	     (array))
+         (memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array)) : \
+         (array))
 
 /*! Add element at given position in array with assignment. Position is NOT range checked.
 Existing elements are moved using memmove. Value of expression is new array pointer.
@@ -113,7 +114,7 @@ Existing elements are moved using memmove. Value of expression is new array poin
 	(_array_maybegrow(array, 1) ? (memmove((array) + (pos) + 1, (array) + (pos),                           \
 	                                       _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
 	                               (array)[(pos)] = (element), (array)) :                                  \
-	                              (array))
+                                  (array))
 
 /*! Add element at given position in array, copy data using memcpy. Position is NOT range
 checked. Existing elements are moved using memmove. Value of expression is new array pointer.
@@ -124,7 +125,7 @@ checked. Existing elements are moved using memmove. Value of expression is new a
 	(_array_maybegrow(array, 1) ? (memmove((array) + (pos) + 1, (array) + (pos),                           \
 	                                       _array_elementsize(array) * (_array_rawsize(array)++ - (pos))), \
 	                               memcpy((array) + (pos), (elementptr), sizeof(*(array))), (array)) :     \
-	                              (array))
+                                  (array))
 
 /*! Add element at given position in array with assignment. Position IS range checked and
 clamped to array size. Existing elements are moved using memmove.
@@ -172,11 +173,11 @@ using memcpy. Position is NOT ranged checked.
 \param pos   Position */
 #define array_erase_memcpy(array, pos)                                                                     \
 	(_array_verify(array) ?                                                                                \
-	     (((uint32_t)(pos) != (_array_rawsize(array) - 1) ?                                                \
-	           memcpy((array) + (pos), (array) + (_array_rawsize(array) - 1), _array_elementsize(array)) : \
-	           0),                                                                                         \
+         (((uint32_t)(pos) != (_array_rawsize(array) - 1) ?                                                \
+               memcpy((array) + (pos), (array) + (_array_rawsize(array) - 1), _array_elementsize(array)) : \
+               0),                                                                                         \
 	      --_array_rawsize(array)) :                                                                       \
-	     0)
+         0)
 
 /*! Erase element at given position without preserving order, swap-with-last using assignment.
 Position IS ranged checked.
@@ -200,7 +201,7 @@ Position is NOT ranged checked.
 	(_array_verify(array) ? (memmove((array) + (pos), (array) + (pos) + 1,                            \
 	                                 (_array_rawsize(array) - (pos)-1U) * _array_elementsize(array)), \
 	                         --_array_rawsize(array)) :                                               \
-	                        0)
+                            0)
 
 /*! Erase element at given position and preserve order by memmove remaining elements in array.
 Position IS ranged checked.
@@ -216,7 +217,7 @@ in array. Position and number of elements are NOT ranged checked
 \param count      Number of elements to erase */
 #define array_erase_ordered_range(array, pos, count)                                 \
 	(_array_verify(array) && (/*lint -e506 */ (count) > 0) ?                         \
-	 memmove((array) + (pos), (array) + (pos) + (count),                             \
+     memmove((array) + (pos), (array) + (pos) + (count),                             \
 	         (_array_rawsize(array) - (pos) - (count)) * _array_elementsize(array)), \
 	 (_array_rawsize(array) -= (count)) : 0)
 
