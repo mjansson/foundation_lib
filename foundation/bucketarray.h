@@ -48,6 +48,12 @@ bucketarray_reserve(bucketarray_t* array, size_t count);
 FOUNDATION_API void
 bucketarray_resize(bucketarray_t* array, size_t count);
 
+/*! Append array
+\param array Destination array pointer
+\param append Array to append */
+FOUNDATION_API void
+bucketarray_append(bucketarray_t* array, bucketarray_t* append);
+
 /*! Resize array and fill new data
 \param array Array pointer
 \param count Number of items to resize array to

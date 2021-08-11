@@ -76,6 +76,61 @@ bucketarray_reserve(bucketarray_t* array, size_t count) {
 }
 
 void
+bucketarray_append(bucketarray_t* array, bucketarray_t* append) {
+	if (!append->count)
+		return;
+
+	if (!FOUNDATION_VALIDATE(array->element_size == append->element_size))
+		return;
+
+	size_t pre_count = array->count;
+	size_t copy_count = append->count;
+
+	bucketarray_resize(array, array->count + append->count);
+
+	size_t dst_bucket_size = ((size_t)1 << array->bucket_shift);
+	size_t dst_bucket_idx = pre_count >> array->bucket_shift;
+	size_t dst_index = pre_count & array->bucket_mask;
+	void* dst = pointer_offset(array->bucket[dst_bucket_idx], array->element_size * dst_index);
+
+	size_t src_bucket_size = ((size_t)1 << append->bucket_shift);
+	size_t src_bucket_idx = 0;
+	size_t src_index = 0;
+	void* src = append->bucket[0];
+
+	while (copy_count) {
+		size_t this_copy = dst_bucket_size - dst_index;
+		size_t limit_copy = src_bucket_size - src_index;
+		if (limit_copy < this_copy)
+			this_copy = limit_copy;
+		if (copy_count < this_copy)
+			this_copy = copy_count;
+
+		size_t this_byte_count = array->element_size * this_copy;
+		memcpy(dst, src, this_byte_count);
+		copy_count -= this_copy;
+
+		dst_index += this_copy;
+		if (dst_index == dst_bucket_size) {
+			dst_index = 0;
+			++dst_bucket_idx;
+			dst = array->bucket[dst_bucket_idx];
+		} else {
+			dst = pointer_offset(dst, this_byte_count);
+		}
+
+		src_index += this_copy;
+		if (src_index == src_bucket_size) {
+			src_index = 0;
+			++src_bucket_idx;
+			src = append->bucket[src_bucket_idx];
+		} else {
+			src = pointer_offset(src, this_byte_count);
+		}
+	}
+}
+
+void
 bucketarray_resize(bucketarray_t* array, size_t count) {
 	bucketarray_reserve(array, count);
 	array->count = count;
@@ -142,6 +197,7 @@ bucketarray_erase(bucketarray_t* array, size_t element) {
 
 void*
 bucketarray_get(bucketarray_t* array, size_t index) {
+	FOUNDATION_ASSERT(index < array->count);
 	size_t bucket_idx = index >> array->bucket_shift;
 	size_t element_index = index & array->bucket_mask;
 	return pointer_offset(array->bucket[bucket_idx], array->element_size * element_index);
