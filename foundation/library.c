@@ -109,7 +109,7 @@ library_load(const char* name, size_t length) {
 	// Locate already loaded library, brute force iteration
 	library = 0;
 	name_hash = string_hash(basename, base_length);
-	for (i = 0, size = objectmap_size(_library_map); i < size; ++i) {
+	for (i = 0, size = _library_map ? objectmap_size(_library_map) : 0; i < size; ++i) {
 		library = objectmap_raw_lookup(_library_map, i);
 		if (library && (library->name_hash == name_hash)) {
 			if (string_equal(library->name, library->name_length, basename, base_length)) {
@@ -135,8 +135,7 @@ library_load(const char* name, size_t length) {
 	}
 	if (!dll) {
 		string_const_t errmsg = system_error_message(0);
-		log_debugf(0, STRING_CONST("Unable to load DLL '%.*s': %.*s"), (int)length, name,
-		           STRING_FORMAT(errmsg));
+		log_debugf(0, STRING_CONST("Unable to load DLL '%.*s': %.*s"), (int)length, name, STRING_FORMAT(errmsg));
 		error_context_pop();
 		return 0;
 	}
@@ -174,13 +173,17 @@ library_load(const char* name, size_t length) {
 #endif
 
 	if (!lib) {
-		log_debugf(0, STRING_CONST("Unable to load dynamic library '%.*s': %s"), (int)length, name,
-		           dlerror());
+		log_debugf(0, STRING_CONST("Unable to load dynamic library '%.*s': %s"), (int)length, name, dlerror());
 		error_context_pop();
 		return 0;
 	}
 
 #endif
+
+	if (!_library_map) {
+		error_context_pop();
+		return 0;
+	}
 
 	id = objectmap_reserve(_library_map);
 	if (!id) {

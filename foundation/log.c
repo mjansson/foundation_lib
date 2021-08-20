@@ -109,13 +109,15 @@ _log_make_timestamp(void) {
 
 #if BUILD_ENABLE_LOG
 
+static int log_hwthread_width;
+
 static void
 FOUNDATION_PRINTFCALL(5, 0)
     _log_outputf(hash_t context, error_level_t severity, const char* prefix, size_t prefix_length, const char* format,
                  size_t format_length, va_list list, void* std) {
 	log_timestamp_t timestamp = _log_make_timestamp();
 	uint64_t tid = thread_id();
-	unsigned int pid = thread_hardware();
+	unsigned int hwthreadid = thread_hardware();
 	int need, more, remain;
 	int size = 383;
 	char local_buffer[385];
@@ -126,9 +128,9 @@ FOUNDATION_PRINTFCALL(5, 0)
 		// This is guaranteed to always fit in minimum size of 383 bytes defined above, so need is
 		// always > 0
 		if (_log_prefix)
-			need = snprintf(buffer, (unsigned int)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%u> %.*s", timestamp.hours,
-			                timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, pid, (int)prefix_length,
-			                prefix);
+			need = snprintf(buffer, (unsigned int)size, "[%d:%02d:%02d.%03d] <%" PRIx64 ":%-*u> %.*s", timestamp.hours,
+			                timestamp.minutes, timestamp.seconds, timestamp.milliseconds, tid, log_hwthread_width,
+			                hwthreadid, (int)prefix_length, prefix);
 		else
 			need = snprintf(buffer, (unsigned int)size, "%.*s", (int)prefix_length, prefix);
 
@@ -315,8 +317,9 @@ log_error_context(hash_t context, error_level_t error_level) {
 		error_frame_t* frame = err_context->frame;
 		for (i = 0; i < err_context->depth; ++i, ++frame)
 			_log_error_contextf(context, error_level, error_level > ERRORLEVEL_WARNING ? stderr : stdout,
-			                    STRING_CONST("When %.*s: %.*s"), (int)frame->name.length, frame->name.str,
-			                    (int)frame->data.length, frame->data.str);
+			                    STRING_CONST("When %.*s%.*s%.*s"), (int)frame->name.length, frame->name.str,
+			                    frame->data.length ? 2 : 0, frame->data.length ? ": " : "", (int)frame->data.length,
+			                    frame->data.str);
 	}
 }
 
@@ -378,6 +381,16 @@ int
 _log_initialize(void) {
 #if BUILD_ENABLE_LOG
 	_log_suppress = hashtable64_allocate(149);
+
+	size_t hwthread_count = system_hardware_threads();
+	if (hwthread_count < 10)
+		log_hwthread_width = 1;
+	else if (hwthread_count < 100)
+		log_hwthread_width = 2;
+	else if (hwthread_count < 1000)
+		log_hwthread_width = 3;
+	else
+		log_hwthread_width = 8;
 #endif
 	return 0;
 }

@@ -88,13 +88,13 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 
 	log_errorf(context, ERROR_ASSERT, STRING_CONST("%.*s"), STRING_FORMAT(messagestr));
 
-	system_message_box(STRING_CONST("Assert Failure"), STRING_ARGS(messagestr), false);
+	bool abort = !system_message_box(STRING_CONST("Assert Failure"), STRING_ARGS(messagestr), true);
+	return abort ? 1 : 0;
 #else
 	log_errorf(context, ERROR_ASSERT, assert_format, sizeof(assert_format) - 1, (int)cond_length, condition,
 	           (int)file_length, file, line, 0, "", (int)msg_length, msg, 0, "");
-#endif
-
 	return 1;
+#endif
 }
 
 int

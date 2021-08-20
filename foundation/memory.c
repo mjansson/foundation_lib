@@ -489,7 +489,7 @@ _memory_tracker_finalize(void) {
 			memory_tag_t* tag = _memory_tags + it;
 			void* addr = atomic_load_ptr(&tag->address, memory_order_acquire);
 			if (addr) {
-				char tracebuf[512];
+				char tracebuf[1024];
 				string_t trace = stacktrace_resolve(tracebuf, sizeof(tracebuf), tag->trace,
 				                                    sizeof(tag->trace) / sizeof(tag->trace[0]), 0);
 				log_warnf(HASH_MEMORY, WARNING_MEMORY,
