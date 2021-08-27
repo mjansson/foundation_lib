@@ -138,10 +138,14 @@ _memory_guard_verify(void* memory) {
 	uint32_t size = *(guard_header + 1);
 	uint32_t* guard_footer = pointer_offset(memory, size - (align * 2));
 	for (int guard_loop = 0; guard_loop < (FOUNDATION_MIN_ALIGN * 2) / 4; ++guard_loop) {
-		if ((guard_loop > 1) && (*(guard_header + guard_loop) != MEMORY_GUARD_VALUE))
+		if ((guard_loop > 1) && (*(guard_header + guard_loop) != MEMORY_GUARD_VALUE)) {
 			FOUNDATION_ASSERT_MSG(*guard_header == MEMORY_GUARD_VALUE, "Memory underwrite");
-		if (*(guard_footer + guard_loop) != MEMORY_GUARD_VALUE)
+			return 0;
+		}
+		if (*(guard_footer + guard_loop) != MEMORY_GUARD_VALUE) {
 			FOUNDATION_ASSERT_MSG(*guard_footer == MEMORY_GUARD_VALUE, "Memory overwrite");
+			return 0;
+		}
 	}
 	return pointer_offset(memory, -(int32_t)align);
 }
@@ -167,6 +171,16 @@ void
 memory_deallocate(void* p) {
 	_memory_untrack(p);
 	_memory_system.deallocate(p);
+}
+
+size_t
+memory_size(const void* p) {
+	return p ? _memory_system.usable_size(p) : 0;
+}
+
+bool
+memory_verify(const void* p) {
+	return _memory_system.verify(p);
 }
 
 memory_statistics_t
@@ -347,6 +361,30 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned int align, size_t oldsi
 	return memory;
 }
 
+static size_t
+_memory_usable_size_malloc(const void* p) {
+#if BUILD_ENABLE_MEMORY_GUARD
+	const uint32_t* guard_header = pointer_offset_const(p, -FOUNDATION_MIN_ALIGN * 2);
+	return guard_header[1];
+#else
+#if FOUNDATION_PLATFORM_WINDOWS
+	return _msize((void*)p);
+#else
+	return memory_usable_size(p);
+#endif
+#endif
+}
+
+static bool
+_memory_verify_malloc(const void* p) {
+#if BUILD_ENABLE_MEMORY_GUARD
+	return _memory_guard_verify((void*)p) != 0;
+#else
+	FOUNDATION_UNUSED(p);
+	return true;
+#endif
+}
+
 static int
 _memory_initialize_malloc(void) {
 	return 0;
@@ -363,6 +401,8 @@ memory_system_malloc(void) {
 	memsystem.allocate = _memory_allocate_malloc;
 	memsystem.reallocate = _memory_reallocate_malloc;
 	memsystem.deallocate = _memory_deallocate_malloc;
+	memsystem.usable_size = _memory_usable_size_malloc;
+	memsystem.verify = _memory_verify_malloc;
 	memsystem.initialize = _memory_initialize_malloc;
 	memsystem.finalize = _memory_finalize_malloc;
 	return memsystem;

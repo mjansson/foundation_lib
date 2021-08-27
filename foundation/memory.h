@@ -62,6 +62,18 @@ memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize, unsi
 FOUNDATION_API void
 memory_deallocate(void* p);
 
+/*! Query the size of a memory block
+\param p Pointer to memory block
+\return Size of memory block in bytes */
+FOUNDATION_API size_t
+memory_size(const void* p);
+
+/*! Verify the integrity of the memory block
+\param p Pointer to a memory block
+\return true if integrity checks passed, false if compromised */
+FOUNDATION_API bool
+memory_verify(const void* p);
+
 /*! Set a new current memory context by pushing it onto the context stack. A call
 to #memory_context_pop will restore the previous memory context. Memory context
 stack is thread-local, setting a new memory context will not affect the

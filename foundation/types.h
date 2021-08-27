@@ -646,6 +646,18 @@ provide an implementation with this prototype for deallocating memory
 \param p Pointer to memory block */
 typedef void (*memory_deallocate_fn)(void* p);
 
+/*! Memory system block size query function prototype. Implementation of a memory system must
+provide an implementation with this prototype for querying the size of a memory block
+\param p Pointer to memory block
+\return Size of memory block in bytes */
+typedef size_t (*memory_usable_size_fn)(const void* p);
+
+/*! Memory system integrity verification function prototype. Implementation of a memory system could
+provide an implementation with this prototype for verifying the integrity of the memory block
+\param p Pointer to a memory block
+\return true if integrity checks passed, false if compromised */
+typedef bool (*memory_verify_fn)(const void* p);
+
 /*! Memory thread initialization function prototype. Implementation of a memory system can
 optionally provide an implementation with this prototype for initialization at thread start */
 typedef void (*memory_thread_initialize_fn)(void);
@@ -903,6 +915,10 @@ struct memory_system_t {
 	memory_reallocate_fn reallocate;
 	/*! Memory deallocation */
 	memory_deallocate_fn deallocate;
+	/*! Memory block size query */
+	memory_usable_size_fn usable_size;
+	/*! Memory integrity verification */
+	memory_verify_fn verify;
 	/*! Thread initialization */
 	memory_thread_initialize_fn thread_initialize;
 	/*! Thread finalization */
