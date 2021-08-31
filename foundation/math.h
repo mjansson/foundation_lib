@@ -440,9 +440,9 @@ math_real_undenormalize(real val);
 /*! Assert that a value is finite. Like all assert macros it will evaluate to a void
 expression if asserts are disabled.
 \param value Value */
-#define FOUNDATION_ASSERT_FINITE(value)                                             \
-	/*lint -save -e717 */ do {                                                      \
-	FOUNDATION_ASSERT_MSG( math_real_isfinite( (value), "Non-finite float value" ); \
+#define FOUNDATION_ASSERT_FINITE(value)                                               \
+	/*lint -save -e717 */ do {                                                        \
+		FOUNDATION_ASSERT_MSG(math_real_isfinite((value)), "Non-finite float value"); \
 	} while (0) /*lint -restore */
 #else
 #define FOUNDATION_ASSERT_FINITE(value) \
