@@ -824,8 +824,6 @@ has been caught (and optionally a dump generated) */
 struct foundation_config_t {
 	/*! Maximum number of concurrently allocated libraries. Zero for default (32) */
 	size_t library_max;
-	/*! Maximum number of concurrent allocations in memory tracker. Zero for default (32k) */
-	size_t memory_tracker_max;
 	/*! Maximum number of file system monitors. Zero for default (16) */
 	size_t fs_monitor_max;
 	/*! Maximum depth of an error context. Zero for default (32) */
