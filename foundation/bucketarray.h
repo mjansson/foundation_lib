@@ -66,6 +66,11 @@ bucketarray_resize_fill(bucketarray_t* array, size_t count, uint8_t fill);
 FOUNDATION_API void
 bucketarray_clear(bucketarray_t* array);
 
+/*! Clear array and free storage
+\param array Array pointer */
+FOUNDATION_API void
+bucketarray_clear_and_free(bucketarray_t* array);
+
 /*! Add element at end of array
 \param array Array pointer
 \param element Element to add */

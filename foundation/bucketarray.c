@@ -169,6 +169,16 @@ bucketarray_clear(bucketarray_t* array) {
 }
 
 void
+bucketarray_clear_and_free(bucketarray_t* array) {
+	for (size_t ibucket = 0; ibucket < array->bucket_count; ++ibucket)
+		memory_deallocate(array->bucket[ibucket]);
+	memory_deallocate(array->bucket);
+	array->bucket = nullptr;
+	array->bucket_count = 0;
+	array->count = 0;
+}
+
+void
 bucketarray_push(bucketarray_t* array, void* element) {
 	size_t bucket_idx = array->count >> array->bucket_shift;
 	if (bucket_idx >= array->bucket_count)
