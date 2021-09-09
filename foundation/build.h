@@ -165,10 +165,10 @@ and disabled in all other configurations.
 #endif
 
 #ifndef BUILD_ENABLE_LOG
-#if BUILD_DEBUG || BUILD_RELEASE
+#if BUILD_DEBUG || BUILD_RELEASE || PLATFORM_FAMILY_DESKTOP
 #define BUILD_ENABLE_LOG 1
 #else
-#define BUILD_ENABLE_LOG 0
+#define BUILD_ENABLE_LOG 1
 #endif
 #endif
 

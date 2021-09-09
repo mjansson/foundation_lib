@@ -667,8 +667,18 @@ math_smoothstep(real t) {
 	return (REAL_C(3.0) - REAL_C(2.0) * t) * (t * t);
 }
 
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
+math_smoothstep_double(double t) {
+	return (REAL_C(3.0) - REAL_C(2.0) * t) * (t * t);
+}
+
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_smootherstep(real t) {
+	return (t * t * t) * (t * (t * REAL_C(6.0) - REAL_C(15.0)) + REAL_C(10.0));
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
+math_smootherstep_double(double t) {
 	return (t * t * t) * (t * (t * REAL_C(6.0) - REAL_C(15.0)) + REAL_C(10.0));
 }
 
@@ -677,8 +687,18 @@ math_lerp(real t, real x, real y) {
 	return (x + (t * (y - x)));
 }
 
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
+math_lerp_double(double t, double x, double y) {
+	return (x + (t * (y - x)));
+}
+
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
 math_unlerp(real v, real x, real y) {
+	return ((v - x) / (y - x));
+}
+
+static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
+math_unlerp_double(double v, double x, double y) {
 	return ((v - x) / (y - x));
 }
 

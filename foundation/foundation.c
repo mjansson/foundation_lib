@@ -34,7 +34,6 @@ static bool _initialized;
 static void
 foundation_initialize_config(const foundation_config_t config) {
 	_config.library_max = (config.library_max ? config.library_max : 32);
-	_config.memory_tracker_max = (config.memory_tracker_max ? config.memory_tracker_max : (32 * 1024));
 	_config.fs_monitor_max = (config.fs_monitor_max ? config.fs_monitor_max : 16);
 	_config.error_context_depth = (config.error_context_depth ? config.error_context_depth : 32);
 	_config.memory_context_depth = (config.memory_context_depth ? config.memory_context_depth : 32);

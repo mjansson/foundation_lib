@@ -59,6 +59,7 @@ _error_context_push(const char* name, size_t name_length, const char* data, size
 		context = memory_allocate(0, capacity, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		set_thread_error_context(context);
 	}
+	FOUNDATION_ASSERT_MSG(context->depth < foundation_config().error_context_depth, "Error context overflow");
 	context->frame[context->depth].name.str = name ? name : "<unknown>";
 	context->frame[context->depth].name.length = name ? name_length : 9;
 	context->frame[context->depth].data.str = data;
