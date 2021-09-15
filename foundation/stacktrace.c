@@ -11,6 +11,7 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/mutex.h>
 #include <foundation/internal.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -85,6 +86,8 @@ static SymFunctionTableAccess64Fn CallSymFunctionTableAccess64;
 
 static StackWalk64Fn CallStackWalk64;
 static RtlCaptureStackBackTraceFn CallRtlCaptureStackBackTrace;
+
+static mutex_t* symbol_mutex;
 
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
@@ -415,7 +418,7 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 
 #elif FOUNDATION_PLATFORM_LINUX_RASPBERRYPI
 
-#define READ_32BIT_MEMORY(addr) (*(uint32_t volatile * volatile)(addr))
+#define READ_32BIT_MEMORY(addr) (*(uint32_t volatile* volatile)(addr))
 	volatile uint32_t fp = 0;
 	volatile uint32_t pc = 0;
 
@@ -474,6 +477,13 @@ _initialize_symbol_resolve() {
 	if (_symbol_resolve_initialized)
 		return true;
 
+	mutex_lock(symbol_mutex);
+
+	if (_symbol_resolve_initialized) {
+		mutex_unlock(symbol_mutex);
+		return true;
+	}
+
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
 		unsigned int options;
@@ -481,8 +491,10 @@ _initialize_symbol_resolve() {
 
 		if (!_stacktrace_psapi_dll)
 			_stacktrace_psapi_dll = LoadLibraryA("psapi.dll");
-		if (!_stacktrace_psapi_dll)
+		if (!_stacktrace_psapi_dll) {
+			mutex_unlock(symbol_mutex);
 			return _symbol_resolve_initialized;
+		}
 
 		dll = _stacktrace_psapi_dll;
 		CallEnumProcesses = (EnumProcessesFn)GetProcAddress(dll, "EnumProcesses");
@@ -492,13 +504,17 @@ _initialize_symbol_resolve() {
 		CallGetModuleInformation = (GetModuleInformationFn)GetProcAddress(dll, "GetModuleInformation");
 
 		if (!CallEnumProcesses || !CallEnumProcessModules || !CallGetModuleFileNameEx || !CallGetModuleBaseName ||
-		    !CallGetModuleInformation)
+		    !CallGetModuleInformation) {
+			mutex_unlock(symbol_mutex);
 			return _symbol_resolve_initialized;
+		}
 
 		if (!_stacktrace_dbghelp_dll)
 			_stacktrace_dbghelp_dll = LoadLibraryA("dbghelp.dll");
-		if (!_stacktrace_dbghelp_dll)
+		if (!_stacktrace_dbghelp_dll) {
+			mutex_unlock(symbol_mutex);
 			return _symbol_resolve_initialized;
+		}
 
 		dll = _stacktrace_dbghelp_dll;
 		CallSymInitialize = (SymInitializeFn)GetProcAddress(dll, "SymInitialize");
@@ -514,8 +530,10 @@ _initialize_symbol_resolve() {
 
 		if (!CallSymInitialize || !CallSymSetOptions || !CallSymGetOptions || !CallSymLoadModule64 ||
 		    !CallSymSetSearchPath || !CallSymGetModuleInfo64 || !CallSymGetLineFromAddr64 || !CallSymGetSymFromAddr64 ||
-		    !CallSymGetModuleBase64 || !CallSymFunctionTableAccess64)
+		    !CallSymGetModuleBase64 || !CallSymFunctionTableAccess64) {
+			mutex_unlock(symbol_mutex);
 			return _symbol_resolve_initialized;
+		}
 
 		options = CallSymGetOptions();
 		options |= SYMOPT_LOAD_LINES;
@@ -545,6 +563,8 @@ _initialize_symbol_resolve() {
 	_symbol_resolve_initialized = true;
 
 #endif
+
+	mutex_unlock(symbol_mutex);
 
 	return _symbol_resolve_initialized;
 }
@@ -582,6 +602,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t
 	IMAGEHLP_LINE64 line64;
 	IMAGEHLP_MODULE64 module64;
 	string_t resolved = {buffer, 0};
+
+	mutex_lock(symbol_mutex);
 
 	for (iaddr = 0; (iaddr < max_frames) && !last_was_main && (resolved.length < capacity - 1); ++iaddr) {
 		string_t line;
@@ -639,6 +661,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t
 		if (string_equal(function_name, string_length(function_name), STRING_CONST("main")))
 			last_was_main = true;
 	}
+
+	mutex_unlock(symbol_mutex);
 
 	return resolved;
 
@@ -810,8 +834,9 @@ stacktrace_resolve(char* str, size_t length, void* const* trace, size_t max_dept
 
 int
 _stacktrace_initialize(void) {
+	symbol_mutex = mutex_allocate(STRING_CONST("symbol-resolve"));
 #if FOUNDATION_PLATFORM_ANDROID
-	_load_process_modules();
+	_initialize_symbol_resolve();
 #endif
 	return 0;
 }
@@ -820,4 +845,5 @@ void
 _stacktrace_finalize(void) {
 	_finalize_symbol_resolve();
 	_finalize_stackwalker();
+	mutex_deallocate(symbol_mutex);
 }
