@@ -45,7 +45,7 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
 	static const char assert_format[] =
-	    "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s %.*s\n%.*s\n";
+	    "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%s%.*s\n%.*s\n";
 #if BUILD_ENABLE_ASSERT
 	string_t tracestr = {_assert_stacktrace_buffer, sizeof(_assert_stacktrace_buffer)};
 	string_t contextstr = {_assert_context_buffer, sizeof(_assert_context_buffer)};
@@ -83,7 +83,7 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	}
 
 	messagestr = string_format(STRING_ARGS(messagestr), assert_format, sizeof(assert_format) - 1, (int)cond_length,
-	                           condition, (int)file_length, file, line, STRING_FORMAT(contextstr), (int)msg_length, msg,
+	                           condition, (int)file_length, file, line, STRING_FORMAT(contextstr), (contextstr.length ? "\n" : ""), (int)msg_length, msg,
 	                           STRING_FORMAT(tracestr));
 
 	log_errorf(context, ERROR_ASSERT, STRING_CONST("%.*s"), STRING_FORMAT(messagestr));
@@ -92,7 +92,7 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	return abort ? 1 : 0;
 #else
 	log_errorf(context, ERROR_ASSERT, assert_format, sizeof(assert_format) - 1, (int)cond_length, condition,
-	           (int)file_length, file, line, 0, "", (int)msg_length, msg, 0, "");
+	           (int)file_length, file, line, 0, "", "", (int)msg_length, msg, 0, "");
 	return 1;
 #endif
 }
