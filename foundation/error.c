@@ -51,6 +51,25 @@ error_set_handler(error_handler_fn handler) {
 
 FOUNDATION_DECLARE_THREAD_LOCAL(error_context_t*, error_context, 0)
 
+error_context_t*
+error_context_clone(void) {
+	error_context_t* context = get_thread_error_context();
+	if (!context)
+		return context;
+
+	size_t capacity = sizeof(error_context_t) + (sizeof(error_frame_t) * foundation_config().error_context_depth);
+	void* context_clone = memory_allocate(0, capacity, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	memcpy(context_clone, context, capacity);
+	return context_clone;
+}
+
+error_context_t*
+error_context_set(error_context_t* context) {
+	error_context_t* previous = get_thread_error_context();
+	set_thread_error_context(context);
+	return previous;
+}
+
 void
 _error_context_push(const char* name, size_t name_length, const char* data, size_t data_length) {
 	error_context_t* context = get_thread_error_context();
@@ -151,6 +170,13 @@ _error_context_thread_finalize(void) {
 		memory_deallocate(context);
 		set_thread_error_context(0);
 	}
+}
+
+#else
+
+error_context_t*
+error_context_clone(void) {
+	return 0;
 }
 
 #endif

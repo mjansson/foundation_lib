@@ -49,6 +49,17 @@ the calling thread reports an error.
 FOUNDATION_API void
 error_set_handler(error_handler_fn handler);
 
+/*! Clone the current error context
+\return Clone of current error context */
+FOUNDATION_API error_context_t*
+error_context_clone(void);
+
+/*! Replace the current error context
+\param context New error context
+\return Previous error context */
+FOUNDATION_API error_context_t*
+error_context_set(error_context_t* context);
+
 #if BUILD_ENABLE_ERROR_CONTEXT
 
 #define _error_context_push_proxy(...)    \
