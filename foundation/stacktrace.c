@@ -477,10 +477,12 @@ _initialize_symbol_resolve() {
 	if (_symbol_resolve_initialized)
 		return true;
 
-	mutex_lock(symbol_mutex);
+	if (symbol_mutex)
+		mutex_lock(symbol_mutex);
 
 	if (_symbol_resolve_initialized) {
-		mutex_unlock(symbol_mutex);
+		if (symbol_mutex)
+			mutex_unlock(symbol_mutex);
 		return true;
 	}
 
@@ -505,14 +507,16 @@ _initialize_symbol_resolve() {
 
 		if (!CallEnumProcesses || !CallEnumProcessModules || !CallGetModuleFileNameEx || !CallGetModuleBaseName ||
 		    !CallGetModuleInformation) {
-			mutex_unlock(symbol_mutex);
+			if (symbol_mutex)
+				mutex_unlock(symbol_mutex);
 			return _symbol_resolve_initialized;
 		}
 
 		if (!_stacktrace_dbghelp_dll)
 			_stacktrace_dbghelp_dll = LoadLibraryA("dbghelp.dll");
 		if (!_stacktrace_dbghelp_dll) {
-			mutex_unlock(symbol_mutex);
+			if (symbol_mutex)
+				mutex_unlock(symbol_mutex);
 			return _symbol_resolve_initialized;
 		}
 
@@ -531,7 +535,8 @@ _initialize_symbol_resolve() {
 		if (!CallSymInitialize || !CallSymSetOptions || !CallSymGetOptions || !CallSymLoadModule64 ||
 		    !CallSymSetSearchPath || !CallSymGetModuleInfo64 || !CallSymGetLineFromAddr64 || !CallSymGetSymFromAddr64 ||
 		    !CallSymGetModuleBase64 || !CallSymFunctionTableAccess64) {
-			mutex_unlock(symbol_mutex);
+			if (symbol_mutex)
+				mutex_unlock(symbol_mutex);
 			return _symbol_resolve_initialized;
 		}
 
@@ -564,7 +569,8 @@ _initialize_symbol_resolve() {
 
 #endif
 
-	mutex_unlock(symbol_mutex);
+	if (symbol_mutex)
+		mutex_unlock(symbol_mutex);
 
 	return _symbol_resolve_initialized;
 }
@@ -603,7 +609,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t
 	IMAGEHLP_MODULE64 module64;
 	string_t resolved = {buffer, 0};
 
-	mutex_lock(symbol_mutex);
+	if (symbol_mutex)
+		mutex_lock(symbol_mutex);
 
 	for (iaddr = 0; (iaddr < max_frames) && !last_was_main && (resolved.length < capacity - 1); ++iaddr) {
 		string_t line;
@@ -662,7 +669,8 @@ _resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t
 			last_was_main = true;
 	}
 
-	mutex_unlock(symbol_mutex);
+	if (symbol_mutex)
+		mutex_unlock(symbol_mutex);
 
 	return resolved;
 
@@ -846,4 +854,5 @@ _stacktrace_finalize(void) {
 	_finalize_symbol_resolve();
 	_finalize_stackwalker();
 	mutex_deallocate(symbol_mutex);
+	symbol_mutex = 0;
 }

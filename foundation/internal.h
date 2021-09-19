@@ -29,6 +29,12 @@ _atomic_initialize(void);
 FOUNDATION_API void
 _atomic_finalize(void);
 
+FOUNDATION_API int
+_assert_initialize(void);
+
+FOUNDATION_API void
+_assert_finalize(void);
+
 FOUNDATION_API void
 _ringbuffer_stream_initialize(void);
 

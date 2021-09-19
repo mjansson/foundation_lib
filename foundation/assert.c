@@ -16,6 +16,7 @@
 
 #define ASSERT_BUFFER_SIZE 1024
 
+static mutex_t* assert_mutex;
 static assert_handler_fn _assert_handler;
 static char _assert_buffer[ASSERT_BUFFER_SIZE];
 
@@ -69,6 +70,9 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 		return (*_assert_handler)(context, condition, cond_length, file, file_length, line, msg, msg_length);
 
 #if BUILD_ENABLE_ASSERT
+	if (assert_mutex)
+		mutex_lock(assert_mutex);
+
 	contextstr = error_context_buffer(contextstr.str, contextstr.length);
 
 	if (foundation_is_initialized()) {
@@ -89,6 +93,10 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	log_errorf(context, ERROR_ASSERT, STRING_CONST("%.*s"), STRING_FORMAT(messagestr));
 
 	bool abort = !system_message_box(STRING_CONST("Assert Failure"), STRING_ARGS(messagestr), true);
+
+	if (assert_mutex)
+		mutex_unlock(assert_mutex);
+
 	return abort ? 1 : 0;
 #else
 	log_errorf(context, ERROR_ASSERT, assert_format, sizeof(assert_format) - 1, (int)cond_length, condition,
@@ -110,4 +118,16 @@ assert_report_formatted(hash_t context, const char* condition, size_t cond_lengt
 		msg_length = buffer.length;
 	}
 	return assert_report(context, condition, cond_length, file, file_length, line, msg, msg_length);
+}
+
+int
+_assert_initialize(void) {
+	assert_mutex = mutex_allocate(STRING_CONST("assert"));
+	return 0;
+}
+
+void
+_assert_finalize(void) {
+	mutex_deallocate(assert_mutex);
+	assert_mutex = 0;
 }

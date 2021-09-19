@@ -190,7 +190,7 @@ and disabled in all other configurations.
 
 #ifndef BUILD_ENABLE_MEMORY_CONTEXT
 #if BUILD_DEBUG || BUILD_RELEASE
-#define BUILD_ENABLE_MEMORY_CONTEXT 1
+#define BUILD_ENABLE_MEMORY_CONTEXT 0
 #else
 #define BUILD_ENABLE_MEMORY_CONTEXT 0
 #endif

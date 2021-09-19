@@ -68,6 +68,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	SUBSYSTEM_INIT(atomic);
 	SUBSYSTEM_INIT_ARGS(memory, memory);
 	SUBSYSTEM_INIT(static_hash);
+	SUBSYSTEM_INIT(assert);
 	SUBSYSTEM_INIT(log);
 	SUBSYSTEM_INIT(time);
 	SUBSYSTEM_INIT(thread);
@@ -134,6 +135,7 @@ foundation_finalize(void) {
 	_thread_finalize();
 	_time_finalize();
 	_log_finalize();
+	_assert_finalize();
 	_exception_finalize();
 	_stacktrace_finalize();
 	_static_hash_finalize();
