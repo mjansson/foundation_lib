@@ -376,7 +376,7 @@ void
 exception_raise_debug_break(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DebugBreak();
-	process_exit(-1);
+	//process_exit(-1);
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	__builtin_trap();
 #else
