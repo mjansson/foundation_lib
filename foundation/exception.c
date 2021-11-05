@@ -376,21 +376,23 @@ void
 exception_raise_debug_break(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DebugBreak();
-	//process_exit(-1);
 #elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	__builtin_trap();
 #else
-	exception_raise_abort();
+	static char* _illegal_ptr;
+	*_illegal_ptr = 1;
 #endif
 }
 
 void
 exception_raise_abort(void) {
-#if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
+#if FOUNDATION_PLATFORM_WINDOWS
+	DebugBreak();
+#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	__builtin_trap();
 #else
 	static char* _illegal_ptr;
 	*_illegal_ptr = 1;
-	process_exit(-1);
 #endif
+	process_exit(-1);
 }

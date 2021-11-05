@@ -21,7 +21,7 @@ foundation_sources = [
   'hash.c', 'hashmap.c', 'hashtable.c', 'json.c', 'library.c', 'log.c', 'main.c', 'md5.c', 'memory.c', 'mutex.c',
   'objectmap.c', 'path.c', 'pipe.c', 'process.c', 'profile.c', 'radixsort.c', 'random.c', 'regex.c',
   'ringbuffer.c', 'sha.c', 'semaphore.c', 'stacktrace.c', 'stream.c', 'string.c', 'system.c', 'thread.c', 'time.c',
-  'tizen.c', 'uuid.c', 'uuidmap.c', 'version.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
+  'tizen.c', 'uuid.c', 'uuidmap.c', 'version.c', 'virtualarray.c', 'delegate.m', 'environment.m', 'fs.m', 'system.m' ]
 
 foundation_lib = generator.lib(module = 'foundation', sources = foundation_sources + extrasources)
 #foundation_so = generator.sharedlib( module = 'foundation', sources = foundation_sources + extrasources )

@@ -179,4 +179,10 @@ error_context_clone(void) {
 	return 0;
 }
 
+error_context_t*
+error_context_set(error_context_t* context) {
+	FOUNDATION_UNUSED(context);
+	return 0;
+}
+
 #endif

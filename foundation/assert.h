@@ -27,6 +27,7 @@ are enabled */
 #include <foundation/types.h>
 #include <foundation/exception.h>
 #include <foundation/string.h>
+#include <foundation/log.h>
 
 /*! Get the currently set global assert handler
 \return Assert handler */

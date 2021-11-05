@@ -409,6 +409,9 @@ an error occurs during spawning */
 /*! Process exit code, generic success */
 #define PROCESS_EXIT_SUCCESS EXIT_SUCCESS
 
+/*! Virtual array flag for normal memory allocated storage */
+#define VIRTUALARRAY_MEMORY_ALLOCATED 1
+
 #if FOUNDATION_PLATFORM_WINDOWS
 #if FOUNDATION_ARCH_X86
 typedef int ssize_t;
@@ -472,6 +475,8 @@ typedef struct bitbuffer_t bitbuffer_t;
 typedef struct blowfish_t blowfish_t;
 /*! Bucketized array for POD types */
 typedef struct bucketarray_t bucketarray_t;
+/*! Virtualized array for POD types */
+typedef struct virtualarray_t virtualarray_t;
 /*! Error frame holding debug data for an entry in the frame stack in the error context */
 typedef struct error_frame_t error_frame_t;
 /*! Error context holding error frame stack for a thread */
@@ -1049,6 +1054,20 @@ struct bucketarray_t {
 	size_t bucket_count;
 	//! Number of elements stored in array
 	size_t count;
+};
+
+/*! Virtualized array for POD types that are safe to memcpy/memmove */
+struct virtualarray_t {
+	//! Current number of elements stored
+	size_t count;
+	//! Capacity of array in number of elements
+	size_t capacity;
+	//! Flags
+	uint flags;
+	//! Element size
+	uint element_size;
+	//! Storage
+	void* storage;
 };
 
 /*! Data for a frame in the error context stack */
