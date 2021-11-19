@@ -123,7 +123,8 @@ bucketarray_append(bucketarray_t* array, bucketarray_t* append) {
 		if (src_index == src_bucket_size) {
 			src_index = 0;
 			++src_bucket_idx;
-			src = append->bucket[src_bucket_idx];
+			if (copy_count)
+				src = append->bucket[src_bucket_idx];
 		} else {
 			src = pointer_offset(src, this_byte_count);
 		}
