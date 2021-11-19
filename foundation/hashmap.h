@@ -94,4 +94,4 @@ hashmap_clear(hashmap_t* map);
 /*! Call function for each value in hashmap
 \param fn Function to call */
 FOUNDATION_API void
-hashmap_foreach(hashmap_t* map, void (*fn)(void*));
+hashmap_foreach(hashmap_t* map, void (*fn)(void*, void*), void* context);

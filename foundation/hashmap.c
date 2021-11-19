@@ -135,10 +135,10 @@ hashmap_clear(hashmap_t* map) {
 }
 
 void
-hashmap_foreach(hashmap_t* map, void (*fn)(void*)) {
+hashmap_foreach(hashmap_t* map, void (*fn)(void*, void*), void* context) {
 	for (size_t ibucket = 0; ibucket < map->bucket_count; ++ibucket) {
 		hashmap_node_t* bucket = map->bucket[ibucket];
 		for (size_t inode = 0, nsize = array_size(bucket); inode < nsize; ++inode)
-			fn(bucket[inode].value);
+			fn(bucket[inode].value, context);
 	}
 }
