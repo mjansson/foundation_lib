@@ -100,7 +100,7 @@ _log_make_timestamp(void) {
 	timestamp.milliseconds = (milliseconds % 1000LL);
 	timestamp.seconds = (seconds % 60LL);
 	timestamp.minutes = (minutes % 60LL);
-	timestamp.hours = (int)(minutes / 24LL);
+	timestamp.hours = (int)(minutes / 60LL);
 
 	return timestamp;
 }
