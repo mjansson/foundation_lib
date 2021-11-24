@@ -41,6 +41,7 @@ typedef union {
 } uuid_convert_t;
 
 static atomic32_t _uuid_last_counter;
+static atomic64_t _uuid_last_hostid;
 
 // 6ba7b810-9dad-11d1-80b4-00c04fd430c8
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
@@ -91,7 +92,11 @@ uuid_generate_time(void) {
 	time_uuid.clock_seq_hi_and_reserved = ((clock_seq & 0x3F00) >> 8);
 
 	// If hardware node ID is null, use random and set identifier (multicast) bit
-	host_id = system_hostid();
+	host_id = atomic_load64(&_uuid_last_hostid, memory_order_relaxed);
+	if (!host_id) {
+		host_id = system_hostid();
+		atomic_store64(&_uuid_last_hostid, host_id, memory_order_relaxed);
+	}
 	if (host_id) {
 		for (in = 0; in < 6; ++in) {
 			uint64_t byteval = (host_id >> (8ULL * in)) & 0xFFULL;
