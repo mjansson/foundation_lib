@@ -21,7 +21,7 @@ static char handled_file[32];
 static unsigned int handled_line;
 static char handled_msg[32];
 #if BUILD_ENABLE_LOG
-static char handled_log[512];
+static char handled_log[8192];
 static log_handler_fn _global_log_handler = 0;
 #endif
 
@@ -134,9 +134,16 @@ DECLARE_TEST(exception, assert_handler) {
 	log_set_handler(handle_log);
 #endif
 	log_enable_stdout(false);
+	assert_force_continue(false);
+	int expected_abort = (system_debugger_attached() ? 1 : 0);
 	EXPECT_EQ(assert_report_formatted(1, STRING_CONST("assert_report_formatted"), STRING_CONST("file"), 2,
 	                                  STRING_CONST("%.*s"), 3, "msg"),
-	          1);
+	          expected_abort);
+	assert_force_continue(true);
+	expected_abort = 0;
+	EXPECT_EQ(assert_report_formatted(1, STRING_CONST("assert_report_formatted"), STRING_CONST("file"), 2,
+	                                  STRING_CONST("%.*s"), 3, "msg"),
+	          expected_abort);
 	log_enable_stdout(true);
 	EXPECT_EQ(error(), ERROR_ASSERT);
 #if BUILD_ENABLE_LOG
@@ -153,35 +160,26 @@ DECLARE_TEST(exception, assert_handler) {
 	log_infof(
 	    HASH_TEST, STRING_CONST("%s"),
 #endif
-	    "To test log handler and memory handling this test will print "
-	    "a really long log line with complete nonsense. Log handlers only occur for non-suppressed "
-	    "log levels, which is why this will be visible. However, it will not be printed to stdout. "
-	    "Lorem ipsum dolor sit amet, an quas vivendum sed, in est summo conclusionemque, an est nulla nonumy option. "
-	    "Malorum invidunt et mel, mei et hinc adolescens, eu velit deleniti urbanitas cum. Ei pericula omittantur duo, "
-	    "eam ei malis pertinacia, eum hinc dictas et. Duo et velit dolorem explicari, an tacimates abhorreant qui, "
-	    "esse possit intellegat ad vis. Eros populo numquam pro ea. Eius altera volumus duo ex, offendit comprehensam "
-	    "sit te. Ea facete nostrum fabellas sea. Vel ea rebum ridens quodsi, etiam urbanitas mea an. Ornatus commune "
-	    "et his, "
-	    "quo habeo denique an, id his amet diceret. Eam ei essent denique, cu quaestio perpetua vim. Mei utamur "
-	    "maluisset ex, "
-	    "iriure tritani eu per. Pro at rebum maluisset, nec ei eirmod scaevola consulatu, ius in meis patrioque. Vis "
-	    "at summo "
-	    "ancillae omnesque, inani moderatius delicatissimi qui an. Et illum vocibus eum, aliquando intellegat ex ius. "
-	    "Ius at "
-	    "tation veritus. Scripta reprehendunt at sed. Hinc idque mollis in cum, at elit habemus civibus eam, sea et "
-	    "modus "
-	    "eripuit. Alii ipsum electram id vel, mei alterum percipitur cu. Pro cu minim erant graecis, no vis tation "
-	    "nominavi "
-	    "imperdiet, mei affert probatus ut. Quo veri modus ad, solet nostrud atomorum ius ea. Everti aliquid ne usu, "
-	    "populo "
-	    "sapientem pro te. Persecuti definitionem qui ei, dicit dicunt ea quo. Sed minimum copiosae ei, pri dicat "
-	    "possit "
-	    "urbanitas eu. Tritani interesset theophrastus id sit, phaedrum facilisis his eu. Dictas accusam eu quo. Ea "
-	    "democritum "
-	    "consetetur vel. Iudicabit definitionem est eu, oportere temporibus at nec.");
+	    "To test log handler and memory handling this test will print a really long log line with complete nonsense. "
+	    "Log handlers only occur for non-suppressed log levels, which is why this will be visible. However, it will "
+	    "not be printed to stdout. Lorem ipsum dolor sit amet, an quas vivendum sed, in est summo conclusionemque, an "
+	    "est nulla nonumy option. Malorum invidunt et mel, mei et hinc adolescens, eu velit deleniti urbanitas cum. Ei "
+	    "pericula omittantur duo, eam ei malis pertinacia, eum hinc dictas et. Duo et velit dolorem explicari, an "
+	    "tacimates abhorreant qui, esse possit intellegat ad vis. Eros populo numquam pro ea. Eius altera volumus duo "
+	    "ex, offendit comprehensam sit te. Ea facete nostrum fabellas sea. Vel ea rebum ridens quodsi, etiam urbanitas "
+	    "mea an. Ornatus commune et his, quo habeo denique an, id his amet diceret. Eam ei essent denique, cu quaestio "
+	    "perpetua vim. Mei utamur maluisset ex, iriure tritani eu per. Pro at rebum maluisset, nec ei eirmod scaevola "
+	    "consulatu, ius in meis patrioque. Vis at summo ancillae omnesque, inani moderatius delicatissimi qui an. Et "
+	    "illum vocibus eum, aliquando intellegat ex ius. Ius at tation veritus. Scripta reprehendunt at sed. Hinc "
+	    "idque mollis in cum, at elit habemus civibus eam, sea et modus eripuit. Alii ipsum electram id vel, mei "
+	    "alterum percipitur cu. Pro cu minim erant graecis, no vis tation nominavi imperdiet, mei affert probatus ut. "
+	    "Quo veri modus ad, solet nostrud atomorum ius ea. Everti aliquid ne usu, populo sapientem pro te. Persecuti "
+	    "definitionem qui ei, dicit dicunt ea quo. Sed minimum copiosae ei, pri dicat possit urbanitas eu. Tritani "
+	    "interesset theophrastus id sit, phaedrum facilisis his eu. Dictas accusam eu quo. Ea democritum consetetur "
+	    "vel. Iudicabit definitionem est eu, oportere temporibus at nec.");
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 	log_enable_stdout(true);
-	EXPECT_TRUE(string_find_string(handled_log, string_length(handled_log), STRING_CONST("Lorem ipsum"), 0) !=
+	EXPECT_TRUE(string_find_string(handled_log, string_length(handled_log), STRING_CONST("oportere temporibus"), 0) !=
 	            STRING_NPOS);
 
 	log_set_handler(_global_log_handler);

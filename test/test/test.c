@@ -246,6 +246,9 @@ main_initialize(void) {
 	int ret;
 	const string_const_t* cmdline;
 
+	memory_set_tracker(memory_tracker_local());
+	assert_force_continue(true);
+
 	log_set_suppress(0, ERRORLEVEL_INFO);
 
 	test_suite = test_suite_define();
@@ -257,8 +260,8 @@ main_initialize(void) {
 			if (string_equal(STRING_ARGS(cmdline[iarg]), STRING_CONST("--no-memory-tracker")))
 				memory_tracker = false;
 		}
-		if (memory_tracker)
-			memory_set_tracker(memory_tracker_local());
+		if (!memory_tracker)
+			memory_set_tracker(memory_tracker_none());
 	}
 
 	return ret;
