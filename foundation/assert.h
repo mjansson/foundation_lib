@@ -76,6 +76,11 @@ FOUNDATION_API int
 assert_report_formatted(hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length,
                         unsigned int line, const char* format, size_t format_length, ...) FOUNDATION_PRINTFCALL(7, 9);
 
+/*! Override break/continue execution behaviour
+\param continue_execution Force continuation of execution if true */
+FOUNDATION_API void
+assert_force_continue(bool continue_execution);
+
 #if BUILD_ENABLE_ASSERT
 
 /*! Assert the given condition. If assert fails, call the #assert_report function with

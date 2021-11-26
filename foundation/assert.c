@@ -19,6 +19,7 @@
 static mutex_t* assert_mutex;
 static assert_handler_fn _assert_handler;
 static char _assert_buffer[ASSERT_BUFFER_SIZE];
+static bool assert_has_force_continue;
 
 #if BUILD_ENABLE_ASSERT
 #define ASSERT_STACKTRACE_MAX_DEPTH 128U
@@ -37,6 +38,11 @@ assert_handler(void) {
 void
 assert_set_handler(assert_handler_fn new_handler) {
 	_assert_handler = new_handler;
+}
+
+void
+assert_force_continue(bool continue_execution) {
+	assert_has_force_continue = continue_execution;
 }
 
 int
@@ -93,6 +99,10 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	log_errorf(context, ERROR_ASSERT, STRING_CONST("%.*s"), STRING_FORMAT(messagestr));
 
 	bool abort = !system_message_box(STRING_CONST("Assert Failure"), STRING_ARGS(messagestr), true);
+	if (assert_has_force_continue)
+		abort = false;
+	else if (environment_application()->flags & APPLICATION_UTILITY)
+		abort = system_debugger_attached();
 
 	if (assert_mutex)
 		mutex_unlock(assert_mutex);
