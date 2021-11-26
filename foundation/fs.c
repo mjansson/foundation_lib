@@ -1388,51 +1388,25 @@ _fs_file_flush(stream_t* stream) {
 static size_t
 _fs_file_read(stream_t* stream, void* buffer, size_t size) {
 	stream_file_t* file;
-	size_t was_read;
-	size_t beforepos;
 
 	if (!(stream->mode & STREAM_IN) || (GET_FILE(stream)->fd == 0))
 		return 0;
 
 	file = GET_FILE(stream);
 
-	beforepos = _fs_file_tell(stream);
-	was_read = fread(buffer, 1, size, file->fd);
-	if (was_read > 0)
-		return was_read;
-
-	if (feof(file->fd)) {
-		size_t newpos = _fs_file_tell(stream);
-		if (newpos > beforepos)
-			return (newpos - beforepos);
-	}
-
-	return 0;
+	return fread(buffer, 1, size, file->fd);
 }
 
 static size_t
 _fs_file_write(stream_t* stream, const void* buffer, size_t size) {
 	stream_file_t* file;
-	size_t was_written;
-	size_t beforepos;
 
 	if (!(stream->mode & STREAM_OUT) || (GET_FILE(stream)->fd == 0))
 		return 0;
 
 	file = GET_FILE(stream);
 
-	beforepos = _fs_file_tell(stream);
-	was_written = fwrite(buffer, 1, size, file->fd);
-	if (was_written > 0)
-		return was_written;
-
-	if (feof(file->fd)) {
-		size_t newpos = _fs_file_tell(stream);
-		if (newpos > beforepos)
-			return (newpos - beforepos);
-	}
-
-	return 0;
+	return fwrite(buffer, 1, size, file->fd);
 }
 
 static tick_t
