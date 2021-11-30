@@ -19,8 +19,6 @@
 #endif
 
 struct FOUNDATION_ALIGN(16) mutex_t {
-	char name_buffer[32];
-	string_const_t name;
 #if FOUNDATION_PLATFORM_WINDOWS
 	CRITICAL_SECTION csection;
 	void* event;
@@ -34,6 +32,8 @@ struct FOUNDATION_ALIGN(16) mutex_t {
 #endif
 	volatile int lockcount;
 	uint64_t lockedthread;
+	char name_buffer[32];
+	string_const_t name;
 };
 
 static void

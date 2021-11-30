@@ -40,7 +40,7 @@ foundation_initialize_config(const foundation_config_t config) {
 	_config.stacktrace_depth = (config.stacktrace_depth ? config.stacktrace_depth : 32);
 	_config.event_block_chunk = (config.event_block_chunk ? config.event_block_chunk : (8 * 1024));
 	_config.event_block_limit = (config.event_block_limit ? config.event_block_limit : (512 * 1024));
-	_config.thread_stack_size = (config.thread_stack_size ? config.thread_stack_size : 0x8000);
+	_config.thread_stack_size = (config.thread_stack_size ? config.thread_stack_size : 0x10000);
 
 	_config.hash_store_size = config.hash_store_size;
 	_config.random_state_prealloc = config.random_state_prealloc;
