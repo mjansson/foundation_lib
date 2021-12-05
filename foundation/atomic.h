@@ -102,28 +102,28 @@ atomic_add64(atomic64_t* val, int64_t add, memory_order order);
 /*! Atomically increases the value of the 32 bit integer and returns its new value
 \param val   Value to change
 \param order The memory synchronization order for this operation
-\return      New value after addition */
+\return      New value after increase */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_incr32(atomic32_t* val, memory_order order);
 
 /*! Atomically increases the value of the 64 bit integer and returns its new value
 \param val   Value to change
 \param order The memory synchronization order for this operation
-\return      New value after addition */
+\return      New value after increase */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_incr64(atomic64_t* val, memory_order order);
 
 /*! Atomically decreases the value of the 32 bit integer and returns its new value
 \param val   Value to change
 \param order The memory synchronization order for this operation
-\return      New value after addition */
+\return      New value after decrease */
 static FOUNDATION_FORCEINLINE int32_t
 atomic_decr32(atomic32_t* val, memory_order order);
 
 /*! Atomically decreases the value of the 64 bit integer and returns its new value
 \param val   Value to change
 \param order The memory synchronization order for this operation
-\return      New value after addition */
+\return      New value after decrease */
 static FOUNDATION_FORCEINLINE int64_t
 atomic_decr64(atomic64_t* val, memory_order order);
 
