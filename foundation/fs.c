@@ -16,6 +16,8 @@
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
 #include <sys/utime.h>
+#include <io.h>
+#include <fcntl.h>
 #elif FOUNDATION_PLATFORM_POSIX
 #include <foundation/posix.h>
 #include <time.h>
@@ -46,7 +48,13 @@
 
 #include <stdio.h>
 
+#if FOUNDATION_PLATFORM_WINDOWS
+typedef HANDLE fs_file_descriptor;
+#define FD_VALID(x) ((x) != INVALID_HANDLE_VALUE)
+#else
 typedef FILE* fs_file_descriptor;
+#define FD_VALID(x) ((x) != 0)
+#endif
 
 struct fs_monitor_t {
 	string_t path;
@@ -1180,20 +1188,65 @@ exit_thread:
 static fs_file_descriptor
 _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc) {
 	fs_file_descriptor fd = 0;
+	int retry = 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #define MODESTRING(x) L##x
-	const wchar_t* modestr;
 	wchar_t* wpath;
-#elif FOUNDATION_PLATFORM_LINUX
-#define MODESTRING(x) x "e"
-	const char* modestr;
-#else
-#define MODESTRING(x) x
-	const char* modestr;
-#endif
-	int retry = 0;
 
+	DWORD read_write = 0;
+	DWORD share = FILE_SHARE_READ;
+	DWORD create = OPEN_EXISTING;
+	if (mode & STREAM_IN) {
+		if (mode & STREAM_OUT) {
+			if (mode & STREAM_CREATE) {
+				if (mode & STREAM_TRUNCATE)
+					create = CREATE_ALWAYS;
+				else {
+					create = OPEN_EXISTING;
+					retry = 1;
+				}
+			} else {
+				create = OPEN_EXISTING;
+				if ((mode & STREAM_TRUNCATE) && dotrunc)
+					*dotrunc = true;
+			}
+			read_write = GENERIC_READ | GENERIC_WRITE;
+		} else {
+			// truncate is ignored for read-only files
+			create = OPEN_EXISTING;
+			if (mode & STREAM_CREATE) {
+				retry = 1;
+			}
+			read_write = GENERIC_READ;
+			share |= FILE_SHARE_WRITE;
+		}
+	} else if (mode & STREAM_OUT) {
+		if (mode & STREAM_TRUNCATE) {
+			if (mode & STREAM_CREATE)
+				create = CREATE_ALWAYS;
+			else {
+				create = OPEN_EXISTING;
+				if (dotrunc)
+					*dotrunc = true;
+			}
+		} else {
+			create = OPEN_EXISTING;
+			if (mode & STREAM_CREATE)
+				retry = 1;
+		}
+		read_write = GENERIC_WRITE;
+	} else {
+		return INVALID_HANDLE_VALUE;
+	}
+#else
+#  if FOUNDATION_PLATFORM_LINUX
+#  define MODESTRING(x) x "e"
+	const char* modestr;
+#  else
+#  define MODESTRING(x) x
+	const char* modestr;
+#  endif
 	if (mode & STREAM_IN) {
 		if (mode & STREAM_OUT) {
 			if (mode & STREAM_CREATE) {
@@ -1230,13 +1283,15 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 			if (mode & STREAM_CREATE)
 				retry = 1;
 		}
-	} else
+	} else {
 		return 0;
+	}
+#endif
 
 	do {
 #if FOUNDATION_PLATFORM_WINDOWS
 		wpath = wstring_allocate_from_string(path, length);
-		fd = _wfsopen(wpath, modestr, (mode & STREAM_OUT) ? _SH_DENYWR : _SH_DENYNO);
+		fd = CreateFileW(wpath, read_write, share, nullptr, create, FILE_ATTRIBUTE_NORMAL, nullptr);
 		wstring_deallocate(wpath);
 #elif FOUNDATION_PLATFORM_POSIX
 		FOUNDATION_UNUSED(length);
@@ -1248,13 +1303,23 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 		// but not truncate existing file, while still not using append mode since that fixes
 		// writing to end of file. Try first with r+b to avoid truncation, then if it fails
 		// i.e file does not exist, create it with w+b
+#if FOUNDATION_PLATFORM_WINDOWS
+		create = CREATE_ALWAYS;
+#else
 		modestr = MODESTRING("w+b");
-	} while (!fd && (retry-- > 0));
+#endif
+	} while (!FD_VALID(fd) && (retry-- > 0));
 
-	if (fd && (mode & STREAM_ATEND)) {
+	if (FD_VALID(fd) && (mode & STREAM_ATEND)) {
+#if FOUNDATION_PLATFORM_WINDOWS
+		if (SetFilePointer(fd, 0, 0, FILE_END) == INVALID_SET_FILE_POINTER)
+			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to end of stream '%.*s'"), (int)length,
+			          path);
+#else
 		if (fseek(fd, 0, SEEK_END))
 			log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to end of stream '%.*s'"), (int)length,
 			          path);
+#endif
 	}
 
 	return fd;
@@ -1262,16 +1327,14 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 
 static size_t
 _fs_file_tell(stream_t* stream) {
-	if (GET_FILE(stream)->fd == 0)
+	if (!FD_VALID(GET_FILE(stream)->fd))
 		return 0;
-#if FOUNDATION_PLATFORM_WINDOWS && (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
-	int64_t pos = _ftelli64(GET_FILE(stream)->fd);
-	return (size_t)(pos < 0 ? 0 : pos);
-#elif FOUNDATION_PLATFORM_WINDOWS
-	fpos_t pos;
-	if (fgetpos(GET_FILE(stream)->fd, &pos))
+#if FOUNDATION_PLATFORM_WINDOWS
+	LONG high_word = 0;
+	LONG low_word = SetFilePointer(GET_FILE(stream)->fd, 0, &high_word, FILE_CURRENT);
+	if (low_word == INVALID_SET_FILE_POINTER)
 		return 0;
-	return (size_t)(pos < 0 ? 0 : pos);
+	return (size_t)(((uint64_t)high_word << 32ULL) | (uint64_t)low_word);
 #else
 	off_t pos = ftello(GET_FILE(stream)->fd);
 	return (size_t)(pos < 0 ? 0 : pos);
@@ -1280,21 +1343,34 @@ _fs_file_tell(stream_t* stream) {
 
 static void
 _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
+#if FOUNDATION_PLATFORM_WINDOWS
+	if (SetFilePointer(GET_FILE(stream)->fd, (LONG)offset, 0,
+	             (direction == STREAM_SEEK_BEGIN) ?
+                     FILE_BEGIN :
+                     ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"), (int)offset,
+		          (int)direction, STRING_FORMAT(stream->path));
+	}
+#else
 	/*lint -esym(970,long) */
 	if (fseek(GET_FILE(stream)->fd, (long)offset,
 	          (direction == STREAM_SEEK_BEGIN) ? SEEK_SET : ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR))) {
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"), (int)offset,
 		          (int)direction, STRING_FORMAT(stream->path));
 	}
-}
-
-static bool
-_fs_file_eos(stream_t* stream) {
-	return (GET_FILE(stream)->fd == 0) || (feof(GET_FILE(stream)->fd) != 0);
+#endif
 }
 
 static size_t
 _fs_file_size(stream_t* stream) {
+	if (!FD_VALID(GET_FILE(stream)->fd))
+		return 0;
+#if FOUNDATION_PLATFORM_WINDOWS
+	LARGE_INTEGER file_size = {0};
+	if (GetFileSizeEx(GET_FILE(stream)->fd, &file_size) == 0)
+		return 0;
+	return (size_t)file_size.QuadPart;
+#else
 	size_t cur, size;
 
 	cur = _fs_file_tell(stream);
@@ -1303,24 +1379,55 @@ _fs_file_size(stream_t* stream) {
 	_fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
 
 	return size;
+#endif
+}
+
+static bool
+_fs_file_eos(stream_t* stream) {
+	if (!FD_VALID(GET_FILE(stream)->fd))
+		return true;
+#if FOUNDATION_PLATFORM_WINDOWS
+	size_t current = _fs_file_tell(stream);
+	size_t size = _fs_file_size(stream);
+	return (current == size);
+#else
+	return feof(GET_FILE(stream)->fd) != 0;
+#endif
 }
 
 static void
 _fs_file_truncate(stream_t* stream, size_t length) {
-	stream_file_t* file;
-	string_const_t fspath;
-	size_t cur;
-#if FOUNDATION_PLATFORM_WINDOWS
-	HANDLE fd;
-	wchar_t* wpath;
-	bool success = false;
-#endif
-
-	if (!(stream->mode & STREAM_OUT) || (GET_FILE(stream)->fd == 0))
+	if (!(stream->mode & STREAM_OUT) || !FD_VALID(GET_FILE(stream)->fd))
 		return;
 
 	if (length >= _fs_file_size(stream))
 		return;
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	bool success = false;
+	if ((int64_t)length < 0x7FFFFFFFULL)
+	{
+		success = (SetFilePointer(GET_FILE(stream)->fd, (LONG)length, 0, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
+	}
+	else {
+		LONG high = (LONG)((int64_t)length >> 32LL);
+		success = (SetFilePointer(GET_FILE(stream)->fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
+	}
+	if (success)
+		success = (SetEndOfFile(GET_FILE(stream)->fd) != 0);
+
+	if (!success) {
+		string_const_t errstr = system_error_message(0);
+		string_const_t fspath = _fs_strip_protocol(STRING_ARGS(stream->path));
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
+				  STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
+	}
+
+#elif FOUNDATION_PLATFORM_POSIX
+
+	stream_file_t* file;
+	string_const_t fspath;
+	size_t cur;
 
 	cur = _fs_file_tell(stream);
 	if (cur > length)
@@ -1334,33 +1441,6 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	fclose(file->fd);
 	file->fd = 0;
 
-#if FOUNDATION_PLATFORM_WINDOWS
-	wpath = wstring_allocate_from_string(STRING_ARGS(fspath));
-	fd = CreateFileW(wpath, GENERIC_WRITE, FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0);
-	wstring_deallocate(wpath);
-	if (fd != INVALID_HANDLE_VALUE) {
-#if FOUNDATION_ARCH_X86_64
-		if (length < 0xFFFFFFFF)
-#endif
-		{
-			success = (SetFilePointer(fd, (LONG)length, 0, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
-		}
-#if FOUNDATION_ARCH_X86_64
-		else {
-			LONG high = (LONG)(length >> 32LL);
-			success = (SetFilePointer(fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
-		}
-#endif
-		if (success)
-			success = (SetEndOfFile(fd) != 0);
-		CloseHandle(fd);
-	}
-	if (!success) {
-		string_const_t errstr = system_error_message(0);
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
-		          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
-	}
-#elif FOUNDATION_PLATFORM_POSIX
 	int fd = open(fspath.str, O_RDWR);
 	if (ftruncate(fd, (ssize_t)length) < 0) {
 		int err = system_error();
@@ -1370,43 +1450,56 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 		          STRING_FORMAT(fspath), length, STRING_FORMAT(errmsg), err);
 	}
 	close(fd);
-#else
-#error Not implemented
-#endif
 
 	file->fd = _fs_file_fopen(fspath.str, fspath.length, stream->mode, 0);
 	_fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
+
+#else
+#error Not implemented
+#endif
 }
 
 static void
 _fs_file_flush(stream_t* stream) {
-	if (GET_FILE(stream)->fd == 0)
+	if (!FD_VALID(GET_FILE(stream)->fd))
 		return;
+#if FOUNDATION_PLATFORM_WINDOWS
+	FlushFileBuffers(GET_FILE(stream)->fd);
+#else
 	fflush(GET_FILE(stream)->fd);
+#endif
 }
 
 static size_t
 _fs_file_read(stream_t* stream, void* buffer, size_t size) {
-	stream_file_t* file;
-
-	if (!(stream->mode & STREAM_IN) || (GET_FILE(stream)->fd == 0))
+	if (!(stream->mode & STREAM_IN) || !FD_VALID(GET_FILE(stream)))
 		return 0;
 
-	file = GET_FILE(stream);
-
+	stream_file_t* file = GET_FILE(stream);
+#if FOUNDATION_PLATFORM_WINDOWS
+	DWORD bytes_read = 0;
+	if (ReadFile(file->fd, buffer, (DWORD)size, &bytes_read, 0) == 0)
+		return 0;
+	return bytes_read;
+#else
 	return fread(buffer, 1, size, file->fd);
+#endif
 }
 
 static size_t
 _fs_file_write(stream_t* stream, const void* buffer, size_t size) {
-	stream_file_t* file;
-
-	if (!(stream->mode & STREAM_OUT) || (GET_FILE(stream)->fd == 0))
+	 if (!(stream->mode & STREAM_OUT) || !FD_VALID(GET_FILE(stream)->fd))
 		return 0;
 
-	file = GET_FILE(stream);
-
+	stream_file_t* file = GET_FILE(stream);
+#if FOUNDATION_PLATFORM_WINDOWS
+	DWORD bytes_written = 0;
+	if (WriteFile(file->fd, buffer, (DWORD)size, &bytes_written, 0) == 0)
+		return 0;
+	return bytes_written;
+#else
 	return fwrite(buffer, 1, size, file->fd);
+#endif
 }
 
 static tick_t
@@ -1435,14 +1528,14 @@ _fs_file_clone(stream_t* stream) {
 static void
 _fs_file_finalize(stream_t* stream) {
 	stream_file_t* file = GET_FILE(stream);
-	if (file->fd == 0)
+	if (!FD_VALID(file->fd))
 		return;
 
 	if (file->mode & STREAM_SYNC) {
 		_fs_file_flush(stream);
 		if (file->fd) {
 #if FOUNDATION_PLATFORM_WINDOWS
-			_commit(_fileno(file->fd));
+			//_commit(_fileno(file->fd));
 #elif FOUNDATION_PLATFORM_MACOS
 			fcntl(fileno(file->fd), F_FULLFSYNC, 0);
 #elif FOUNDATION_PLATFORM_POSIX
@@ -1453,9 +1546,13 @@ _fs_file_finalize(stream_t* stream) {
 		}
 	}
 
-	if (file->fd)
-		fclose(file->fd);
+#if FOUNDATION_PLATFORM_WINDOWS
+	CloseHandle(file->fd);
+	file->fd = INVALID_HANDLE_VALUE;
+#else
+	fclose(file->fd);
 	file->fd = 0;
+#endif
 }
 
 stream_t*
@@ -1490,7 +1587,7 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 
 	fspath = _fs_strip_protocol(STRING_ARGS(finalpath));
 	fd = _fs_file_fopen(STRING_ARGS(fspath), mode, &dotrunc);
-	if (!fd) {
+	if (!FD_VALID(fd)) {
 		string_deallocate(finalpath.str);
 		return 0;
 	}
