@@ -196,6 +196,7 @@ test_set_suitable_working_directory(void) {
 
 	string_const_t last_dir;
 	string_t config_dir;
+	string_t configure_py;
 	string_const_t working_dir = environment_executable_directory();
 	do {
 		last_dir = working_dir;
@@ -203,6 +204,13 @@ test_set_suitable_working_directory(void) {
 		log_debugf(HASH_TEST, STRING_CONST("Check config dir: %.*s"), STRING_FORMAT(config_dir));
 		if (fs_is_directory(STRING_ARGS(config_dir))) {
 			log_debugf(HASH_TEST, STRING_CONST("Found config dir: %.*s"), STRING_FORMAT(config_dir));
+			found = true;
+			break;
+		}
+		configure_py = path_concat(buffer, sizeof(buffer), STRING_ARGS(working_dir), STRING_CONST("configure.py"));
+		log_debugf(HASH_TEST, STRING_CONST("Check configure script: %.*s"), STRING_FORMAT(configure_py));
+		if (fs_is_file(STRING_ARGS(configure_py))) {
+			log_debugf(HASH_TEST, STRING_CONST("Found configure script: %.*s"), STRING_FORMAT(configure_py));
 			found = true;
 			break;
 		}
