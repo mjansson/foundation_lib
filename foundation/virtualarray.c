@@ -102,6 +102,7 @@ virtualarray_free_storage(uint flags, size_t size, void* storage) {
 	}
 
 #if FOUNDATION_PLATFORM_WINDOWS
+	FOUNDATION_UNUSED(size);
 	VirtualFree(storage, 0, MEM_RELEASE);
 #else
 	munmap(storage, size);
