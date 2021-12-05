@@ -26,7 +26,7 @@ https://en.wikipedia.org/wiki/Semaphore_(programming) */
 \param value Initial value
 \return true if successful, false if error */
 FOUNDATION_API bool
-semaphore_initialize(semaphore_t* semaphore, unsigned int value);
+semaphore_initialize(semaphore_t* semaphore, uint value);
 
 /*! Initialize a named semaphore with the given value.
 \param semaphore Semaphore
@@ -35,7 +35,7 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value);
 \param value Initial value
 \return true if successful, false if error */
 FOUNDATION_API bool
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, unsigned int value);
+semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, uint value);
 
 /*! Finalize semaphore. The semaphore value must be >= than the value it was created with,
 or it will be considered to be still in use (on OSX/iOS targets this will cause a debug abort).
@@ -54,12 +54,18 @@ semaphore_wait(semaphore_t* semaphore);
 \param milliseconds Timeout in milliseconds, 0 means no wait
 \return true if successful, false if timeout or error/interrupted */
 FOUNDATION_API bool
-semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds);
+semaphore_try_wait(semaphore_t* semaphore, uint milliseconds);
 
 /*! Post semaphore.
 \param semaphore Semaphore */
 FOUNDATION_API void
 semaphore_post(semaphore_t* semaphore);
+
+/*! Post semaphore multiple times
+\param semaphore Semaphore
+\param count Number of times */
+FOUNDATION_API void
+semaphore_post_multiple(semaphore_t* semaphore, uint count);
 
 #if FOUNDATION_PLATFORM_WINDOWS
 

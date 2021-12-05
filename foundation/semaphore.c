@@ -30,14 +30,14 @@
 #if FOUNDATION_PLATFORM_WINDOWS
 
 bool
-semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
+semaphore_initialize(semaphore_t* semaphore, uint value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 	*semaphore = CreateSemaphoreA(0, (long)value, 0xFFFF, 0);  // lint !e970
 	return (*semaphore) != 0 ? true : false;
 }
 
 bool
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, unsigned int value) {
+semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, uint value) {
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 	char buffer[128];
@@ -58,7 +58,7 @@ semaphore_wait(semaphore_t* semaphore) {
 }
 
 bool
-semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
+semaphore_try_wait(semaphore_t* semaphore, uint milliseconds) {
 	DWORD res = WaitForSingleObject((HANDLE)*semaphore, milliseconds);
 	return (res == WAIT_OBJECT_0);
 }
@@ -66,6 +66,11 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 void
 semaphore_post(semaphore_t* semaphore) {
 	ReleaseSemaphore((HANDLE)*semaphore, 1, 0);
+}
+
+void
+semaphore_post_multiple(semaphore_t* semaphore, uint count) {
+	ReleaseSemaphore((HANDLE)*semaphore, count, 0);
 }
 
 void*
@@ -84,7 +89,7 @@ semaphore_event_handle(semaphore_t* semaphore) {
 // named - UNSUPPORTED
 
 bool
-semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
+semaphore_initialize(semaphore_t* semaphore, uint value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 
 	semaphore->name = (string_t){0, 0};
@@ -100,7 +105,7 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 }
 
 bool
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, unsigned int value) {
+semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, uint value) {
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 #if FOUNDATION_PLATFORM_MACOS
@@ -169,7 +174,7 @@ semaphore_wait(semaphore_t* semaphore) {
 }
 
 bool
-semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
+semaphore_try_wait(semaphore_t* semaphore, uint milliseconds) {
 	if (!semaphore->name.length) {
 		long result = dispatch_semaphore_wait(semaphore->sem.unnamed,
 		                                      (milliseconds > 0) ?
@@ -206,10 +211,36 @@ semaphore_post(semaphore_t* semaphore) {
 #endif
 }
 
+void
+semaphore_post_multiple(semaphore_t* semaphore, uint count) {
+	if (!semaphore->name.length) {
+		for (uint item = 0; item < count; ++item)
+			dispatch_semaphore_signal(semaphore->sem.unnamed);
+	}
+#if FOUNDATION_PLATFORM_MACOS
+	else {
+		for (uint item = 0; item < count; ++item)
+			sem_post(semaphore->sem.named);
+	}
+#endif
+}
+
+void
+semaphore_post_multiple(semaphore_t* semaphore) {
+	if (!semaphore->name.length) {
+		dispatch_semaphore_signal(semaphore->sem.unnamed);
+	}
+#if FOUNDATION_PLATFORM_MACOS
+	else {
+		sem_post(semaphore->sem.named);
+	}
+#endif
+}
+
 #elif FOUNDATION_PLATFORM_POSIX
 
 bool
-semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
+semaphore_initialize(semaphore_t* semaphore, uint value) {
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 
 	semaphore->name = (string_t){0, 0};
@@ -235,7 +266,7 @@ semaphore_initialize(semaphore_t* semaphore, unsigned int value) {
 }
 
 bool
-semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, unsigned int value) {
+semaphore_initialize_named(semaphore_t* semaphore, const char* name, size_t length, uint value) {
 	FOUNDATION_ASSERT(name);
 	FOUNDATION_ASSERT(value <= 0xFFFF);
 
@@ -278,7 +309,7 @@ semaphore_wait(semaphore_t* semaphore) {
 }
 
 bool
-semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
+semaphore_try_wait(semaphore_t* semaphore, uint milliseconds) {
 	if (milliseconds > 0) {
 		struct timeval now;
 		struct timespec then;
@@ -297,6 +328,12 @@ semaphore_try_wait(semaphore_t* semaphore, unsigned int milliseconds) {
 void
 semaphore_post(semaphore_t* semaphore) {
 	sem_post(semaphore->sem);
+}
+
+void
+semaphore_post_multiple(semaphore_t* semaphore, uint count) {
+	for (uint item = 0; item < count; ++item)
+		sem_post(semaphore->sem);
 }
 
 #else
