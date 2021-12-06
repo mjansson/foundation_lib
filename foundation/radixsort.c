@@ -12,7 +12,7 @@
 
 #include <foundation/foundation.h>
 
-static const unsigned int _radixsort_data_size[] = {
+static const unsigned int radixsort_data_size[] = {
     4,  // RADIXSORT_INT32,
     4,  // RADIXSORT_UINT32,
     8,  // RADIXSORT_INT64,
@@ -21,7 +21,7 @@ static const unsigned int _radixsort_data_size[] = {
     8   // RADIXSORT_FLOAT64
 };
 
-static const unsigned int _radixsort_data_shift[] = {
+static const unsigned int radixsort_data_shift[] = {
     2,  // RADIXSORT_INT32,
     2,  // RADIXSORT_UINT32,
     3,  // RADIXSORT_INT64,
@@ -30,7 +30,7 @@ static const unsigned int _radixsort_data_shift[] = {
     3   // RADIXSORT_FLOAT64
 };
 
-static const bool _radixsort_data_signed[] = {
+static const bool radixsort_data_signed[] = {
     true,   // RADIXSORT_INT32,
     false,  // RADIXSORT_UINT32,
     true,   // RADIXSORT_INT64,
@@ -45,7 +45,7 @@ static const bool _radixsort_data_signed[] = {
 static bool
 radixsort_create_histograms(radixsort_t* sort, const void* input_raw, size_t count) {
 	const radixsort_data_t data_type = sort->type;
-	const size_t data_size = _radixsort_data_size[data_type];
+	const size_t data_size = radixsort_data_size[data_type];
 
 	const unsigned char* loop = input_raw;
 	const unsigned char* loop_end = loop + (count * data_size);
@@ -554,9 +554,9 @@ static const void*
 radixsort_int_index16(radixsort_t* sort, const void* input, size_t count) {
 	const radixsort_data_t data_type = sort->type;
 
-	const unsigned int data_size = _radixsort_data_size[data_type];
-	const bool data_signed = _radixsort_data_signed[data_type];
-	const unsigned int data_shift = _radixsort_data_shift[data_type];
+	const unsigned int data_size = radixsort_data_size[data_type];
+	const bool data_signed = radixsort_data_signed[data_type];
+	const unsigned int data_shift = radixsort_data_shift[data_type];
 	const size_t indexsize = (size_t)sort->indextype;
 	uint16_t negatives = 0;
 	unsigned int ipass, ival;
@@ -651,9 +651,9 @@ static const void*
 radixsort_int_index32(radixsort_t* sort, const void* input, size_t count) {
 	const radixsort_data_t data_type = sort->type;
 
-	const unsigned int data_size = _radixsort_data_size[data_type];
-	const bool data_signed = _radixsort_data_signed[data_type];
-	const unsigned int data_shift = _radixsort_data_shift[data_type];
+	const unsigned int data_size = radixsort_data_size[data_type];
+	const bool data_signed = radixsort_data_signed[data_type];
+	const unsigned int data_shift = radixsort_data_shift[data_type];
 	const size_t indexsize = (size_t)sort->indextype;
 	uint32_t negatives = 0;
 	unsigned int ipass, ival;
@@ -747,8 +747,8 @@ radixsort_int_index32(radixsort_t* sort, const void* input, size_t count) {
 static const void*
 radixsort_float_index16(radixsort_t* sort, const void* input, size_t count) {
 	const radixsort_data_t data_type = sort->type;
-	const unsigned int data_size = _radixsort_data_size[data_type];
-	const unsigned int data_shift = _radixsort_data_shift[data_type];
+	const unsigned int data_size = radixsort_data_size[data_type];
+	const unsigned int data_shift = radixsort_data_shift[data_type];
 	const size_t indexsize = (size_t)sort->indextype;
 
 	if (!count || radixsort_create_histograms(sort, input, count))
@@ -898,8 +898,8 @@ radixsort_float_index16(radixsort_t* sort, const void* input, size_t count) {
 static const void*
 radixsort_float_index32(radixsort_t* sort, const void* input, size_t count) {
 	const radixsort_data_t data_type = sort->type;
-	const unsigned int data_size = _radixsort_data_size[data_type];
-	const unsigned int data_shift = _radixsort_data_shift[data_type];
+	const unsigned int data_size = radixsort_data_size[data_type];
+	const unsigned int data_shift = radixsort_data_shift[data_type];
 	const size_t indexsize = (size_t)sort->indextype;
 
 	if (!count || radixsort_create_histograms(sort, input, count))
@@ -1083,13 +1083,13 @@ radixsort_allocate(radixsort_data_t type, size_t count) {
 	sort = memory_allocate(0,
 	                       sizeof(radixsort_t) +
 	                           /* 2 index tables */ (2 * indexsize * count) +
-	                           /* histograms */ (256 * _radixsort_data_size[type] * indexsize) +
+	                           /* histograms */ (256 * radixsort_data_size[type] * indexsize) +
 	                           /* offset table */ (256 * indexsize),
 	                       0, MEMORY_PERSISTENT);
 	sort->indices[0] = pointer_offset(sort, sizeof(radixsort_t));
 	sort->indices[1] = pointer_offset(sort->indices[0], indexsize * count);
 	sort->histogram = pointer_offset(sort->indices[1], indexsize * count);
-	sort->offset = pointer_offset(sort->histogram, indexsize * 256 * _radixsort_data_size[type]);
+	sort->offset = pointer_offset(sort->histogram, indexsize * 256 * radixsort_data_size[type]);
 
 	radixsort_initialize(sort, type, count);
 

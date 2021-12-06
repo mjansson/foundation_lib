@@ -13,6 +13,10 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
+#if __has_warning("-Wreserved-identifier")
+#pragma clang diagnostic ignored "-Wreserved-identifier"
+#endif
+
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
 #include <process.h>
@@ -25,8 +29,8 @@ GetCurrentProcessorNumberFallback(VOID) {
 	return 0;
 }
 
-static GetCurrentProcessorNumberFn _fnGetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
-static SetThreadDescriptionFn _fnSetThreadDescriptionFn;
+static GetCurrentProcessorNumberFn GetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
+static SetThreadDescriptionFn SetThreadDescription;
 
 #endif
 
@@ -48,32 +52,27 @@ static SetThreadDescriptionFn _fnSetThreadDescriptionFn;
 
 FOUNDATION_DECLARE_THREAD_LOCAL(thread_t*, self, 0)
 FOUNDATION_DECLARE_THREAD_LOCAL(int, entered, 0)
-static uint64_t _thread_main_id;
+static uint64_t thread_main_id;
 
 int
-_thread_initialize(void) {
+internal_thread_initialize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	// TODO: look into GetCurrentProcessorNumberEx for 64+ core support
 	GetCurrentProcessorNumberFn getprocidfn;
 	SetThreadDescriptionFn setthreaddescfn;
 	HMODULE kernel32 = GetModuleHandleA("kernel32");
-	getprocidfn = (GetCurrentProcessorNumberFn)GetProcAddress(kernel32, "GetCurrentProcessorNumber");
-	if (getprocidfn)
-		_fnGetCurrentProcessorNumber = getprocidfn;
-
-	setthreaddescfn = (SetThreadDescriptionFn)GetProcAddress(kernel32, "SetThreadDescription");
-	if (setthreaddescfn)
-		_fnSetThreadDescriptionFn = setthreaddescfn;
+	GetCurrentProcessorNumber = (GetCurrentProcessorNumberFn)GetProcAddress(kernel32, "GetCurrentProcessorNumber");
+	SetThreadDescription = (SetThreadDescriptionFn)GetProcAddress(kernel32, "SetThreadDescription");
 #endif
 
-	_thread_main_id = thread_id();
+	thread_main_id = thread_id();
 
 	return 0;
 }
 
 void
-_thread_finalize(void) {
-	_profile_thread_finalize();
+internal_thread_finalize(void) {
+	profile_thread_finalize();
 
 	system_thread_finalize();
 	random_thread_finalize();
@@ -87,7 +86,7 @@ _thread_finalize(void) {
 }
 
 static int
-_thread_try(void* data) {
+thread_try(void* data) {
 	thread_t* thread = data;
 	thread->result = thread->fn(thread->arg);
 	return 0;
@@ -108,7 +107,7 @@ typedef struct tagTHREADNAME_INFO {
 #pragma pack(pop)
 
 static void FOUNDATION_NOINLINE
-_set_debugger_thread_name(const char* threadname) {
+thread_set_debugger_name(const char* threadname) {
 	THREADNAME_INFO info;
 	info.dwType = 0x1000;
 	info.szName = threadname;
@@ -117,7 +116,7 @@ _set_debugger_thread_name(const char* threadname) {
 
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	LPTOP_LEVEL_EXCEPTION_FILTER prev_filter;
-	prev_filter = SetUnhandledExceptionFilter(_thread_set_name_exception_filter);
+	prev_filter = SetUnhandledExceptionFilter(thread_set_name_exception_filter);
 #else
 	__try
 #endif
@@ -141,12 +140,12 @@ thread_set_name(const char* name, size_t length) {
 #if !BUILD_DEPLOY
 #if FOUNDATION_PLATFORM_WINDOWS
 #if (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
-	_set_debugger_thread_name(name);
+	thread_set_debugger_name(name);
 #endif
-	if (_fnSetThreadDescriptionFn) {
+	if (SetThreadDescription) {
 		wchar_t wname[64];
 		wstring_from_string(wname, sizeof(wname) / sizeof(wname[0]), name, length);
-		_fnSetThreadDescriptionFn(GetCurrentThread(), wname);
+		SetThreadDescription(GetCurrentThread(), wname);
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	prctl(PR_SET_NAME, name, 0, 0, 0);
@@ -182,7 +181,7 @@ typedef void* thread_arg_t;
 #endif
 
 static thread_return_t FOUNDATION_THREADCALL
-_thread_entry(thread_arg_t data) {
+thread_entry(thread_arg_t data) {
 	thread_t* thread = GET_THREAD_PTR(data);
 	exception_handler_fn handler = exception_handler();
 
@@ -204,7 +203,7 @@ _thread_entry(thread_arg_t data) {
 		thread->result = thread->fn(thread->arg);
 	} else {
 		string_const_t dump_name = exception_dump_name();
-		int wrapped_result = exception_try(_thread_try, thread, handler, dump_name.str, dump_name.length);
+		int wrapped_result = exception_try(thread_try, thread, handler, dump_name.str, dump_name.length);
 		if (wrapped_result == FOUNDATION_EXCEPTION_CAUGHT) {
 			thread->result = (void*)((uintptr_t)FOUNDATION_EXCEPTION_CAUGHT);
 			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Thread '%.*s' (%" PRIx64 ") terminated by exception"),
@@ -216,7 +215,7 @@ _thread_entry(thread_arg_t data) {
 	//           STRING_FORMAT(thread->name), thread->osid);
 
 	if (thread_is_main())
-		_thread_main_id = (uint64_t)-1;
+		thread_main_id = (uint64_t)-1;
 
 	thread->osid = 0;
 	atomic_store32(&thread->state, 3, memory_order_release);
@@ -274,7 +273,7 @@ thread_start(thread_t* thread) {
 	beacon_try_wait(&thread->beacon, 0);
 #if FOUNDATION_PLATFORM_WINDOWS
 	FOUNDATION_ASSERT(!thread->handle);
-	thread->handle = _beginthreadex(nullptr, thread->stacksize, _thread_entry, thread, 0, nullptr);
+	thread->handle = _beginthreadex(nullptr, thread->stacksize, thread_entry, thread, 0, nullptr);
 	if (!thread->handle) {
 		int err = system_error();
 		string_const_t errmsg = system_error_message(err);
@@ -285,7 +284,7 @@ thread_start(thread_t* thread) {
 #elif FOUNDATION_PLATFORM_POSIX
 	FOUNDATION_ASSERT(!thread->handle);
 	pthread_t id = 0;
-	int err = pthread_create(&id, 0, _thread_entry, thread);
+	int err = pthread_create(&id, 0, thread_entry, thread);
 	if (err) {
 		string_const_t errmsg = system_error_message(err);
 		log_errorf(0, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to create thread: pthread_create failed: %.*s (%d)"),
@@ -391,16 +390,8 @@ uint64_t
 thread_id(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return GetCurrentThreadId();
-#elif FOUNDATION_PLATFORM_APPLE
-	return pthread_mach_thread_np(pthread_self());
-#elif FOUNDATION_PLATFORM_BSD
-	return (uint64_t)pthread_getthreadid_np() & 0x00000000FFFFFFFFULL;
 #elif FOUNDATION_PLATFORM_POSIX
-#if FOUNDATION_SIZE_POINTER == 4
-	return (uint64_t)pthread_self() & 0x00000000FFFFFFFFULL;
-#else
-	return (uint64_t)pthread_self();
-#endif
+	return (uint64_t)gettid();
 #else
 #error Not implemented
 #endif
@@ -453,14 +444,14 @@ thread_set_hardware(uint64_t mask) {
 
 void
 thread_set_main(void) {
-	_thread_main_id = thread_id();
+	thread_main_id = thread_id();
 	atomic_thread_fence_release();
 }
 
 bool
 thread_is_main(void) {
 	atomic_thread_fence_acquire();
-	return thread_id() == _thread_main_id;
+	return thread_id() == thread_main_id;
 }
 
 thread_t*
@@ -476,7 +467,7 @@ thread_enter(void) {
 
 void
 thread_exit(void) {
-	_thread_finalize();
+	internal_thread_finalize();
 	memory_thread_finalize();
 	set_thread_entered(0);
 }

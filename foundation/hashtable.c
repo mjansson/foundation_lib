@@ -14,7 +14,7 @@
 #include <foundation/internal.h>
 
 static FOUNDATION_FORCEINLINE uint32_t
-_hashtable32_hash(uint32_t key) {
+hashtable32_hash(uint32_t key) {
 	key ^= key >> 16;
 	key *= 0x85ebca6b;
 	key ^= key >> 13;
@@ -24,7 +24,7 @@ _hashtable32_hash(uint32_t key) {
 }
 
 static FOUNDATION_FORCEINLINE uint64_t
-_hashtable64_hash(uint64_t key) {
+hashtable64_hash(uint64_t key) {
 	key ^= key >> 33;
 	key *= 0xff51afd7ed558ccd;
 	key ^= key >> 33;
@@ -67,7 +67,7 @@ hashtable32_set(hashtable32_t* table, uint32_t key, uint32_t value) {
 
 	FOUNDATION_ASSERT(key);
 
-	ie = eend = _hashtable32_hash(key) % table->capacity;
+	ie = eend = hashtable32_hash(key) % table->capacity;
 	do {
 		uint32_t current_key = (uint32_t)atomic_load32(&table->entries[ie].key, memory_order_consume);
 
@@ -91,7 +91,7 @@ hashtable32_erase(hashtable32_t* table, uint32_t key) {
 
 	FOUNDATION_ASSERT(key);
 
-	ie = eend = _hashtable32_hash(key) % table->capacity;
+	ie = eend = hashtable32_hash(key) % table->capacity;
 	do {
 		current_key = (uint32_t)atomic_load32(&table->entries[ie].key, memory_order_consume);
 
@@ -112,7 +112,7 @@ hashtable32_get(hashtable32_t* table, uint32_t key) {
 
 	FOUNDATION_ASSERT(key);
 
-	ie = eend = _hashtable32_hash(key) % table->capacity;
+	ie = eend = hashtable32_hash(key) % table->capacity;
 	do {
 		current_key = (uint32_t)atomic_load32(&table->entries[ie].key, memory_order_consume);
 
@@ -181,7 +181,7 @@ hashtable64_set(hashtable64_t* table, uint64_t key, uint64_t value) {
 
 	FOUNDATION_ASSERT(key);
 
-	ie = eend = _hashtable64_hash(key) % table->capacity;
+	ie = eend = hashtable64_hash(key) % table->capacity;
 	do {
 		uint64_t current_key = (uint64_t)atomic_load64(&table->entries[ie].key, memory_order_consume);
 
@@ -204,7 +204,7 @@ hashtable64_erase(hashtable64_t* table, uint64_t key) {
 
 	FOUNDATION_ASSERT(key);
 
-	ie = eend = _hashtable64_hash(key) % table->capacity;
+	ie = eend = hashtable64_hash(key) % table->capacity;
 	do {
 		current_key = (uint64_t)atomic_load64(&table->entries[ie].key, memory_order_consume);
 
@@ -224,7 +224,7 @@ hashtable64_get(hashtable64_t* table, uint64_t key) {
 
 	FOUNDATION_ASSERT(key);
 
-	ie = eend = _hashtable64_hash(key) % table->capacity;
+	ie = eend = hashtable64_hash(key) % table->capacity;
 	do {
 		current_key = (uint64_t)atomic_load64(&table->entries[ie].key, memory_order_consume);
 

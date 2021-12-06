@@ -187,37 +187,37 @@ hash(const void* key, size_t len) {
 
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
-static hashtable64_t* _hash_lookup;
+static hashtable64_t* hash_lookup;
 
 int
-_static_hash_initialize(void) {
-	if (!_hash_lookup && foundation_config().hash_store_size)
-		_hash_lookup = hashtable64_allocate(foundation_config().hash_store_size + 1);
+internal_static_hash_initialize(void) {
+	if (!hash_lookup && foundation_config().hash_store_size)
+		hash_lookup = hashtable64_allocate(foundation_config().hash_store_size + 1);
 	return 0;
 }
 
 void
-_static_hash_finalize(void) {
+internal_static_hash_finalize(void) {
 	size_t slot;
-	if (_hash_lookup)
+	if (hash_lookup)
 		for (slot = 0; slot < foundation_config().hash_store_size + 1; ++slot) {
-			char* str = (char*)((uintptr_t)hashtable64_raw(_hash_lookup, slot));
+			char* str = (char*)((uintptr_t)hashtable64_raw(hash_lookup, slot));
 			if (str)
 				string_deallocate(str);
 		}
 
-	hashtable64_deallocate(_hash_lookup);
-	_hash_lookup = 0;
+	hashtable64_deallocate(hash_lookup);
+	hash_lookup = 0;
 }
 
 void
-_static_hash_store(const void* key, size_t len, hash_t value) {
+static_hash_store(const void* key, size_t len, hash_t value) {
 	char* stored;
 
-	if (!_hash_lookup)
+	if (!hash_lookup)
 		return;
 
-	stored = (char*)((uintptr_t)hashtable64_get(_hash_lookup, value));
+	stored = (char*)((uintptr_t)hashtable64_get(hash_lookup, value));
 	if (stored) {
 		FOUNDATION_ASSERT_MSG(string_equal(stored, string_length(stored), key, len), "Static hash collision");
 		FOUNDATION_ASSERT_MSG(string_length(stored) == len, "Static hash collision");
@@ -228,17 +228,17 @@ _static_hash_store(const void* key, size_t len, hash_t value) {
 	memcpy(stored, key, len);
 	stored[len] = 0;
 
-	hashtable64_set(_hash_lookup, value, (uintptr_t)stored);
+	hashtable64_set(hash_lookup, value, (uintptr_t)stored);
 }
 
 string_const_t
 hash_to_string(hash_t value) {
 	const char* val;
 
-	if (!_hash_lookup)
+	if (!hash_lookup)
 		return string_null();
 
-	val = (const char*)(uintptr_t)hashtable64_get(_hash_lookup, value);
+	val = (const char*)(uintptr_t)hashtable64_get(hash_lookup, value);
 	return string_const(val, string_length(val));
 }
 
@@ -247,12 +247,12 @@ hash_to_string(hash_t value) {
 #undef hash_to_string
 
 int
-_static_hash_initialize(void) {
+internal_static_hash_initialize(void) {
 	return 0;
 }
 
 void
-_static_hash_finalize(void) {
+internal_static_hash_finalize(void) {
 }
 
 string_const_t

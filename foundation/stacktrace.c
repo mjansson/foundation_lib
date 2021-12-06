@@ -87,12 +87,10 @@ static SymFunctionTableAccess64Fn CallSymFunctionTableAccess64;
 static StackWalk64Fn CallStackWalk64;
 static RtlCaptureStackBackTraceFn CallRtlCaptureStackBackTrace;
 
-static mutex_t* symbol_mutex;
-
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 
 static LONG WINAPI
-_stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
+stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
 	FOUNDATION_UNUSED(pointers);
 	log_error(0, ERROR_EXCEPTION, STRING_CONST("Exception occurred in stack trace!"));
 	return EXCEPTION_EXECUTE_HANDLER;
@@ -101,7 +99,7 @@ _stacktrace_exception_filter(LPEXCEPTION_POINTERS pointers) {
 #endif
 
 static int
-_capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames, CONTEXT* context) {
+stacktrace_capture_helper(void** trace, size_t max_depth, size_t skip_frames, CONTEXT* context) {
 	STACKFRAME64 stack_frame;
 	HANDLE process_handle;
 	HANDLE thread_handle;
@@ -112,7 +110,7 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames, 
 
 #if FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
 	LPTOP_LEVEL_EXCEPTION_FILTER prev_filter;
-	prev_filter = SetUnhandledExceptionFilter(_stacktrace_exception_filter);
+	prev_filter = SetUnhandledExceptionFilter(stacktrace_exception_filter);
 #else
 	__try
 #endif
@@ -167,7 +165,7 @@ _capture_stack_trace_helper(void** trace, size_t max_depth, size_t skip_frames, 
 #define MAX_MOD_HANDLES 1024
 
 static void
-_load_process_modules() {
+load_process_modules() {
 	/*lint -e534 */
 	HMODULE module_handles[MAX_MOD_HANDLES];
 	HMODULE* module_handle = module_handles;
@@ -235,7 +233,7 @@ static android_module_t* _process_modules;
 static size_t _process_modules_size;
 
 static void
-_load_process_modules(void) {
+load_process_modules(void) {
 	size_t imod = 0;
 	char line_buffer[256];
 	string_t line;
@@ -302,7 +300,7 @@ _load_process_modules(void) {
 #endif
 
 static _Unwind_Reason_Code
-unwind_stack(struct _Unwind_Context* context, void* arg) {
+stacktrace_unwind_stack(struct _Unwind_Context* context, void* arg) {
 	android_trace_t* trace = arg;
 	void* ip = (void*)(uintptr_t)_Unwind_GetIP(context);
 	if (trace->skip_frames)
@@ -318,61 +316,62 @@ unwind_stack(struct _Unwind_Context* context, void* arg) {
 
 #endif
 
-static bool _stackwalk_initialized = false;
+static bool stacktrace_stackwalk_initialized = false;
+static mutex_t* symbol_mutex;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-static void* _stacktrace_dbghelp_dll;
-static void* _stacktrace_kernel_dll;
+static void* stacktrace_dbghelp_dll;
+static void* stacktrace_kernel_dll;
 
 typedef VOID(WINAPI* RtlCaptureContextFn)(PCONTEXT);
 static RtlCaptureContextFn _RtlCaptureContext;
 #endif
 
 static bool
-_initialize_stackwalker(void) {
-	if (_stackwalk_initialized)
+stacktrace_initialize_stackwalker(void) {
+	if (stacktrace_stackwalk_initialized)
 		return true;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	{
-		if (!_stacktrace_dbghelp_dll)
-			_stacktrace_dbghelp_dll = LoadLibraryA("dbghelp.dll");
-		CallStackWalk64 = (StackWalk64Fn)GetProcAddress(_stacktrace_dbghelp_dll, "StackWalk64");
+		if (!stacktrace_dbghelp_dll)
+			stacktrace_dbghelp_dll = LoadLibraryA("dbghelp.dll");
+		CallStackWalk64 = (StackWalk64Fn)GetProcAddress(stacktrace_dbghelp_dll, "StackWalk64");
 		if (!CallStackWalk64) {
 			log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to get StackWalk64 symbol"));
 			return false;
 		}
 
-		if (!_stacktrace_kernel_dll)
-			_stacktrace_kernel_dll = LoadLibraryA("kernel32.dll");
+		if (!stacktrace_kernel_dll)
+			stacktrace_kernel_dll = LoadLibraryA("kernel32.dll");
 		CallRtlCaptureStackBackTrace =
-		    (RtlCaptureStackBackTraceFn)GetProcAddress(_stacktrace_kernel_dll, "RtlCaptureStackBackTrace");
+		    (RtlCaptureStackBackTraceFn)GetProcAddress(stacktrace_kernel_dll, "RtlCaptureStackBackTrace");
 		if (!CallRtlCaptureStackBackTrace)
 			CallRtlCaptureStackBackTrace =
-			    (RtlCaptureStackBackTraceFn)GetProcAddress(_stacktrace_kernel_dll, "CaptureStackBackTrace");
+			    (RtlCaptureStackBackTraceFn)GetProcAddress(stacktrace_kernel_dll, "CaptureStackBackTrace");
 		if (!CallRtlCaptureStackBackTrace) {
 			log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to load get RtlCaptureStackBackTrace symbol"));
 			return false;
 		}
-		_RtlCaptureContext = (RtlCaptureContextFn)GetProcAddress(_stacktrace_kernel_dll, "RtlCaptureContext");
+		_RtlCaptureContext = (RtlCaptureContextFn)GetProcAddress(stacktrace_kernel_dll, "RtlCaptureContext");
 	}
 #endif
 
-	_stackwalk_initialized = true;
+	stacktrace_stackwalk_initialized = true;
 	return true;
 }
 
 static void
-_finalize_stackwalker(void) {
+stacktrace_finalize_stackwalker(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	if (_stacktrace_kernel_dll)
-		FreeLibrary(_stacktrace_kernel_dll);
-	if (_stacktrace_dbghelp_dll)
-		FreeLibrary(_stacktrace_dbghelp_dll);
-	_stacktrace_dbghelp_dll = 0;
-	_stacktrace_kernel_dll = 0;
+	if (stacktrace_kernel_dll)
+		FreeLibrary(stacktrace_kernel_dll);
+	if (stacktrace_dbghelp_dll)
+		FreeLibrary(stacktrace_dbghelp_dll);
+	stacktrace_dbghelp_dll = 0;
+	stacktrace_kernel_dll = 0;
 #endif
-	_stackwalk_initialized = false;
+	stacktrace_stackwalk_initialized = false;
 }
 
 size_t FOUNDATION_NOINLINE
@@ -388,8 +387,8 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	if (max_depth > foundation_config().stacktrace_depth)
 		max_depth = foundation_config().stacktrace_depth;
 
-	if (!_stackwalk_initialized) {
-		if (!_initialize_stackwalker()) {
+	if (!stacktrace_stackwalk_initialized) {
+		if (!stacktrace_initialize_stackwalker()) {
 			memset(trace, 0, sizeof(void*) * max_depth);
 			return frames_count;
 		}
@@ -405,14 +404,14 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	} else if (_RtlCaptureContext) {
 		CONTEXT context;
 		_RtlCaptureContext(&context);
-		_capture_stack_trace_helper(trace, max_depth, skip_frames, &context);
+		stacktrace_capture_helper(trace, max_depth, skip_frames, &context);
 	}
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
 	android_trace_t stack_trace = {.trace = trace, .cur_depth = 0, .max_depth = max_depth, .skip_frames = skip_frames};
 
-	_Unwind_Backtrace(unwind_stack, &stack_trace);
+	_Unwind_Backtrace(stacktrace_unwind_stack, &stack_trace);
 
 	frames_count = stack_trace.cur_depth;
 
@@ -467,20 +466,20 @@ stacktrace_capture(void** trace, size_t max_depth, size_t skip_frames) {
 	return frames_count;
 }
 
-static bool _symbol_resolve_initialized = false;
+static bool symbol_resolve_initialized = false;
 #if FOUNDATION_PLATFORM_WINDOWS
-static void* _stacktrace_psapi_dll;
+static void* stacktrace_psapi_dll;
 #endif
 
 static bool
-_initialize_symbol_resolve() {
-	if (_symbol_resolve_initialized)
+initialize_symbol_resolve() {
+	if (symbol_resolve_initialized)
 		return true;
 
 	if (symbol_mutex)
 		mutex_lock(symbol_mutex);
 
-	if (_symbol_resolve_initialized) {
+	if (symbol_resolve_initialized) {
 		if (symbol_mutex)
 			mutex_unlock(symbol_mutex);
 		return true;
@@ -491,14 +490,14 @@ _initialize_symbol_resolve() {
 		unsigned int options;
 		void* dll;
 
-		if (!_stacktrace_psapi_dll)
-			_stacktrace_psapi_dll = LoadLibraryA("psapi.dll");
-		if (!_stacktrace_psapi_dll) {
+		if (!stacktrace_psapi_dll)
+			stacktrace_psapi_dll = LoadLibraryA("psapi.dll");
+		if (!stacktrace_psapi_dll) {
 			mutex_unlock(symbol_mutex);
-			return _symbol_resolve_initialized;
+			return symbol_resolve_initialized;
 		}
 
-		dll = _stacktrace_psapi_dll;
+		dll = stacktrace_psapi_dll;
 		CallEnumProcesses = (EnumProcessesFn)GetProcAddress(dll, "EnumProcesses");
 		CallEnumProcessModules = (EnumProcessModulesFn)GetProcAddress(dll, "EnumProcessModules");
 		CallGetModuleFileNameEx = (GetModuleFileNameExFn)GetProcAddress(dll, "GetModuleFileNameExA");
@@ -509,18 +508,18 @@ _initialize_symbol_resolve() {
 		    !CallGetModuleInformation) {
 			if (symbol_mutex)
 				mutex_unlock(symbol_mutex);
-			return _symbol_resolve_initialized;
+			return symbol_resolve_initialized;
 		}
 
-		if (!_stacktrace_dbghelp_dll)
-			_stacktrace_dbghelp_dll = LoadLibraryA("dbghelp.dll");
-		if (!_stacktrace_dbghelp_dll) {
+		if (!stacktrace_dbghelp_dll)
+			stacktrace_dbghelp_dll = LoadLibraryA("dbghelp.dll");
+		if (!stacktrace_dbghelp_dll) {
 			if (symbol_mutex)
 				mutex_unlock(symbol_mutex);
-			return _symbol_resolve_initialized;
+			return symbol_resolve_initialized;
 		}
 
-		dll = _stacktrace_dbghelp_dll;
+		dll = stacktrace_dbghelp_dll;
 		CallSymInitialize = (SymInitializeFn)GetProcAddress(dll, "SymInitialize");
 		CallSymSetOptions = (SymSetOptionsFn)GetProcAddress(dll, "SymSetOptions");
 		CallSymGetOptions = (SymGetOptionsFn)GetProcAddress(dll, "SymGetOptions");
@@ -537,7 +536,7 @@ _initialize_symbol_resolve() {
 		    !CallSymGetModuleBase64 || !CallSymFunctionTableAccess64) {
 			if (symbol_mutex)
 				mutex_unlock(symbol_mutex);
-			return _symbol_resolve_initialized;
+			return symbol_resolve_initialized;
 		}
 
 		options = CallSymGetOptions();
@@ -557,7 +556,7 @@ _initialize_symbol_resolve() {
 
 	_load_process_modules();
 
-	_symbol_resolve_initialized = true;
+	symbol_resolve_initialized = true;
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
@@ -565,28 +564,28 @@ _initialize_symbol_resolve() {
 
 #else
 
-	_symbol_resolve_initialized = true;
+	symbol_resolve_initialized = true;
 
 #endif
 
 	if (symbol_mutex)
 		mutex_unlock(symbol_mutex);
 
-	return _symbol_resolve_initialized;
+	return symbol_resolve_initialized;
 }
 
 static void
-_finalize_symbol_resolve() {
+finalize_symbol_resolve() {
 #if FOUNDATION_PLATFORM_ANDROID
 	memory_deallocate(_process_modules);
 	_process_modules = 0;
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS
-	if (_stacktrace_psapi_dll)
-		FreeLibrary(_stacktrace_psapi_dll);
-	_stacktrace_psapi_dll = 0;
+	if (stacktrace_psapi_dll)
+		FreeLibrary(stacktrace_psapi_dll);
+	stacktrace_psapi_dll = 0;
 #endif
-	_symbol_resolve_initialized = false;
+	symbol_resolve_initialized = false;
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_BSD
@@ -596,7 +595,7 @@ _finalize_symbol_resolve() {
 #endif
 
 static FOUNDATION_NOINLINE string_t
-_resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t max_frames) {
+stacktrace_resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t max_frames) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	char symbol_buffer[sizeof(IMAGEHLP_SYMBOL64) + 512];
 	PIMAGEHLP_SYMBOL64 symbol;
@@ -830,29 +829,29 @@ _resolve_stack_frames(char* buffer, size_t capacity, void* const* frames, size_t
 
 string_t
 stacktrace_resolve(char* str, size_t length, void* const* trace, size_t max_depth, size_t skip_frames) {
-	_initialize_symbol_resolve();
+	initialize_symbol_resolve();
 
 	if (!max_depth)
 		max_depth = foundation_config().stacktrace_depth;
 	if (max_depth + skip_frames > foundation_config().stacktrace_depth)
 		max_depth = foundation_config().stacktrace_depth - skip_frames;
 
-	return _resolve_stack_frames(str, length, trace + skip_frames, max_depth);
+	return stacktrace_resolve_stack_frames(str, length, trace + skip_frames, max_depth);
 }
 
 int
-_stacktrace_initialize(void) {
+internal_stacktrace_initialize(void) {
 	symbol_mutex = mutex_allocate(STRING_CONST("symbol-resolve"));
 #if FOUNDATION_PLATFORM_ANDROID
-	_initialize_symbol_resolve();
+	initialize_symbol_resolve();
 #endif
 	return 0;
 }
 
 void
-_stacktrace_finalize(void) {
-	_finalize_symbol_resolve();
-	_finalize_stackwalker();
+internal_stacktrace_finalize(void) {
+	finalize_symbol_resolve();
+	stacktrace_finalize_stackwalker();
 	mutex_deallocate(symbol_mutex);
 	symbol_mutex = 0;
 }

@@ -215,7 +215,7 @@ DECLARE_TEST(event, immediate) {
 	return 0;
 }
 
-typedef FOUNDATION_ALIGNED_STRUCT(_producer_thread_arg, 16) {
+typedef FOUNDATION_ALIGNED_STRUCT(producer_thread_arg, 16) {
 	event_stream_t* stream;
 	tick_t max_delay;
 	tick_t end_time;

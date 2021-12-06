@@ -12,12 +12,12 @@
 
 #include <foundation/foundation.h>
 
-static const uint32_t _blowfish_parray_init[BLOWFISH_SUBKEYS] = {
+static const uint32_t blowfish_parray_init[BLOWFISH_SUBKEYS] = {
     0x243F6A88U, 0x85A308D3U, 0x13198A2EU, 0x03707344U, 0xA4093822U, 0x299F31D0U,
     0x082EFA98U, 0xEC4E6C89U, 0x452821E6U, 0x38D01377U, 0xBE5466CFU, 0x34E90C6CU,
     0xC0AC29B7U, 0xC97C50DDU, 0x3F84D5B5U, 0xB5470917U, 0x9216D5D9U, 0x8979FB1BL};
 
-static const uint32_t _blowfish_sboxes_init[BLOWFISH_SBOXES][BLOWFISH_SBOXENTRIES] = {
+static const uint32_t blowfish_sboxes_init[BLOWFISH_SBOXES][BLOWFISH_SBOXENTRIES] = {
     {0xD1310BA6U, 0x98DFB5ACU, 0x2FFD72DBU, 0xD01ADFB7U, 0xB8E1AFEDU, 0x6A267E96U, 0xBA7C9045U, 0xF12C7F99U,
      0x24A19947U, 0xB3916CF7U, 0x0801F2E2U, 0x858EFC16U, 0x636920D8U, 0x71574E69U, 0xA458FEA3U, 0xF4933D7EU,
      0x0D95748FU, 0x728EB658U, 0x718BCD58U, 0x82154AEEU, 0x7B54A41DU, 0xC25A59B5U, 0x9C30D539U, 0x2AF26013U,
@@ -148,10 +148,10 @@ static const uint32_t _blowfish_sboxes_init[BLOWFISH_SBOXES][BLOWFISH_SBOXENTRIE
      0x90D4F869U, 0xA65CDEA0U, 0x3F09252DU, 0xC208E69FU, 0xB74E6132U, 0xCE77E25BU, 0x578FDFE3U, 0x3AC372E6L}};
 
 void
-_blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
+blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
 
 void
-_blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
+blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
 
 #define FEISTEL(val)                                                                        \
 	(((blowfish->sboxes[0][(val >> 24) & 0xFF] + blowfish->sboxes[1][(val >> 16) & 0xFF]) ^ \
@@ -159,7 +159,7 @@ _blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t*
 	 blowfish->sboxes[3][val & 0xFF])
 
 void
-_blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres) {
+blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres) {
 	uint32_t lval = *lvalres;
 	uint32_t hval = *hvalres;
 
@@ -192,7 +192,7 @@ _blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t*
 }
 
 void
-_blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres) {
+blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres) {
 	uint32_t lval = *lvalres;
 	uint32_t hval = *hvalres;
 
@@ -244,8 +244,8 @@ blowfish_initialize(blowfish_t* blowfish, const void* key, size_t length) {
 	uint32_t data, ldata, hdata;
 	unsigned int isub, ikey, iword, ibox, ientry;
 
-	memcpy(blowfish->parray, _blowfish_parray_init, 4 * BLOWFISH_SUBKEYS);
-	memcpy(blowfish->sboxes, _blowfish_sboxes_init, 4 * BLOWFISH_SBOXES * BLOWFISH_SBOXENTRIES);
+	memcpy(blowfish->parray, blowfish_parray_init, 4 * BLOWFISH_SUBKEYS);
+	memcpy(blowfish->sboxes, blowfish_sboxes_init, 4 * BLOWFISH_SBOXES * BLOWFISH_SBOXENTRIES);
 
 	for (isub = 0, ikey = 0; isub < BLOWFISH_SUBKEYS; ++isub) {
 		data = 0;
@@ -258,7 +258,7 @@ blowfish_initialize(blowfish_t* blowfish, const void* key, size_t length) {
 	hdata = 0;
 
 	for (isub = 0; isub < BLOWFISH_SUBKEYS; isub += 2) {
-		_blowfish_encrypt_words(blowfish, &ldata, &hdata);
+		blowfish_encrypt_words(blowfish, &ldata, &hdata);
 
 		/*lint --e{661,679} */
 		blowfish->parray[isub] = ldata;
@@ -267,7 +267,7 @@ blowfish_initialize(blowfish_t* blowfish, const void* key, size_t length) {
 
 	for (ibox = 0; ibox < BLOWFISH_SBOXES; ++ibox) {
 		for (ientry = 0; ientry < BLOWFISH_SBOXENTRIES; ientry += 2) {
-			_blowfish_encrypt_words(blowfish, &ldata, &hdata);
+			blowfish_encrypt_words(blowfish, &ldata, &hdata);
 
 			/*lint --e{661,679} */
 			blowfish->sboxes[ibox][ientry] = ldata;
@@ -312,14 +312,14 @@ blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length, blockcip
 		default:
 		case BLOCKCIPHER_ECB:
 			for (; cur < end; cur += 2)
-				_blowfish_encrypt_words(blowfish, cur, cur + 1);
+				blowfish_encrypt_words(blowfish, cur, cur + 1);
 			break;
 
 		case BLOCKCIPHER_CBC:
 			for (; cur < end; cur += 2) {
 				cur[0] ^= chain[0];
 				cur[1] ^= chain[1];
-				_blowfish_encrypt_words(blowfish, cur, cur + 1);
+				blowfish_encrypt_words(blowfish, cur, cur + 1);
 				chain[0] = cur[0];
 				chain[1] = cur[1];
 			}
@@ -327,7 +327,7 @@ blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length, blockcip
 
 		case BLOCKCIPHER_CFB:
 			for (; cur < end; cur += 2) {
-				_blowfish_encrypt_words(blowfish, chain, chain + 1);
+				blowfish_encrypt_words(blowfish, chain, chain + 1);
 				cur[0] ^= chain[0];
 				cur[1] ^= chain[1];
 				chain[0] = cur[0];
@@ -337,7 +337,7 @@ blowfish_encrypt(const blowfish_t* blowfish, void* data, size_t length, blockcip
 
 		case BLOCKCIPHER_OFB:
 			for (; cur < end; cur += 2) {
-				_blowfish_encrypt_words(blowfish, chain, chain + 1);
+				blowfish_encrypt_words(blowfish, chain, chain + 1);
 				cur[0] ^= chain[0];
 				cur[1] ^= chain[1];
 			}
@@ -374,14 +374,14 @@ blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length, blockcip
 		default:
 		case BLOCKCIPHER_ECB:
 			for (; cur < end; cur += 2)
-				_blowfish_decrypt_words(blowfish, cur, cur + 1);
+				blowfish_decrypt_words(blowfish, cur, cur + 1);
 			break;
 
 		case BLOCKCIPHER_CBC:
 			for (; cur < end; cur += 2) {
 				prev_chain[0] = cur[0];
 				prev_chain[1] = cur[1];
-				_blowfish_decrypt_words(blowfish, cur, cur + 1);
+				blowfish_decrypt_words(blowfish, cur, cur + 1);
 				cur[0] ^= chain[0];
 				cur[1] ^= chain[1];
 				swap_chain[0] = chain[0];
@@ -397,7 +397,7 @@ blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length, blockcip
 			for (; cur < end; cur += 2) {
 				prev_chain[0] = cur[0];
 				prev_chain[1] = cur[1];
-				_blowfish_encrypt_words(blowfish, chain, chain + 1);
+				blowfish_encrypt_words(blowfish, chain, chain + 1);
 				cur[0] ^= chain[0];
 				cur[1] ^= chain[1];
 				swap_chain[0] = chain[0];
@@ -411,7 +411,7 @@ blowfish_decrypt(const blowfish_t* blowfish, void* data, size_t length, blockcip
 
 		case BLOCKCIPHER_OFB:
 			for (; cur < end; cur += 2) {
-				_blowfish_encrypt_words(blowfish, chain, chain + 1);
+				blowfish_encrypt_words(blowfish, chain, chain + 1);
 				cur[0] ^= chain[0];
 				cur[1] ^= chain[1];
 			}

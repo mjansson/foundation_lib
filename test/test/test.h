@@ -796,7 +796,7 @@ test_set_suitable_working_directory(void);
 TEST_API void FOUNDATION_NOINLINE
 test_load_config(json_handler_fn handler);
 
-typedef struct _test_suite {
+typedef struct test_suite_t {
 	application_t (*application)(void);
 	memory_system_t (*memory_system)(void);
 	foundation_config_t (*config)(void);

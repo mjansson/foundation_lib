@@ -26,7 +26,7 @@
 #include <sys/event.h>
 #endif
 
-static int _process_exit_code;
+static int process_exit_code_pending;
 
 process_t*
 process_allocate() {
@@ -683,12 +683,12 @@ process_wait(process_t* proc) {
 
 int
 process_exit_code(void) {
-	return _process_exit_code;
+	return process_exit_code_pending;
 }
 
 void
 process_set_exit_code(int code) {
-	_process_exit_code = code;
+	process_exit_code_pending = code;
 }
 
 void

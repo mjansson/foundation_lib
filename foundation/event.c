@@ -16,11 +16,11 @@
 #define EVENT_BLOCK_POSTING -1
 #define EVENT_BLOCK_SWAPPING -2
 
-static atomic32_t _event_serial;
+static atomic32_t event_serial;
 
 static void
-_event_post_delay_with_flags(event_stream_t* stream, int id, object_t object, tick_t timestamp, uint16_t flags,
-                             const void* payload, size_t size, va_list list) {
+event_post_delay_with_flags(event_stream_t* stream, int id, object_t object, tick_t timestamp, uint16_t flags,
+                            const void* payload, size_t size, va_list list) {
 	event_block_t* block;
 	event_t* event;
 	size_t basesize;
@@ -85,13 +85,13 @@ _event_post_delay_with_flags(event_stream_t* stream, int id, object_t object, ti
 			block->capacity += 16 - (basesize % 16);
 		block->capacity -= 16;
 		block->events = block->events ? memory_reallocate(block->events, block->capacity + 16, 16, prev_capacity, 0) :
-		                                memory_allocate(0, block->capacity + 16, 16, MEMORY_PERSISTENT);
+                                        memory_allocate(0, block->capacity + 16, 16, MEMORY_PERSISTENT);
 	}
 
 	event = pointer_offset(block->events, block->used);
 
 	event->id = (uint16_t)id;
-	event->serial = (uint16_t)(atomic_exchange_and_add32(&_event_serial, 1, memory_order_relaxed) & 0xFFFF);
+	event->serial = (uint16_t)(atomic_exchange_and_add32(&event_serial, 1, memory_order_relaxed) & 0xFFFF);
 	event->size = (uint16_t)allocsize;
 	event->flags = flags;
 	event->object = object;
@@ -150,14 +150,14 @@ event_post_varg(event_stream_t* stream, int id, object_t object, tick_t delivery
                 ...) {
 	va_list list;
 	va_start(list, size);
-	_event_post_delay_with_flags(stream, id, object, delivery, 0, payload, size, list);
+	event_post_delay_with_flags(stream, id, object, delivery, 0, payload, size, list);
 	va_end(list);
 }
 
 void
 event_post_vlist(event_stream_t* stream, int id, object_t object, tick_t delivery, const void* payload, size_t size,
                  va_list list) {
-	_event_post_delay_with_flags(stream, id, object, delivery, 0, payload, size, list);
+	event_post_delay_with_flags(stream, id, object, delivery, 0, payload, size, list);
 }
 
 static void
@@ -165,7 +165,7 @@ event_post_varg_flags(event_stream_t* stream, int id, object_t object, tick_t de
                       const void* payload, size_t size, ...) {
 	va_list list;
 	va_start(list, size);
-	_event_post_delay_with_flags(stream, id, object, delivery, flags, payload, size, list);
+	event_post_delay_with_flags(stream, id, object, delivery, flags, payload, size, list);
 	va_end(list);
 }
 

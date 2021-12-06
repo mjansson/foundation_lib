@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-static bool _exception_handler_called = false;
+static bool exception_handler_called = false;
 
 static hash_t handled_context;
 static char handled_condition[32];
@@ -22,11 +22,11 @@ static unsigned int handled_line;
 static char handled_msg[32];
 #if BUILD_ENABLE_LOG
 static char handled_log[8192];
-static log_handler_fn _global_log_handler = 0;
+static log_handler_fn global_log_handler = 0;
 #endif
 
-static error_level_t _error_level_test;
-static error_t _error_test;
+static error_level_t error_level_test;
+static error_t error_test;
 
 static application_t
 test_exception_application(void) {
@@ -68,7 +68,7 @@ test_local_exception_handler(const char* dump_path, size_t length) {
 	FOUNDATION_UNUSED(length);
 #endif
 	log_infof(HASH_TEST, STRING_CONST("Exception handler called: %.*s"), (int)length, dump_path);
-	_exception_handler_called = true;
+	exception_handler_called = true;
 }
 
 static int
@@ -89,8 +89,8 @@ handle_log(hash_t context, error_level_t severity, const char* msg, size_t msg_l
 	FOUNDATION_UNUSED(context);
 	FOUNDATION_UNUSED(severity);
 	string_copy(handled_log, sizeof(handled_log), msg, msg_length);
-	if (_global_log_handler)
-		_global_log_handler(context, severity, msg, msg_length);
+	if (global_log_handler)
+		global_log_handler(context, severity, msg, msg_length);
 }
 
 #endif
@@ -130,7 +130,7 @@ DECLARE_TEST(exception, assert_handler) {
 	EXPECT_EQ(assert_handler(), 0);
 
 #if BUILD_ENABLE_LOG
-	_global_log_handler = log_handler();
+	global_log_handler = log_handler();
 	log_set_handler(handle_log);
 #endif
 	log_enable_stdout(false);
@@ -182,16 +182,16 @@ DECLARE_TEST(exception, assert_handler) {
 	EXPECT_TRUE(string_find_string(handled_log, string_length(handled_log), STRING_CONST("oportere temporibus"), 0) !=
 	            STRING_NPOS);
 
-	log_set_handler(_global_log_handler);
+	log_set_handler(global_log_handler);
 #endif
 
 	return 0;
 }
 
 static int
-_error_handler_test(error_level_t level, error_t error) {
-	_error_level_test = level;
-	_error_test = error;
+error_handler_test(error_level_t level, error_t error) {
+	error_level_test = level;
+	error_test = error;
 	return 2;
 }
 
@@ -209,14 +209,14 @@ DECLARE_TEST(exception, error) {
 	EXPECT_EQ(error(), ERROR_EXCEPTION);
 
 	handler = error_handler();
-	error_set_handler(_error_handler_test);
+	error_set_handler(error_handler_test);
 
 	ret = error_report(ERRORLEVEL_WARNING, ERROR_INVALID_VALUE);
 	EXPECT_EQ(error(), ERROR_INVALID_VALUE);
 	EXPECT_EQ(ret, 2);
-	EXPECT_EQ(_error_level_test, ERRORLEVEL_WARNING);
-	EXPECT_EQ(_error_test, ERROR_INVALID_VALUE);
-	EXPECT_EQ(error_handler(), _error_handler_test);
+	EXPECT_EQ(error_level_test, ERRORLEVEL_WARNING);
+	EXPECT_EQ(error_test, ERROR_INVALID_VALUE);
+	EXPECT_EQ(error_handler(), error_handler_test);
 
 	error_set_handler(handler);
 
@@ -268,12 +268,12 @@ DECLARE_TEST(exception, exception_handler) {
 	if (system_debugger_attached())
 		return 0;  // Don't do exception tests with debugger attached
 
-	_exception_handler_called = false;
+	exception_handler_called = false;
 	log_enable_stdout(false);
 	result = exception_try(raise_abort, 0, test_local_exception_handler, STRING_CONST("raise_abort"));
 	log_enable_stdout(true);
 	EXPECT_EQ(result, FOUNDATION_EXCEPTION_CAUGHT);
-	EXPECT_TRUE(_exception_handler_called);
+	EXPECT_TRUE(exception_handler_called);
 
 	return 0;
 }
@@ -284,7 +284,7 @@ DECLARE_TEST(exception, exception_thread) {
 	if (system_debugger_attached())
 		return 0;  // Don't do exception tests with debugger attached
 
-	_exception_handler_called = false;
+	exception_handler_called = false;
 	exception_set_handler(test_local_exception_handler, STRING_CONST("thread_raise_abort"));
 
 	log_enable_stdout(false);
@@ -295,7 +295,7 @@ DECLARE_TEST(exception, exception_thread) {
 	thread_finalize(&thread);
 	log_enable_stdout(true);
 
-	EXPECT_TRUE(_exception_handler_called);
+	EXPECT_TRUE(exception_handler_called);
 
 	return 0;
 }

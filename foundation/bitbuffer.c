@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 
 static void
-_bitbuffer_get(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
+bitbuffer_get(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
 	if (bitbuffer->buffer < bitbuffer->end) {
 		// For alignment required archs, we know it is 32-bit aligned already so safe casts below
 		void* bufferptr = bitbuffer->buffer;
@@ -28,7 +28,7 @@ _bitbuffer_get(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
 }
 
 static void
-_bitbuffer_put(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
+bitbuffer_put(bitbuffer_t* FOUNDATION_RESTRICT bitbuffer) {
 	if (bitbuffer->buffer < bitbuffer->end) {
 		// For alignment required archs, we know it is 32-bit aligned already so safe casts below
 		void* bufferptr = bitbuffer->buffer;
@@ -156,14 +156,14 @@ bitbuffer_read32(bitbuffer_t* bitbuffer, unsigned int bits) {
 		bits = 32;
 
 	if (bitbuffer->offset_read >= 32)
-		_bitbuffer_get(bitbuffer);
+		bitbuffer_get(bitbuffer);
 
 	curbits = 32 - bitbuffer->offset_read;
 	if (bits < curbits)
 		curbits = bits;
 
 	ret = (curbits == 32) ? bitbuffer->pending_read :
-	                        ((bitbuffer->pending_read >> bitbuffer->offset_read) & ((1U << curbits) - 1));
+                            ((bitbuffer->pending_read >> bitbuffer->offset_read) & ((1U << curbits) - 1));
 
 	bitbuffer->offset_read += curbits;
 	bitbuffer->count_read += curbits;
@@ -174,7 +174,7 @@ bitbuffer_read32(bitbuffer_t* bitbuffer, unsigned int bits) {
 	FOUNDATION_ASSERT(bits && curbits);
 	FOUNDATION_ASSERT(bitbuffer->offset_read == 32);
 
-	_bitbuffer_get(bitbuffer);
+	bitbuffer_get(bitbuffer);
 
 	ret |= (bitbuffer->pending_read & ((1U << (bits - curbits)) - 1)) << curbits;
 
@@ -253,7 +253,7 @@ bitbuffer_write32(bitbuffer_t* bitbuffer, uint32_t value, unsigned int bits) {
 	bitbuffer->count_write += bits;
 
 	if (bitbuffer->offset_write == 32)
-		_bitbuffer_put(bitbuffer);
+		bitbuffer_put(bitbuffer);
 
 	if (curbits == bits)
 		return;
@@ -270,7 +270,7 @@ bitbuffer_align_read(bitbuffer_t* bitbuffer, bool force) {
 		if (!force)
 			return;
 		if (bitbuffer->offset_read)
-			_bitbuffer_get(bitbuffer);
+			bitbuffer_get(bitbuffer);
 	}
 	bitbuffer->count_read += 32 - bitbuffer->offset_read;
 	bitbuffer->offset_read = 32;
@@ -281,7 +281,7 @@ bitbuffer_align_write(bitbuffer_t* bitbuffer, bool force) {
 	if (!bitbuffer->offset_write && !force)
 		return;
 	bitbuffer->count_write += 32 - bitbuffer->offset_write;
-	_bitbuffer_put(bitbuffer);
+	bitbuffer_put(bitbuffer);
 }
 
 void

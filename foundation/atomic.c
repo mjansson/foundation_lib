@@ -18,17 +18,17 @@
 #include <foundation/windows.h>
 
 void
-_atomic_thread_fence_sequentially_consistent() {
+internal_atomic_thread_fence_sequentially_consistent() {
 	MemoryBarrier();
 }
 
 #endif
 
 int
-_atomic_initialize(void) {
+internal_atomic_initialize(void) {
 	return 0;
 }
 
 void
-_atomic_finalize(void) {
+internal_atomic_finalize(void) {
 }

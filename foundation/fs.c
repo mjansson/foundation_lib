@@ -79,16 +79,16 @@ typedef FOUNDATION_ALIGN(8) struct stream_file_t stream_file_t;
 #define GET_FILE_CONST(s) ((const stream_file_t*)(s))
 #define GET_STREAM(f) ((stream_t*)(f))
 
-static stream_vtable_t _fs_file_vtable;
+static stream_vtable_t fs_file_vtable;
 
-static mutex_t* _fs_monitor_lock;
-static fs_monitor_t* _fs_monitors;
-static event_stream_t* _fs_event_stream;
+static mutex_t* fs_monitor_lock;
+static fs_monitor_t* fs_monitors;
+static event_stream_t* fs_event_stream_current;
 
 #if FOUNDATION_PLATFORM_WINDOWS || FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID || FOUNDATION_PLATFORM_MACOS
 #define FOUNDATION_HAVE_FS_MONITOR 1
 static void*
-_fs_monitor(void*);
+fs_monitor_thread(void*);
 #else
 #define FOUNDATION_HAVE_FS_MONITOR 0
 #endif
@@ -96,15 +96,15 @@ _fs_monitor(void*);
 #if FOUNDATION_PLATFORM_MACOS
 
 extern void*
-_fs_event_stream_create(const char* path, size_t length);
+fs_event_stream_create(const char* path, size_t length);
 
 extern void
-_fs_event_stream_destroy(void* stream);
+fs_event_stream_destroy(void* stream);
 
 #endif
 
 static string_const_t
-_fs_strip_protocol(const char* path, size_t length) {
+fs_strip_protocol(const char* path, size_t length) {
 	string_const_t stripped = path_strip_protocol(path, length);
 	ptrdiff_t diff = pointer_diff(stripped.str, path);
 	if (!diff)
@@ -122,11 +122,11 @@ fs_monitor(const char* path, size_t length) {
 	char buf[BUILD_MAX_PATHLEN];
 	string_t path_clone;
 
-	mutex_lock(_fs_monitor_lock);
+	mutex_lock(fs_monitor_lock);
 
 	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
-		if (_fs_monitors[mi].inuse && string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length)) {
-			mutex_unlock(_fs_monitor_lock);
+		if (fs_monitors[mi].inuse && string_equal(STRING_ARGS(fs_monitors[mi].path), path, length)) {
+			mutex_unlock(fs_monitor_lock);
 			return true;
 		}
 	}
@@ -139,16 +139,16 @@ fs_monitor(const char* path, size_t length) {
 	path_clone = string_clone(STRING_ARGS(path_clone));
 
 	for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
-		if (!_fs_monitors[mi].inuse) {
-			_fs_monitors[mi].inuse = true;
-			_fs_monitors[mi].path = path_clone;
+		if (!fs_monitors[mi].inuse) {
+			fs_monitors[mi].inuse = true;
+			fs_monitors[mi].path = path_clone;
 #if FOUNDATION_PLATFORM_MACOS
 			// On macOS file system monitors are run in system dispatch
-			_fs_monitor(_fs_monitors + mi);
+			fs_monitor(fs_monitors + mi);
 #else
-			thread_initialize(&_fs_monitors[mi].thread, _fs_monitor, _fs_monitors + mi, STRING_CONST("fs_monitor"),
+			thread_initialize(&fs_monitors[mi].thread, fs_monitor_thread, fs_monitors + mi, STRING_CONST("fs_monitor"),
 			                  THREAD_PRIORITY_BELOWNORMAL, 0);
-			thread_start(&_fs_monitors[mi].thread);
+			thread_start(&fs_monitors[mi].thread);
 #endif
 			ret = true;
 			break;
@@ -162,7 +162,7 @@ fs_monitor(const char* path, size_t length) {
 	}
 
 	memory_context_pop();
-	mutex_unlock(_fs_monitor_lock);
+	mutex_unlock(fs_monitor_lock);
 
 #else
 	FOUNDATION_UNUSED(path);
@@ -172,13 +172,13 @@ fs_monitor(const char* path, size_t length) {
 }
 
 static void
-_fs_stop_monitor(fs_monitor_t* monitor) {
+fs_stop_monitor(fs_monitor_t* monitor) {
 	if (!monitor->inuse)
 		return;
 
 #if FOUNDATION_PLATFORM_MACOS
 	if (monitor->stream)
-		_fs_event_stream_destroy(monitor->stream);
+		fs_event_stream_destroy(monitor->stream);
 #else
 	thread_signal(&monitor->thread);
 	thread_finalize(&monitor->thread);
@@ -189,25 +189,23 @@ _fs_stop_monitor(fs_monitor_t* monitor) {
 
 void
 fs_unmonitor(const char* path, size_t length) {
-	size_t mi;
+	mutex_lock(fs_monitor_lock);
 
-	mutex_lock(_fs_monitor_lock);
-
-	if (_fs_monitors) {
-		for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
-			if (_fs_monitors[mi].inuse && string_equal(STRING_ARGS(_fs_monitors[mi].path), path, length))
-				_fs_stop_monitor(_fs_monitors + mi);
+	if (fs_monitors) {
+		for (size_t mi = 0; mi < foundation_config().fs_monitor_max; ++mi) {
+			if (fs_monitors[mi].inuse && string_equal(STRING_ARGS(fs_monitors[mi].path), path, length))
+				fs_stop_monitor(fs_monitors + mi);
 		}
 	}
 
-	mutex_unlock(_fs_monitor_lock);
+	mutex_unlock(fs_monitor_lock);
 }
 
 bool
 fs_is_file(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	string_const_t pathstr = _fs_strip_protocol(path, length);
+	string_const_t pathstr = fs_strip_protocol(path, length);
 	if (pathstr.length) {
 		wchar_t* wpath = wstring_allocate_from_string(pathstr.str, pathstr.length);
 		unsigned int attribs = GetFileAttributesW(wpath);
@@ -218,7 +216,7 @@ fs_is_file(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	string_const_t pathstr = _fs_strip_protocol(path, length);
+	string_const_t pathstr = fs_strip_protocol(path, length);
 	if (pathstr.length) {
 		char buffer[BUILD_MAX_PATHLEN];
 		struct stat st;
@@ -238,7 +236,7 @@ bool
 fs_is_directory(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	string_const_t pathstr = _fs_strip_protocol(path, length);
+	string_const_t pathstr = fs_strip_protocol(path, length);
 	if (pathstr.length) {
 		wchar_t* wpath = wstring_allocate_from_string(pathstr.str, pathstr.length);
 		unsigned int attr = GetFileAttributesW(wpath);
@@ -249,7 +247,7 @@ fs_is_directory(const char* path, size_t length) {
 
 #elif FOUNDATION_PLATFORM_POSIX
 
-	string_const_t pathstr = _fs_strip_protocol(path, length);
+	string_const_t pathstr = fs_strip_protocol(path, length);
 	if (pathstr.length) {
 		char buffer[BUILD_MAX_PATHLEN];
 		struct stat st;
@@ -412,7 +410,7 @@ fs_remove_file(const char* path, size_t length) {
 	wchar_t* wpath;
 #endif
 
-	fspath = _fs_strip_protocol(path, length);
+	fspath = fs_strip_protocol(path, length);
 	if (!fspath.length)
 		return false;
 
@@ -454,7 +452,7 @@ fs_remove_directory(const char* path, size_t length) {
 	localpath = string_copy(abspath_buffer, BUILD_MAX_PATHLEN, path, length);
 	abspath = string_to_const(localpath);
 
-	fspath = _fs_strip_protocol(STRING_ARGS(abspath));
+	fspath = fs_strip_protocol(STRING_ARGS(abspath));
 	if (!fs_is_directory(STRING_ARGS(fspath)))
 		goto end;
 
@@ -504,7 +502,7 @@ fs_make_directory(const char* path, size_t length) {
 	string_const_t fspath;
 
 	localpath = string_copy(abspath_buffer, sizeof(abspath_buffer), path, length);
-	fspath = _fs_strip_protocol(STRING_ARGS(localpath));
+	fspath = fs_strip_protocol(STRING_ARGS(localpath));
 	if (!fspath.length)
 		return false;
 	localpath = (string_t){localpath.str + pointer_diff(fspath.str, localpath.str), fspath.length};
@@ -607,7 +605,7 @@ fs_last_modified(const char* path, size_t length) {
 	string_const_t cpath;
 	memset(&attrib, 0, sizeof(attrib));
 
-	cpath = _fs_strip_protocol(path, length);
+	cpath = fs_strip_protocol(path, length);
 	if (cpath.length) {
 		wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 		success = GetFileAttributesExW(wpath, GetFileExInfoStandard, &attrib);
@@ -634,7 +632,7 @@ fs_last_modified(const char* path, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 	tick_t tstamp = 0;
-	string_const_t fspath = _fs_strip_protocol(path, length);
+	string_const_t fspath = fs_strip_protocol(path, length);
 	if (fspath.length) {
 		char buffer[BUILD_MAX_PATHLEN];
 		struct stat st;
@@ -674,14 +672,14 @@ fs_md5(const char* path, size_t length) {
 void
 fs_touch(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_const_t cpath = _fs_strip_protocol(path, length);
+	string_const_t cpath = fs_strip_protocol(path, length);
 	if (cpath.length) {
 		wchar_t* wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 		_wutime(wpath, 0);
 		wstring_deallocate(wpath);
 	}
 #elif FOUNDATION_PLATFORM_POSIX
-	string_const_t fspath = _fs_strip_protocol(path, length);
+	string_const_t fspath = fs_strip_protocol(path, length);
 	if (fspath.length) {
 		char buffer[BUILD_MAX_PATHLEN];
 		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
@@ -836,7 +834,7 @@ fs_event_path(const event_t* event) {
 
 event_stream_t*
 fs_event_stream(void) {
-	return _fs_event_stream;
+	return fs_event_stream_current;
 }
 
 #if FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
@@ -849,7 +847,7 @@ struct fs_watch_t {
 typedef struct fs_watch_t fs_watch_t;
 
 static void
-_fs_send_creations(char* path, size_t length, size_t capacity) {
+fs_send_creations(char* path, size_t length, size_t capacity) {
 	size_t ifile, isub, fsize, subsize;
 
 	string_t* files = fs_files(path, length);
@@ -862,14 +860,14 @@ _fs_send_creations(char* path, size_t length, size_t capacity) {
 	string_t* subdirs = fs_subdirs(path, length);
 	for (isub = 0, subsize = array_size(subdirs); isub < subsize; ++isub) {
 		string_t subpath = path_append(path, length, capacity, STRING_ARGS(subdirs[isub]));
-		_fs_send_creations(STRING_ARGS(subpath), capacity);
+		fs_send_creations(STRING_ARGS(subpath), capacity);
 	}
 	string_array_deallocate(subdirs);
 }
 
 static void
-_fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity, fs_watch_t** watch_arr,
-                      string_t** path_arr, bool send_create) {
+fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity, fs_watch_t** watch_arr,
+                     string_t** path_arr, bool send_create) {
 	string_t* subdirs = 0;
 	string_t local_path;
 	string_t stored_path;
@@ -881,7 +879,7 @@ _fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity,
 	}
 
 	if (send_create)
-		_fs_send_creations(path, length, capacity);
+		fs_send_creations(path, length, capacity);
 
 	// Include terminating / in paths stored in path_arr/watch_arr
 	local_path = string_append(path, length, capacity, STRING_CONST("/"));
@@ -897,13 +895,13 @@ _fs_add_notify_subdir(int notify_fd, char* path, size_t length, size_t capacity,
 	subdirs = fs_subdirs(STRING_ARGS(local_path));
 	for (size_t i = 0, size = array_size(subdirs); i < size; ++i) {
 		string_t subpath = string_append(STRING_ARGS(local_path), capacity, STRING_ARGS(subdirs[i]));
-		_fs_add_notify_subdir(notify_fd, STRING_ARGS(subpath), capacity, watch_arr, path_arr, send_create);
+		fs_add_notify_subdir(notify_fd, STRING_ARGS(subpath), capacity, watch_arr, path_arr, send_create);
 	}
 	string_array_deallocate(subdirs);
 }
 
 static fs_watch_t*
-_fs_lookup_watch(fs_watch_t* watch_arr, int fd) {
+fs_lookup_watch(fs_watch_t* watch_arr, int fd) {
 	// TODO: If array is kept sorted on fd, this could be made faster
 	for (size_t i = 0, size = array_size(watch_arr); i < size; ++i) {
 		if (watch_arr[i].fd == fd)
@@ -917,7 +915,7 @@ _fs_lookup_watch(fs_watch_t* watch_arr, int fd) {
 #if FOUNDATION_HAVE_FS_MONITOR
 
 static void*
-_fs_monitor(void* monitorptr) {
+fs_monitor_thread(void* monitorptr) {
 	fs_monitor_t* monitor = monitorptr;
 	bool keep_running = true;
 
@@ -963,7 +961,7 @@ _fs_monitor(void* monitorptr) {
 
 	// Recurse and add all subdirs
 	local_path = string_copy(pathbuffer, sizeof(pathbuffer), STRING_ARGS(monitor->path));
-	_fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths, false);
+	fs_add_notify_subdir(notify_fd, STRING_ARGS(local_path), sizeof(pathbuffer), &watch, &paths, false);
 
 	beacon_add_fd(beacon, notify_fd);
 
@@ -971,7 +969,7 @@ _fs_monitor(void* monitorptr) {
 
 	memory_context_push(HASH_STREAM);
 
-	monitor->stream = _fs_event_stream_create(STRING_ARGS(monitor->path));
+	monitor->stream = fs_event_stream_create(STRING_ARGS(monitor->path));
 
 #else
 
@@ -1080,7 +1078,7 @@ _fs_monitor(void* monitorptr) {
 
 					info = info->NextEntryOffset ?
 					           (PFILE_NOTIFY_INFORMATION)(pointer_offset(info, info->NextEntryOffset)) :
-					           nullptr;
+                               nullptr;
 				} while (info);
 			}
 		}
@@ -1099,7 +1097,7 @@ _fs_monitor(void* monitorptr) {
 			ssize_t avail_read = read(notify_fd, buffer, (size_t)avail);
 			struct inotify_event* event = (struct inotify_event*)buffer;
 			while (offset < avail_read) {
-				fs_watch_t* curwatch = _fs_lookup_watch(watch, event->wd);
+				fs_watch_t* curwatch = fs_lookup_watch(watch, event->wd);
 				if (!curwatch) {
 					log_warnf(0, WARNING_SUSPICIOUS,
 					          STRING_CONST("inotify watch not found: %d %x %x %" PRIsize " bytes: %.*s"), event->wd,
@@ -1116,8 +1114,7 @@ _fs_monitor(void* monitorptr) {
 
 				if ((event->mask & IN_CREATE) || (event->mask & IN_MOVED_TO)) {
 					if (is_dir)
-						_fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer), &watch, &paths,
-						                      true);
+						fs_add_notify_subdir(notify_fd, STRING_ARGS(curpath), sizeof(pathbuffer), &watch, &paths, true);
 					else
 						fs_event_post(FOUNDATIONEVENT_FILE_CREATED, STRING_ARGS(curpath));
 				}
@@ -1186,7 +1183,7 @@ exit_thread:
 #endif
 
 static fs_file_descriptor
-_fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc) {
+fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc) {
 	fs_file_descriptor fd = 0;
 	int retry = 0;
 
@@ -1240,13 +1237,13 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 		return INVALID_HANDLE_VALUE;
 	}
 #else
-#  if FOUNDATION_PLATFORM_LINUX
-#  define MODESTRING(x) x "e"
+#if FOUNDATION_PLATFORM_LINUX
+#define MODESTRING(x) x "e"
 	const char* modestr;
-#  else
-#  define MODESTRING(x) x
+#else
+#define MODESTRING(x) x
 	const char* modestr;
-#  endif
+#endif
 	if (mode & STREAM_IN) {
 		if (mode & STREAM_OUT) {
 			if (mode & STREAM_CREATE) {
@@ -1326,7 +1323,7 @@ _fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc
 }
 
 static size_t
-_fs_file_tell(stream_t* stream) {
+fs_file_tell(stream_t* stream) {
 	if (!FD_VALID(GET_FILE(stream)->fd))
 		return 0;
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -1342,12 +1339,12 @@ _fs_file_tell(stream_t* stream) {
 }
 
 static void
-_fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
+fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (SetFilePointer(GET_FILE(stream)->fd, (LONG)offset, 0,
-	             (direction == STREAM_SEEK_BEGIN) ?
-                     FILE_BEGIN :
-                     ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
+	                   (direction == STREAM_SEEK_BEGIN) ?
+	                       FILE_BEGIN :
+                           ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"), (int)offset,
 		          (int)direction, STRING_FORMAT(stream->path));
 	}
@@ -1362,7 +1359,7 @@ _fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 }
 
 static size_t
-_fs_file_size(stream_t* stream) {
+fs_file_size(stream_t* stream) {
 	if (!FD_VALID(GET_FILE(stream)->fd))
 		return 0;
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -1373,22 +1370,22 @@ _fs_file_size(stream_t* stream) {
 #else
 	size_t cur, size;
 
-	cur = _fs_file_tell(stream);
-	_fs_file_seek(stream, 0, STREAM_SEEK_END);
-	size = _fs_file_tell(stream);
-	_fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
+	cur = fs_file_tell(stream);
+	fs_file_seek(stream, 0, STREAM_SEEK_END);
+	size = fs_file_tell(stream);
+	fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
 
 	return size;
 #endif
 }
 
 static bool
-_fs_file_eos(stream_t* stream) {
+fs_file_eos(stream_t* stream) {
 	if (!FD_VALID(GET_FILE(stream)->fd))
 		return true;
 #if FOUNDATION_PLATFORM_WINDOWS
-	size_t current = _fs_file_tell(stream);
-	size_t size = _fs_file_size(stream);
+	size_t current = fs_file_tell(stream);
+	size_t size = fs_file_size(stream);
 	return (current == size);
 #else
 	return feof(GET_FILE(stream)->fd) != 0;
@@ -1396,20 +1393,18 @@ _fs_file_eos(stream_t* stream) {
 }
 
 static void
-_fs_file_truncate(stream_t* stream, size_t length) {
+fs_file_truncate(stream_t* stream, size_t length) {
 	if (!(stream->mode & STREAM_OUT) || !FD_VALID(GET_FILE(stream)->fd))
 		return;
 
-	if (length >= _fs_file_size(stream))
+	if (length >= fs_file_size(stream))
 		return;
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	bool success = false;
-	if ((int64_t)length < 0x7FFFFFFFULL)
-	{
+	if ((int64_t)length < 0x7FFFFFFFULL) {
 		success = (SetFilePointer(GET_FILE(stream)->fd, (LONG)length, 0, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
-	}
-	else {
+	} else {
 		LONG high = (LONG)((int64_t)length >> 32LL);
 		success = (SetFilePointer(GET_FILE(stream)->fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 	}
@@ -1418,9 +1413,9 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 
 	if (!success) {
 		string_const_t errstr = system_error_message(0);
-		string_const_t fspath = _fs_strip_protocol(STRING_ARGS(stream->path));
+		string_const_t fspath = fs_strip_protocol(STRING_ARGS(stream->path));
 		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unable to truncate real file %.*s (%" PRIsize " bytes): %.*s"),
-				  STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
+		          STRING_FORMAT(fspath), length, STRING_FORMAT(errstr));
 	}
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -1429,12 +1424,12 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	string_const_t fspath;
 	size_t cur;
 
-	cur = _fs_file_tell(stream);
+	cur = fs_file_tell(stream);
 	if (cur > length)
 		cur = length;
 
 	file = GET_FILE(stream);
-	fspath = _fs_strip_protocol(STRING_ARGS(file->path));
+	fspath = fs_strip_protocol(STRING_ARGS(file->path));
 	if (!fspath.length)
 		return;
 
@@ -1451,8 +1446,8 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 	}
 	close(fd);
 
-	file->fd = _fs_file_fopen(fspath.str, fspath.length, stream->mode, 0);
-	_fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
+	file->fd = fs_file_fopen(fspath.str, fspath.length, stream->mode, 0);
+	fs_file_seek(stream, (ssize_t)cur, STREAM_SEEK_BEGIN);
 
 #else
 #error Not implemented
@@ -1460,7 +1455,7 @@ _fs_file_truncate(stream_t* stream, size_t length) {
 }
 
 static void
-_fs_file_flush(stream_t* stream) {
+fs_file_flush(stream_t* stream) {
 	if (!FD_VALID(GET_FILE(stream)->fd))
 		return;
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -1471,7 +1466,7 @@ _fs_file_flush(stream_t* stream) {
 }
 
 static size_t
-_fs_file_read(stream_t* stream, void* buffer, size_t size) {
+fs_file_read(stream_t* stream, void* buffer, size_t size) {
 	if (!(stream->mode & STREAM_IN) || !FD_VALID(GET_FILE(stream)))
 		return 0;
 
@@ -1487,8 +1482,8 @@ _fs_file_read(stream_t* stream, void* buffer, size_t size) {
 }
 
 static size_t
-_fs_file_write(stream_t* stream, const void* buffer, size_t size) {
-	 if (!(stream->mode & STREAM_OUT) || !FD_VALID(GET_FILE(stream)->fd))
+fs_file_write(stream_t* stream, const void* buffer, size_t size) {
+	if (!(stream->mode & STREAM_OUT) || !FD_VALID(GET_FILE(stream)->fd))
 		return 0;
 
 	stream_file_t* file = GET_FILE(stream);
@@ -1503,15 +1498,15 @@ _fs_file_write(stream_t* stream, const void* buffer, size_t size) {
 }
 
 static tick_t
-_fs_file_last_modified(const stream_t* stream) {
+fs_file_last_modified(const stream_t* stream) {
 	const stream_file_t* fstream = GET_FILE_CONST(stream);
 	return fs_last_modified(fstream->path.str, fstream->path.length);
 }
 
 static size_t
-_fs_file_available_read(stream_t* stream) {
-	size_t size = _fs_file_size(stream);
-	size_t cur = _fs_file_tell(stream);
+fs_file_available_read(stream_t* stream) {
+	size_t size = fs_file_size(stream);
+	size_t cur = fs_file_tell(stream);
 
 	if (size > cur)
 		return size - cur;
@@ -1520,19 +1515,19 @@ _fs_file_available_read(stream_t* stream) {
 }
 
 static stream_t*
-_fs_file_clone(stream_t* stream) {
+fs_file_clone(stream_t* stream) {
 	stream_file_t* file = GET_FILE(stream);
 	return fs_open_file(file->path.str, file->path.length, file->mode);
 }
 
 static void
-_fs_file_finalize(stream_t* stream) {
+fs_file_finalize(stream_t* stream) {
 	stream_file_t* file = GET_FILE(stream);
 	if (!FD_VALID(file->fd))
 		return;
 
 	if (file->mode & STREAM_SYNC) {
-		_fs_file_flush(stream);
+		fs_file_flush(stream);
 		if (file->fd) {
 #if FOUNDATION_PLATFORM_WINDOWS
 			//_commit(_fileno(file->fd));
@@ -1585,8 +1580,8 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 
 	dotrunc = false;
 
-	fspath = _fs_strip_protocol(STRING_ARGS(finalpath));
-	fd = _fs_file_fopen(STRING_ARGS(fspath), mode, &dotrunc);
+	fspath = fs_strip_protocol(STRING_ARGS(finalpath));
+	fd = fs_file_fopen(STRING_ARGS(fspath), mode, &dotrunc);
 	if (!FD_VALID(fd)) {
 		string_deallocate(finalpath.str);
 		return 0;
@@ -1601,10 +1596,10 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 	file->persistent = 1;
 	file->mode = mode & (STREAM_OUT | STREAM_IN | STREAM_BINARY | STREAM_SYNC);
 	file->path = finalpath;
-	file->vtable = &_fs_file_vtable;
+	file->vtable = &fs_file_vtable;
 
 	if (dotrunc)
-		_fs_file_truncate(stream, 0);
+		fs_file_truncate(stream, 0);
 	else if (mode & STREAM_ATEND)
 		stream_seek(stream, 0, STREAM_SEEK_END);
 
@@ -1612,54 +1607,53 @@ fs_open_file(const char* path, size_t length, unsigned int mode) {
 }
 
 int
-_fs_initialize(void) {
+internal_fs_initialize(void) {
 #if FOUNDATION_HAVE_FS_MONITOR
-	_fs_monitors = memory_allocate(HASH_STREAM, sizeof(fs_monitor_t) * foundation_config().fs_monitor_max, 0,
-	                               MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-	_fs_monitor_lock = mutex_allocate(STRING_CONST("fs_monitors"));
+	fs_monitors = memory_allocate(HASH_STREAM, sizeof(fs_monitor_t) * foundation_config().fs_monitor_max, 0,
+	                              MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+	fs_monitor_lock = mutex_allocate(STRING_CONST("fs_monitors"));
 #else
-	_fs_monitors = 0;
-	_fs_monitor_lock = 0;
+	fs_monitors = 0;
+	fs_monitor_lock = 0;
 #endif
 
-	_fs_event_stream = event_stream_allocate(512);
+	fs_event_stream_current = event_stream_allocate(512);
 
-	_fs_file_vtable.read = _fs_file_read;
-	_fs_file_vtable.write = _fs_file_write;
-	_fs_file_vtable.eos = _fs_file_eos;
-	_fs_file_vtable.flush = _fs_file_flush;
-	_fs_file_vtable.truncate = _fs_file_truncate;
-	_fs_file_vtable.size = _fs_file_size;
-	_fs_file_vtable.seek = _fs_file_seek;
-	_fs_file_vtable.tell = _fs_file_tell;
-	_fs_file_vtable.lastmod = _fs_file_last_modified;
-	_fs_file_vtable.buffer_read = 0;
-	_fs_file_vtable.available_read = _fs_file_available_read;
-	_fs_file_vtable.finalize = _fs_file_finalize;
-	_fs_file_vtable.clone = _fs_file_clone;
+	fs_file_vtable.read = fs_file_read;
+	fs_file_vtable.write = fs_file_write;
+	fs_file_vtable.eos = fs_file_eos;
+	fs_file_vtable.flush = fs_file_flush;
+	fs_file_vtable.truncate = fs_file_truncate;
+	fs_file_vtable.size = fs_file_size;
+	fs_file_vtable.seek = fs_file_seek;
+	fs_file_vtable.tell = fs_file_tell;
+	fs_file_vtable.lastmod = fs_file_last_modified;
+	fs_file_vtable.buffer_read = 0;
+	fs_file_vtable.available_read = fs_file_available_read;
+	fs_file_vtable.finalize = fs_file_finalize;
+	fs_file_vtable.clone = fs_file_clone;
 
-	_ringbuffer_stream_initialize();
-	_buffer_stream_initialize();
+	internal_ringbuffer_stream_initialize();
+	internal_buffer_stream_initialize();
 #if FOUNDATION_PLATFORM_ANDROID
-	_asset_stream_initialize();
+	internal_asset_stream_initialize();
 #endif
-	_pipe_stream_initialize();
+	internal_pipe_stream_initialize();
 
 	return 0;
 }
 
 void
-_fs_finalize(void) {
-	size_t mi;
-	if (_fs_monitors) {
-		for (mi = 0; mi < foundation_config().fs_monitor_max; ++mi)
-			_fs_stop_monitor(_fs_monitors + mi);
+internal_fs_finalize(void) {
+	if (fs_monitors) {
+		for (size_t mi = 0; mi < foundation_config().fs_monitor_max; ++mi)
+			fs_stop_monitor(fs_monitors + mi);
 	}
-	mutex_deallocate(_fs_monitor_lock);
+	mutex_deallocate(fs_monitor_lock);
 
-	event_stream_deallocate(_fs_event_stream);
-	_fs_event_stream = 0;
+	event_stream_deallocate(fs_event_stream_current);
+	fs_event_stream_current = 0;
 
-	memory_deallocate(_fs_monitors);
-	_fs_monitors = 0;
+	memory_deallocate(fs_monitors);
+	fs_monitors = 0;
 }

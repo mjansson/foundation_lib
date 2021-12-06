@@ -18,17 +18,17 @@
 #include <foundation/posix.h>
 #endif
 
-static application_t _global_app;
+static application_t global_app;
 
 static application_t
 test_app_application(void) {
-	_global_app.name = string_const(STRING_CONST("Foundation application tests"));
-	_global_app.short_name = string_const(STRING_CONST("test_app"));
-	_global_app.company = string_const(STRING_CONST(""));
-	_global_app.version = foundation_version();
-	_global_app.flags = APPLICATION_UTILITY;
-	_global_app.exception_handler = test_exception_handler;
-	return _global_app;
+	global_app.name = string_const(STRING_CONST("Foundation application tests"));
+	global_app.short_name = string_const(STRING_CONST("test_app"));
+	global_app.company = string_const(STRING_CONST(""));
+	global_app.version = foundation_version();
+	global_app.flags = APPLICATION_UTILITY;
+	global_app.exception_handler = test_exception_handler;
+	return global_app;
 }
 
 static memory_system_t
@@ -74,7 +74,7 @@ DECLARE_TEST(app, environment) {
 static FOUNDATION_NOINLINE void*
 memory_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
-	int iloop, lsize;
+	size_t iloop, lsize;
 
 #if !BUILD_ENABLE_MEMORY_TRACKER
 	for (iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
@@ -92,8 +92,8 @@ memory_thread(void* arg) {
 }
 
 #if BUILD_ENABLE_MEMORY_STATISTICS && BUILD_ENABLE_MEMORY_TRACKER
-static size_t _memory_dumps;
-static size_t _memory_dump_size;
+static size_t memory_dumps;
+static size_t memory_dump_size;
 
 static int
 memory_dump(const void* addr, size_t size, void* const* trace, size_t depth) {
@@ -103,8 +103,8 @@ memory_dump(const void* addr, size_t size, void* const* trace, size_t depth) {
 	/*log_infof(HASH_TEST,
 	          STRING_CONST("Memory alloc: %" PRIsize " bytes @ 0x%" PRIfixPTR),
 	          size, (uintptr_t)addr);*/
-	++_memory_dumps;
-	_memory_dump_size += size;
+	++memory_dumps;
+	memory_dump_size += size;
 	return 0;
 }
 #endif
@@ -122,11 +122,11 @@ DECLARE_TEST(app, memory) {
 	EXPECT_SIZEGT(prestats.allocated_current, 1);
 	EXPECT_SIZEGE(prestats.allocations_total, prestats.allocations_current);
 	EXPECT_SIZEGE(prestats.allocated_total, prestats.allocated_current);
-	_memory_dumps = 0;
-	_memory_dump_size = 0;
+	memory_dumps = 0;
+	memory_dump_size = 0;
 	memory_tracker_dump(memory_dump);
-	EXPECT_SIZEGT(_memory_dumps, 1);
-	EXPECT_SIZEGT(_memory_dump_size, 1);
+	EXPECT_SIZEGT(memory_dumps, 1);
+	EXPECT_SIZEGT(memory_dump_size, 1);
 #endif
 
 	for (ith = 0; ith < threads_count; ++ith)
@@ -150,15 +150,15 @@ DECLARE_TEST(app, memory) {
 	EXPECT_SIZEEQ(poststats.allocated_current, prestats.allocated_current);
 	EXPECT_SIZEGT(poststats.allocations_total, prestats.allocations_total);
 	EXPECT_SIZEGT(poststats.allocated_total, prestats.allocated_total);
-	size_t last_dumps = _memory_dumps;
-	size_t last_dump_size = _memory_dump_size;
-	_memory_dumps = 0;
-	_memory_dump_size = 0;
+	size_t last_dumps = memory_dumps;
+	size_t last_dump_size = memory_dump_size;
+	memory_dumps = 0;
+	memory_dump_size = 0;
 	memory_tracker_dump(memory_dump);
-	EXPECT_SIZEGT(_memory_dumps, 1);
-	EXPECT_SIZEGT(_memory_dump_size, 1);
-	EXPECT_SIZEEQ(_memory_dumps, last_dumps);
-	EXPECT_SIZEEQ(_memory_dump_size, last_dump_size);
+	EXPECT_SIZEGT(memory_dumps, 1);
+	EXPECT_SIZEGT(memory_dump_size, 1);
+	EXPECT_SIZEEQ(memory_dumps, last_dumps);
+	EXPECT_SIZEEQ(memory_dump_size, last_dump_size);
 #endif
 
 	return 0;

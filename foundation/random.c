@@ -15,8 +15,8 @@
 
 // C implementation of the "Maximally equidistributed pseudorandom number generators via
 // linear output transformations" from
-// http://www.sciencedirect.com/science/article/pii/S0378475408002358 Put state array in
-// thread-local storage for thread safety
+// http://www.sciencedirect.com/science/article/pii/S0378475408002358
+// with state array in thread-local storage for thread safety
 
 /*lint -e679 -e834 */
 
@@ -38,16 +38,16 @@
 #define RANDOM_XOR_AND_RIGHTSHIFT(bits, val) ((val) ^ ((val) >> (bits)))
 #define RANDOM_TRANSFORM(bits, key, mask, test, val)                                                   \
 	(((val) & (test)) ? (((((val) << (bits)) ^ ((val) >> (RANDOM_BITS - (bits)))) & (mask)) ^ (key)) : \
-	                    (((((val) << (bits)) ^ ((val) >> (RANDOM_BITS - (bits)))) & (mask))))
+                        (((((val) << (bits)) ^ ((val) >> (RANDOM_BITS - (bits)))) & (mask))))
 
 FOUNDATION_DECLARE_THREAD_LOCAL(unsigned int*, state, 0)
 
-static mutex_t* _random_mutex;
-static unsigned int** _random_state;
-static unsigned int** _random_available_state;
+static mutex_t* random_mutex;
+static unsigned int** random_state;
+static unsigned int** random_available_state;
 
 static void
-_random_seed_buffer(unsigned int* buffer) {
+random_seed_buffer(unsigned int* buffer) {
 	tick_t i;
 	tick_t base = time_system();
 	for (i = 0; i < RANDOM_STATE_SIZE; ++i)
@@ -57,71 +57,71 @@ _random_seed_buffer(unsigned int* buffer) {
 }
 
 static unsigned int*
-_random_allocate_buffer(void) {
+random_allocate_buffer(void) {
 	unsigned int* buffer = memory_allocate(0, sizeof(unsigned int) * (RANDOM_STATE_SIZE + 1), 0, MEMORY_PERSISTENT);
-	_random_seed_buffer(buffer);
+	random_seed_buffer(buffer);
 	buffer[RANDOM_STATE_SIZE] = 0;
-	array_push(_random_state, buffer);
+	array_push(random_state, buffer);
 	return buffer;
 }
 
 int
-_random_initialize(void) {
-	if (!_random_mutex) {
+internal_random_initialize(void) {
+	if (!random_mutex) {
 		size_t prealloc, capacity;
 		size_t i;
-		_random_mutex = mutex_allocate(STRING_CONST("random"));
+		random_mutex = mutex_allocate(STRING_CONST("random"));
 
 		// Allocate and seed a number of state buffers
 		prealloc = foundation_config().random_state_prealloc;
 		capacity = prealloc > 8 ? prealloc : 8;
-		array_reserve(_random_state, capacity);
-		array_reserve(_random_available_state, capacity);
+		array_reserve(random_state, capacity);
+		array_reserve(random_available_state, capacity);
 		for (i = 0; i < prealloc; ++i) {
-			unsigned int* buffer = _random_allocate_buffer();
-			array_push(_random_available_state, buffer);
+			unsigned int* buffer = random_allocate_buffer();
+			array_push(random_available_state, buffer);
 		}
 	}
 	return 0;
 }
 
 void
-_random_finalize(void) {
+internal_random_finalize(void) {
 	size_t i, size;
 
-	if (_random_mutex)
-		mutex_lock(_random_mutex);
+	if (random_mutex)
+		mutex_lock(random_mutex);
 
-	for (i = 0, size = array_size(_random_state); i < size; ++i)
-		memory_deallocate(_random_state[i]);
-	array_deallocate(_random_available_state);
-	array_deallocate(_random_state);
+	for (i = 0, size = array_size(random_state); i < size; ++i)
+		memory_deallocate(random_state[i]);
+	array_deallocate(random_available_state);
+	array_deallocate(random_state);
 
 	set_thread_state(0);
 
-	if (_random_mutex) {
-		mutex_unlock(_random_mutex);
-		mutex_deallocate(_random_mutex);
+	if (random_mutex) {
+		mutex_unlock(random_mutex);
+		mutex_deallocate(random_mutex);
 	}
-	_random_mutex = 0;
+	random_mutex = 0;
 }
 
 static unsigned int*
-_random_thread_initialize(void) {
+random_thread_initialize(void) {
 	unsigned int* buffer;
 
-	mutex_lock(_random_mutex);
+	mutex_lock(random_mutex);
 
 	// Grab a free state buffer or allocate if none available
-	if (!array_size(_random_available_state)) {
-		buffer = _random_allocate_buffer();
-		array_push(_random_available_state, buffer);
+	if (!array_size(random_available_state)) {
+		buffer = random_allocate_buffer();
+		array_push(random_available_state, buffer);
 	} else {
-		buffer = _random_available_state[array_size(_random_available_state) - 1];
-		array_pop(_random_available_state);
+		buffer = random_available_state[array_size(random_available_state) - 1];
+		array_pop(random_available_state);
 	}
 
-	mutex_unlock(_random_mutex);
+	mutex_unlock(random_mutex);
 
 	set_thread_state(buffer);
 
@@ -133,9 +133,9 @@ random_thread_finalize(void) {
 	if (!get_thread_state())
 		return;
 
-	mutex_lock(_random_mutex);
-	array_push(_random_available_state, get_thread_state());
-	mutex_unlock(_random_mutex);
+	mutex_lock(random_mutex);
+	array_push(random_available_state, get_thread_state());
+	mutex_unlock(random_mutex);
 
 	set_thread_state(0);
 }
@@ -218,7 +218,7 @@ uint32_t
 random32(void) {
 	unsigned int* state = get_thread_state();
 	if (!state)
-		state = _random_thread_initialize();
+		state = random_thread_initialize();
 
 	return random_from_state(state);
 }
@@ -240,7 +240,7 @@ random64(void) {
 	uint32_t low, high;
 	unsigned int* state = get_thread_state();
 	if (!state)
-		state = _random_thread_initialize();
+		state = random_thread_initialize();
 
 	low = random_from_state(state);
 	high = random_from_state(state);

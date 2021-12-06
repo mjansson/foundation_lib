@@ -544,14 +544,14 @@ atomic_signal_fence_sequentially_consistent(void) {
 #include <intrin.h>
 
 FOUNDATION_API void
-_atomic_thread_fence_sequentially_consistent(void);
+internal_atomic_thread_fence_sequentially_consistent(void);
 
 #define atomic_signal_fence_acquire() _ReadWriteBarrier()
 #define atomic_signal_fence_release() _ReadWriteBarrier()
 #define atomic_signal_fence_sequentially_consistent() _ReadWriteBarrier()
 #define atomic_thread_fence_acquire() _ReadWriteBarrier()
 #define atomic_thread_fence_release() _ReadWriteBarrier()
-#define atomic_thread_fence_sequentially_consistent() _atomic_thread_fence_sequentially_consistent()
+#define atomic_thread_fence_sequentially_consistent() internal_atomic_thread_fence_sequentially_consistent()
 
 #else  // __STDC_NO_ATOMICS__
 #error Atomic operations not implemented

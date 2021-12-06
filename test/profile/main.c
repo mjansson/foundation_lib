@@ -16,15 +16,15 @@
 // Must be >30000 since we assume that in forced fail test
 #define TEST_PROFILE_BUFFER_SIZE 1024 * 1024
 
-static char* _test_profile_buffer;
-static size_t _test_profile_offset;
-static atomic32_t _test_profile_output_counter;
+static char* test_profile_buffer;
+static size_t test_profile_offset;
+static atomic32_t test_profile_output_counter;
 
 static void
 test_profile_output(void* buffer, size_t size) {
 	FOUNDATION_UNUSED(buffer);
 	FOUNDATION_UNUSED(size);
-	atomic_incr32(&_test_profile_output_counter, memory_order_relaxed);
+	atomic_incr32(&test_profile_output_counter, memory_order_relaxed);
 }
 
 static application_t
@@ -55,7 +55,7 @@ static int
 test_profile_initialize(void) {
 	profile_set_output(test_profile_output);
 
-	_test_profile_buffer = memory_allocate(0, TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT);
+	test_profile_buffer = memory_allocate(0, TEST_PROFILE_BUFFER_SIZE, 0, MEMORY_PERSISTENT);
 
 	return 0;
 }
@@ -63,16 +63,16 @@ test_profile_initialize(void) {
 static void
 test_profile_finalize(void) {
 	profile_set_output(0);
-	memory_deallocate(_test_profile_buffer);
+	memory_deallocate(test_profile_buffer);
 }
 
 DECLARE_TEST(profile, initialize) {
 	error_t err = error();
 
-	_test_profile_offset = 0;
-	atomic_store32(&_test_profile_output_counter, 0, memory_order_relaxed);
+	test_profile_offset = 0;
+	atomic_store32(&test_profile_output_counter, 0, memory_order_relaxed);
 
-	profile_initialize(STRING_CONST("test_profile"), _test_profile_buffer, TEST_PROFILE_BUFFER_SIZE);
+	profile_initialize(STRING_CONST("test_profile"), test_profile_buffer, TEST_PROFILE_BUFFER_SIZE);
 	profile_enable(true);
 
 	profile_log(STRING_CONST("testing"));
@@ -83,9 +83,9 @@ DECLARE_TEST(profile, initialize) {
 	profile_finalize();
 
 #if BUILD_ENABLE_PROFILE
-	EXPECT_GT(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
+	EXPECT_GT(atomic_load32(&test_profile_output_counter, memory_order_acquire), 0);
 #else
-	EXPECT_EQ(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
+	EXPECT_EQ(atomic_load32(&test_profile_output_counter, memory_order_acquire), 0);
 #endif
 
 	err = error();
@@ -97,10 +97,10 @@ DECLARE_TEST(profile, initialize) {
 DECLARE_TEST(profile, output) {
 	error_t err = error();
 
-	_test_profile_offset = 0;
-	atomic_store32(&_test_profile_output_counter, 0, memory_order_relaxed);
+	test_profile_offset = 0;
+	atomic_store32(&test_profile_output_counter, 0, memory_order_relaxed);
 
-	profile_initialize(STRING_CONST("test_profile"), _test_profile_buffer, TEST_PROFILE_BUFFER_SIZE);
+	profile_initialize(STRING_CONST("test_profile"), test_profile_buffer, TEST_PROFILE_BUFFER_SIZE);
 	profile_enable(true);
 
 	profile_log(STRING_CONST("testing"));
@@ -111,19 +111,19 @@ DECLARE_TEST(profile, output) {
 	profile_finalize();
 
 #if BUILD_ENABLE_PROFILE
-	EXPECT_GT(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
+	EXPECT_GT(atomic_load32(&test_profile_output_counter, memory_order_acquire), 0);
 	// TODO: Implement parsing output results
 #else
-	EXPECT_EQ(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
+	EXPECT_EQ(atomic_load32(&test_profile_output_counter, memory_order_acquire), 0);
 #endif
 
 	err = error();
 	EXPECT_EQ(err, ERROR_NONE);
 
-	_test_profile_offset = 0;
-	atomic_store32(&_test_profile_output_counter, 0, memory_order_release);
+	test_profile_offset = 0;
+	atomic_store32(&test_profile_output_counter, 0, memory_order_release);
 
-	profile_initialize(STRING_CONST("test_profile"), _test_profile_buffer, TEST_PROFILE_BUFFER_SIZE);
+	profile_initialize(STRING_CONST("test_profile"), test_profile_buffer, TEST_PROFILE_BUFFER_SIZE);
 	profile_enable(false);
 
 	profile_log(STRING_CONST("testing again"));
@@ -133,7 +133,7 @@ DECLARE_TEST(profile, output) {
 	profile_enable(false);
 	profile_finalize();
 
-	EXPECT_EQ(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
+	EXPECT_EQ(atomic_load32(&test_profile_output_counter, memory_order_acquire), 0);
 
 	err = error();
 	EXPECT_EQ(err, ERROR_NONE);
@@ -142,7 +142,7 @@ DECLARE_TEST(profile, output) {
 }
 
 static void*
-_profile_fail_thread(void* arg) {
+profile_fail_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	thread_sleep(10);
 
@@ -184,16 +184,16 @@ DECLARE_TEST(profile, thread) {
 	uint64_t frame;
 	error_t err = error();
 
-	_test_profile_offset = 0;
-	atomic_store32(&_test_profile_output_counter, 0, memory_order_relaxed);
+	test_profile_offset = 0;
+	atomic_store32(&test_profile_output_counter, 0, memory_order_relaxed);
 
-	profile_initialize(STRING_CONST("test_profile"), _test_profile_buffer, 30000);
+	profile_initialize(STRING_CONST("test_profile"), test_profile_buffer, 30000);
 	profile_enable(true);
 	profile_set_output_wait(1);
 
 	log_enable_stdout(false);
 	for (ith = 0; ith < 32; ++ith)
-		thread_initialize(&thread[ith], _profile_fail_thread, 0, STRING_CONST("profile_thread"), THREAD_PRIORITY_NORMAL,
+		thread_initialize(&thread[ith], profile_fail_thread, 0, STRING_CONST("profile_thread"), THREAD_PRIORITY_NORMAL,
 		                  0);
 	for (ith = 0; ith < 32; ++ith)
 		thread_start(&thread[ith]);
@@ -221,27 +221,27 @@ DECLARE_TEST(profile, thread) {
 	profile_finalize();
 
 #if BUILD_ENABLE_PROFILE
-	EXPECT_INTGT(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
+	EXPECT_INTGT(atomic_load32(&test_profile_output_counter, memory_order_acquire), 0);
 	// TODO: Implement parsing output results
 #else
-	EXPECT_INTEQ(atomic_load32(&_test_profile_output_counter, memory_order_acquire), 0);
+	EXPECT_INTEQ(atomic_load32(&test_profile_output_counter, memory_order_acquire), 0);
 #endif
 	EXPECT_INTEQ(err, ERROR_NONE);
 
 	return 0;
 }
 
-static stream_t* _profile_stream;
-static atomic64_t _profile_generated_blocks;
+static stream_t* profile_stream;
+static atomic64_t profile_generated_blocks;
 
 static void
-_profile_file_writer(void* buffer, size_t size) {
-	if (_profile_stream)
-		stream_write(_profile_stream, buffer, size);
+profile_file_writer(void* buffer, size_t size) {
+	if (profile_stream)
+		stream_write(profile_stream, buffer, size);
 }
 
 static void*
-_profile_stream_thread(void* arg) {
+profile_stream_thread(void* arg) {
 	FOUNDATION_UNUSED(arg);
 	thread_yield();
 
@@ -290,7 +290,7 @@ _profile_stream_thread(void* arg) {
 		}
 		profile_end_block();
 
-		atomic_add64(&_profile_generated_blocks, 14, memory_order_release);
+		atomic_add64(&profile_generated_blocks, 14, memory_order_release);
 	}
 
 	return 0;
@@ -307,16 +307,16 @@ DECLARE_TEST(profile, stream) {
 	filename = path_allocate_concat(STRING_ARGS(environment_temporary_directory()), STRING_CONST("test.profile"));
 	// log_infof(HASH_TEST, STRING_CONST("Output to profile file: %.*s"), STRING_FORMAT(filename));
 	fs_make_directory(STRING_ARGS(environment_temporary_directory()));
-	_profile_stream = fs_open_file(STRING_ARGS(filename), STREAM_OUT | STREAM_BINARY);
+	profile_stream = fs_open_file(STRING_ARGS(filename), STREAM_OUT | STREAM_BINARY);
 	string_deallocate(filename.str);
 
-	profile_initialize(STRING_CONST("test_profile"), _test_profile_buffer, TEST_PROFILE_BUFFER_SIZE);
-	profile_set_output(_profile_file_writer);
+	profile_initialize(STRING_CONST("test_profile"), test_profile_buffer, TEST_PROFILE_BUFFER_SIZE);
+	profile_set_output(profile_file_writer);
 	profile_set_output_wait(10);
 	profile_enable(true);
 
 	for (ith = 0; ith < 32; ++ith)
-		thread_initialize(&thread[ith], _profile_stream_thread, 0, STRING_CONST("profile_thread"),
+		thread_initialize(&thread[ith], profile_stream_thread, 0, STRING_CONST("profile_thread"),
 		                  THREAD_PRIORITY_NORMAL, 0);
 	for (ith = 0; ith < 32; ++ith)
 		thread_start(&thread[ith]);
@@ -358,11 +358,11 @@ DECLARE_TEST(profile, stream) {
 
 	error();
 
-	stream_deallocate(_profile_stream);
+	stream_deallocate(profile_stream);
 
 	// TODO: Validate that output is sane
 	log_debugf(HASH_TEST, STRING_CONST("Generated %" PRId64 " blocks"),
-	           atomic_load64(&_profile_generated_blocks, memory_order_acquire));
+	           atomic_load64(&profile_generated_blocks, memory_order_acquire));
 
 	return 0;
 }

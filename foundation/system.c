@@ -43,8 +43,8 @@ system_show_alert(const char*, size_t, const char*, size_t, int);
 #define SYSTEM_BUFFER_SIZE 511
 FOUNDATION_DECLARE_THREAD_LOCAL(char*, system_buffer, 0)
 
-static device_orientation_t _system_device_orientation = DEVICEORIENTATION_UNKNOWN;
-static event_stream_t* _system_event_stream;
+static device_orientation_t system_device_orientation_current = DEVICEORIENTATION_UNKNOWN;
+static event_stream_t* system_event_stream_current;
 
 struct platform_info_t {
 	platform_t platform;
@@ -54,7 +54,7 @@ struct platform_info_t {
 
 typedef struct platform_info_t platform_info_t;
 
-static const platform_info_t _platform_info = {
+static const platform_info_t platform_info = {
 
 #if FOUNDATION_PLATFORM_WINDOWS
     PLATFORM_WINDOWS,
@@ -112,7 +112,7 @@ static const platform_info_t _platform_info = {
 };
 
 static char*
-_system_buffer() {
+system_buffer() {
 	char* buffer = get_thread_system_buffer();
 	if (!buffer) {
 		buffer = memory_allocate(0, SYSTEM_BUFFER_SIZE + 1, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
@@ -123,39 +123,39 @@ _system_buffer() {
 
 platform_t
 system_platform() {
-	return _platform_info.platform;
+	return platform_info.platform;
 }
 
 architecture_t
 system_architecture() {
-	return _platform_info.architecture;
+	return platform_info.architecture;
 }
 
 byteorder_t
 system_byteorder() {
-	return _platform_info.byteorder;
+	return platform_info.byteorder;
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
 #include <foundation/windows.h>
 
-static object_t _system_library_iphlpapi;
+static object_t system_library_iphlpapi;
 
 int
-_system_initialize(void) {
-	_system_event_stream = event_stream_allocate(128);
+internal_system_initialize(void) {
+	system_event_stream_current = event_stream_allocate(128);
 	return 0;
 }
 
 void
-_system_finalize(void) {
-	if (_system_library_iphlpapi)
-		library_release(_system_library_iphlpapi);
-	_system_library_iphlpapi = 0;
+internal_system_finalize(void) {
+	if (system_library_iphlpapi)
+		library_release(system_library_iphlpapi);
+	system_library_iphlpapi = 0;
 
-	event_stream_deallocate(_system_event_stream);
-	_system_event_stream = 0;
+	event_stream_deallocate(system_event_stream_current);
+	system_event_stream_current = 0;
 }
 
 int
@@ -176,7 +176,7 @@ system_error_message(int code) {
 	if (!code)
 		return string_const(STRING_CONST("<no error>"));
 
-	errmsg = _system_buffer();
+	errmsg = system_buffer();
 	errmsg[0] = 0;
 	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 0, (unsigned int)code & 0xBFFFFFFF,
 	               0 /*LANG_SYSTEM_DEFAULT*/ /*MAKELANGID( LANG_ENGLISH, SUBLANG_DEFAULT )*/, errmsg,
@@ -204,11 +204,11 @@ system_hostid(void) {
 	unsigned long buffer_length;
 	DWORD(STDCALL * get_adapters_info)(PIP_ADAPTER_INFO, PULONG) = 0;
 
-	if (!_system_library_iphlpapi)
-		_system_library_iphlpapi = library_load(STRING_CONST("iphlpapi"));
-	if (_system_library_iphlpapi) {
+	if (!system_library_iphlpapi)
+		system_library_iphlpapi = library_load(STRING_CONST("iphlpapi"));
+	if (system_library_iphlpapi) {
 		/*lint -e{611} */
-		get_adapters_info = (DWORD(STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(_system_library_iphlpapi,
+		get_adapters_info = (DWORD(STDCALL*)(PIP_ADAPTER_INFO, PULONG))library_symbol(system_library_iphlpapi,
 		                                                                              STRING_CONST("GetAdaptersInfo"));
 	}
 	if (!get_adapters_info)
@@ -278,14 +278,14 @@ system_pause(void) {
 }
 
 static uint32_t
-_system_default_locale(void) {
+system_default_locale(void) {
 	return LOCALE_DEFAULT;
 }
 
 typedef int(STDCALL* fnGetLocaleInfoEx)(LPCWSTR, LCTYPE, LPWSTR, int);
 
 static uint32_t
-_system_user_locale(void) {
+system_user_locale(void) {
 	fnGetLocaleInfoEx get_locale_info =
 	    (fnGetLocaleInfoEx)GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetLocaleInfoEx");
 	if (get_locale_info) {
@@ -311,7 +311,7 @@ _system_user_locale(void) {
 		}
 	}
 
-	return _system_default_locale();
+	return system_default_locale();
 }
 
 #elif FOUNDATION_PLATFORM_POSIX
@@ -320,15 +320,15 @@ _system_user_locale(void) {
 #endif
 
 int
-_system_initialize(void) {
-	_system_event_stream = event_stream_allocate(128);
+internal_system_initialize(void) {
+	system_event_stream_current = event_stream_allocate(128);
 	return 0;
 }
 
 void
-_system_finalize(void) {
-	event_stream_deallocate(_system_event_stream);
-	_system_event_stream = 0;
+internal_system_finalize(void) {
+	event_stream_deallocate(system_event_stream_current);
+	system_event_stream_current = 0;
 }
 
 int
@@ -347,7 +347,7 @@ system_error_message(int code) {
 		code = system_error();
 	if (!code)
 		return string_const(STRING_CONST("<no error>"));
-	char* buffer = _system_buffer();
+	char* buffer = system_buffer();
 #if FOUNDATION_PLATFORM_LINUX && defined(_GNU_SOURCE)
 	if ((buffer = strerror_r(code, buffer, SYSTEM_BUFFER_SIZE)) != nullptr)
 		return string_const(buffer, string_length(buffer));
@@ -401,7 +401,7 @@ system_username(char* buffer, size_t size) {
 #include <net/if_dl.h>
 
 static uint64_t
-_system_hostid_lookup(struct ifaddrs* ifaddr) {
+system_hostid_lookup(struct ifaddrs* ifaddr) {
 	unsigned int j;
 	union {
 		uint64_t id;
@@ -425,7 +425,7 @@ _system_hostid_lookup(struct ifaddrs* ifaddr) {
 #elif FOUNDATION_PLATFORM_POSIX
 
 static uint64_t
-_system_hostid_lookup(int sock, struct ifreq* ifr) {
+system_hostid_lookup(int sock, struct ifreq* ifr) {
 	unsigned int j;
 	union {
 		uint64_t id;
@@ -472,7 +472,7 @@ system_hostid(void) {
 				struct ifreq* ifr = &ifrarr[iif];
 				if (ifr->ifr_name && string_equal(ifr->ifr_name, 2, "lo", 2))
 					continue;
-				hostid = _system_hostid_lookup(sock, ifr);
+				hostid = system_hostid_lookup(sock, ifr);
 			}
 		} else {
 			log_warn(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to lookup system hostid (query ioctl failed)"));
@@ -494,7 +494,7 @@ system_hostid(void) {
 			if (memcmp(ifa->ifa_name, "lo", 2) == 0)
 				continue;
 
-			hostid = _system_hostid_lookup(ifa);
+			hostid = system_hostid_lookup(ifa);
 		}
 		freeifaddrs(ifaddr);
 	}
@@ -515,14 +515,14 @@ system_hostid(void) {
 			memset(&ifr, 0, sizeof(ifr));
 			string_copy(ifr.ifr_name, sizeof(ifr.ifr_name), ifa->ifa_name, ifa_length);
 
-			hostid = _system_hostid_lookup(sock, &ifr);
+			hostid = system_hostid_lookup(sock, &ifr);
 		}
 		freeifaddrs(ifaddr);
 	} else {
 		memset(&ifr, 0, sizeof(ifr));
 		string_copy(ifr.ifr_name, sizeof(ifr.ifr_name), "eth0", 4);
 
-		hostid = _system_hostid_lookup(sock, &ifr);
+		hostid = system_hostid_lookup(sock, &ifr);
 	}
 
 	close(sock);
@@ -652,22 +652,22 @@ system_pause(void) {
 }
 
 static uint32_t
-_system_default_locale(void) {
+system_default_locale(void) {
 	return LOCALE_DEFAULT;
 }
 
 static uint32_t
-_system_user_locale(void) {
-	return _system_default_locale();
+system_user_locale(void) {
+	return system_default_locale();
 }
 
 #endif
 
-static uint32_t _system_locale;
+static uint32_t system_locale_current;
 
 uint32_t
 system_locale(void) {
-	return _system_locale ? _system_locale : _system_user_locale();
+	return system_locale_current ? system_locale_current : system_user_locale();
 }
 
 string_t
@@ -682,7 +682,7 @@ system_locale_string(char* buffer, size_t capacity) {
 
 void
 system_set_locale(uint32_t locale) {
-	_system_locale = locale;
+	system_locale_current = locale;
 }
 
 uint16_t
@@ -697,27 +697,27 @@ system_country(void) {
 
 void
 system_set_device_orientation(device_orientation_t orientation) {
-	if (_system_device_orientation == orientation)
+	if (system_device_orientation_current == orientation)
 		return;
 
-	_system_device_orientation = orientation;
+	system_device_orientation_current = orientation;
 	system_post_event(FOUNDATIONEVENT_DEVICE_ORIENTATION);
 }
 
 device_orientation_t
 system_device_orientation(void) {
-	return _system_device_orientation;
+	return system_device_orientation_current;
 }
 
 event_stream_t*
 system_event_stream(void) {
-	return _system_event_stream;
+	return system_event_stream_current;
 }
 
 void
 system_post_event(foundation_event_id event) {
-	if (_system_event_stream)
-		event_post(_system_event_stream, (int)event, 0, 0, 0, 0);
+	if (system_event_stream_current)
+		event_post(system_event_stream_current, (int)event, 0, 0, 0, 0);
 }
 
 bool

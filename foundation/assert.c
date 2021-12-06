@@ -11,33 +11,34 @@
  */
 
 #include <foundation/foundation.h>
+#include <foundation/internal.h>
 
 #include <stdarg.h>
 
 #define ASSERT_BUFFER_SIZE 1024
 
 static mutex_t* assert_mutex;
-static assert_handler_fn _assert_handler;
-static char _assert_buffer[ASSERT_BUFFER_SIZE];
+static assert_handler_fn assert_handler_current;
+static char assert_buffer[ASSERT_BUFFER_SIZE];
 static bool assert_has_force_continue;
 
 #if BUILD_ENABLE_ASSERT
 #define ASSERT_STACKTRACE_MAX_DEPTH 128U
 #define ASSERT_STACKTRACE_SKIP_FRAMES 1U
-static void* _assert_stacktrace[ASSERT_STACKTRACE_MAX_DEPTH];
-static char _assert_context_buffer[ASSERT_BUFFER_SIZE];
-static char _assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];
-static char _assert_message_buffer[ASSERT_BUFFER_SIZE];
+static void* assert_stacktrace[ASSERT_STACKTRACE_MAX_DEPTH];
+static char assert_context_buffer[ASSERT_BUFFER_SIZE];
+static char assert_stacktrace_buffer[ASSERT_BUFFER_SIZE];
+static char assert_message_buffer[ASSERT_BUFFER_SIZE];
 #endif
 
 assert_handler_fn
 assert_handler(void) {
-	return _assert_handler;
+	return assert_handler_current;
 }
 
 void
 assert_set_handler(assert_handler_fn new_handler) {
-	_assert_handler = new_handler;
+	assert_handler_current = new_handler;
 }
 
 void
@@ -54,9 +55,9 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	static const char assert_format[] =
 	    "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%s%.*s\n%.*s\n";
 #if BUILD_ENABLE_ASSERT
-	string_t tracestr = {_assert_stacktrace_buffer, sizeof(_assert_stacktrace_buffer)};
-	string_t contextstr = {_assert_context_buffer, sizeof(_assert_context_buffer)};
-	string_t messagestr = {_assert_message_buffer, sizeof(_assert_message_buffer)};
+	string_t tracestr = {assert_stacktrace_buffer, sizeof(assert_stacktrace_buffer)};
+	string_t contextstr = {assert_context_buffer, sizeof(assert_context_buffer)};
+	string_t messagestr = {assert_message_buffer, sizeof(assert_message_buffer)};
 #endif
 
 	if (!condition || !cond_length) {
@@ -72,8 +73,8 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 		msg_length = sizeof(nomsg);
 	}
 
-	if (_assert_handler && (_assert_handler != assert_report))
-		return (*_assert_handler)(context, condition, cond_length, file, file_length, line, msg, msg_length);
+	if (assert_handler_current && (assert_handler_current != assert_report))
+		return (*assert_handler_current)(context, condition, cond_length, file, file_length, line, msg, msg_length);
 
 #if BUILD_ENABLE_ASSERT
 	if (assert_mutex)
@@ -83,9 +84,9 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 
 	if (foundation_is_initialized()) {
 		size_t frames_count =
-		    stacktrace_capture(_assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH, ASSERT_STACKTRACE_SKIP_FRAMES);
+		    stacktrace_capture(assert_stacktrace, ASSERT_STACKTRACE_MAX_DEPTH, ASSERT_STACKTRACE_SKIP_FRAMES);
 		if (frames_count)
-			tracestr = stacktrace_resolve(STRING_ARGS(tracestr), _assert_stacktrace, frames_count, 0U);
+			tracestr = stacktrace_resolve(STRING_ARGS(tracestr), assert_stacktrace, frames_count, 0U);
 		else
 			tracestr = string_copy(STRING_ARGS(tracestr), STRING_CONST("<no stacktrace>"));
 	} else {
@@ -93,8 +94,8 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	}
 
 	messagestr = string_format(STRING_ARGS(messagestr), assert_format, sizeof(assert_format) - 1, (int)cond_length,
-	                           condition, (int)file_length, file, line, STRING_FORMAT(contextstr), (contextstr.length ? "\n" : ""), (int)msg_length, msg,
-	                           STRING_FORMAT(tracestr));
+	                           condition, (int)file_length, file, line, STRING_FORMAT(contextstr),
+	                           (contextstr.length ? "\n" : ""), (int)msg_length, msg, STRING_FORMAT(tracestr));
 
 	log_errorf(context, ERROR_ASSERT, STRING_CONST("%.*s"), STRING_FORMAT(messagestr));
 
@@ -119,7 +120,7 @@ int
 assert_report_formatted(hash_t context, const char* condition, size_t cond_length, const char* file, size_t file_length,
                         unsigned int line, const char* msg, size_t msg_length, ...) {
 	if (msg) {
-		string_t buffer = {_assert_buffer, sizeof(_assert_buffer)};
+		string_t buffer = {assert_buffer, sizeof(assert_buffer)};
 		va_list ap;
 		va_start(ap, msg_length);
 		buffer = string_vformat(STRING_ARGS(buffer), msg, msg_length, ap);
@@ -131,13 +132,13 @@ assert_report_formatted(hash_t context, const char* condition, size_t cond_lengt
 }
 
 int
-_assert_initialize(void) {
+internal_assert_initialize(void) {
 	assert_mutex = mutex_allocate(STRING_CONST("assert"));
 	return 0;
 }
 
 void
-_assert_finalize(void) {
+internal_assert_finalize(void) {
 	mutex_deallocate(assert_mutex);
 	assert_mutex = 0;
 }

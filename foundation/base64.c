@@ -13,10 +13,10 @@
 #include <foundation/foundation.h>
 
 /*lint -e{840}  We use null character in string literal deliberately here*/
-static const char _base64_decode[] =
+static const char base64_decode_table[] =
     "|\0\0\0}rstuvwxyz{\0\0\0\0\0\0\0>?@ABCDEFGHIJKLMNOPQRSTUVW\0\0\0\0\0\0XYZ[\\]^_`"
     "abcdefghijklmnopq";
-static const char _base64_encode[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64_encode_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 size_t
 base64_encode(const void* source, size_t size, char* destination, size_t capacity) {
@@ -36,29 +36,29 @@ base64_encode(const void* source, size_t size, char* destination, size_t capacit
 	ptr = destination;
 	while (size > 2) {
 		bits = (*carr >> 2) & 0x3F;
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		bits = (unsigned char)((*carr & 0x3) << 4) | ((*(carr + 1) >> 4) & 0xF);
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		bits = (unsigned char)((*(carr + 1) & 0xF) << 2) | ((*(carr + 2) >> 6) & 0x3);
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		bits = *(carr + 2) & 0x3F;
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		size -= 3;
 		carr += 3;
 	}
 	if (size == 2) {
 		bits = (*carr >> 2) & 0x3F;
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		bits = (unsigned char)((*carr & 0x3) << 4) | ((*(carr + 1) >> 4) & 0xF);
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		bits = (unsigned char)((*(carr + 1) & 0xF) << 2);
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		*ptr++ = '=';
 	} else if (size == 1) {
 		bits = (*carr >> 2) & 0x3F;
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		bits = (unsigned char)((*carr & 0x3) << 4);
-		*ptr++ = _base64_encode[bits];
+		*ptr++ = base64_encode_table[bits];
 		*ptr++ = '=';
 		*ptr++ = '=';
 	}
@@ -80,7 +80,7 @@ base64_decode(const char* source, size_t size, void* destination, size_t capacit
 			char v = 0;
 			while (size && !v) {  // Consume one valid byte from input, discarding invalid data
 				v = *source++;
-				v = ((v < 43 || v > 122) ? 0 : _base64_decode[v - 43]);
+				v = ((v < 43 || v > 122) ? 0 : base64_decode_table[v - 43]);
 				if (v) {
 					in[i] = (unsigned char)(v - 62);
 					blocksize++;

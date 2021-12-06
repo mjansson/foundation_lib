@@ -118,7 +118,7 @@ virtualarray_get_verified_type(virtualarray_t* array, size_t element_size);
 \param array Array
 \param element Element pointer
 \param element_size Element size */
-FOUNDATION_API FOUNDATION_FORCEINLINE void
+static FOUNDATION_FORCEINLINE void
 virtualarray_push_verified_type(virtualarray_t* array, void* element, size_t element_size) {
 	FOUNDATION_ASSERT_MSG(element_size == array->element_size, "Invalid virtual array element pushed");
 	virtualarray_push_raw(array, element);

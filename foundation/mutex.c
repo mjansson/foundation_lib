@@ -37,7 +37,7 @@ struct FOUNDATION_ALIGN(16) mutex_t {
 };
 
 static void
-_mutex_initialize(mutex_t* mutex, const char* name, size_t length) {
+mutex_initialize(mutex_t* mutex, const char* name, size_t length) {
 	mutex->name = string_to_const(string_copy(mutex->name_buffer, 32, name, length));
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -56,7 +56,7 @@ _mutex_initialize(mutex_t* mutex, const char* name, size_t length) {
 
 	pthread_mutexattr_destroy(&attr);
 #else
-#error _mutex_initialize not implemented
+#error not implemented
 #endif
 
 	mutex->lockcount = 0;
@@ -64,7 +64,7 @@ _mutex_initialize(mutex_t* mutex, const char* name, size_t length) {
 }
 
 static void
-_mutex_finalize(mutex_t* mutex) {
+mutex_finalize(mutex_t* mutex) {
 	FOUNDATION_ASSERT(!mutex->lockcount);
 #if FOUNDATION_PLATFORM_WINDOWS
 	CloseHandle(mutex->event);
@@ -73,14 +73,14 @@ _mutex_finalize(mutex_t* mutex) {
 	pthread_mutex_destroy(&mutex->mutex);
 	pthread_cond_destroy(&mutex->cond);
 #else
-#error _mutex_finalize not implemented
+#error not implemented
 #endif
 }
 
 mutex_t*
 mutex_allocate(const char* name, size_t length) {
 	mutex_t* mutex = memory_allocate(0, sizeof(mutex_t), 16, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-	_mutex_initialize(mutex, name, length);
+	mutex_initialize(mutex, name, length);
 	return mutex;
 }
 
@@ -88,7 +88,7 @@ void
 mutex_deallocate(mutex_t* mutex) {
 	if (!mutex)
 		return;
-	_mutex_finalize(mutex);
+	mutex_finalize(mutex);
 	memory_deallocate(mutex);
 }
 

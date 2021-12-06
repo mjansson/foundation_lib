@@ -1198,18 +1198,18 @@ typedef volatile _Atomic(void*) atomicptr_t;
 	FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_UNUSED_ARGS_, n)(__VA_ARGS__, ), )
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init)            \
-	static FOUNDATION_THREADLOCAL type _thread_##name = init;        \
+	static FOUNDATION_THREADLOCAL type internal_thread_##name = init;        \
 	static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { \
-		_thread_##name = val;                                        \
+		internal_thread_##name = val;                                        \
 	}                                                                \
 	static FOUNDATION_FORCEINLINE type get_thread_##name(void) {     \
-		return _thread_##name;                                       \
+		return internal_thread_##name;                                       \
 	}
 
 #define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize)    \
-	static FOUNDATION_THREADLOCAL type _thread_##name[arrsize] = {0}; \
+	static FOUNDATION_THREADLOCAL type internal_thread_##name[arrsize] = {0}; \
 	static FOUNDATION_FORCEINLINE type* get_thread_##name(void) {     \
-		return _thread_##name;                                        \
+		return internal_thread_##name;                                        \
 	}
 
 // Utility functions for large integer types

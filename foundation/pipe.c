@@ -26,7 +26,7 @@ typedef unsigned int pipe_size_t;
 typedef size_t pipe_size_t;
 #endif
 
-static stream_vtable_t _pipe_stream_vtable;
+static stream_vtable_t pipe_stream_vtable;
 
 stream_t*
 pipe_allocate(void) {
@@ -98,11 +98,11 @@ pipe_initialize(stream_pipe_t* pipestream) {
 	pipestream->fd_write = fds[1];
 #endif
 
-	pipestream->vtable = &_pipe_stream_vtable;
+	pipestream->vtable = &pipe_stream_vtable;
 }
 
 static void
-_pipe_finalize(stream_t* stream) {
+pipe_finalize(stream_t* stream) {
 	stream_pipe_t* pipe = (stream_pipe_t*)stream;
 
 	if (!pipe || (stream->type != STREAMTYPE_PIPE))
@@ -174,7 +174,7 @@ pipe_write_fd(stream_t* stream) {
 }
 
 static size_t
-_pipe_stream_read(stream_t* stream, void* dest, size_t size) {
+pipe_stream_read(stream_t* stream, void* dest, size_t size) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 	if (pipestream->fd_read && ((pipestream->mode & STREAM_IN) != 0)) {
@@ -195,7 +195,7 @@ _pipe_stream_read(stream_t* stream, void* dest, size_t size) {
 }
 
 static size_t
-_pipe_stream_write(stream_t* stream, const void* source, size_t size) {
+pipe_stream_write(stream_t* stream, const void* source, size_t size) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	FOUNDATION_ASSERT(stream->type == STREAMTYPE_PIPE);
 	if (pipestream->fd_write && ((pipestream->mode & STREAM_OUT) != 0)) {
@@ -216,49 +216,49 @@ _pipe_stream_write(stream_t* stream, const void* source, size_t size) {
 }
 
 static bool
-_pipe_stream_eos(stream_t* stream) {
+pipe_stream_eos(stream_t* stream) {
 	stream_pipe_t* pipestream = (stream_pipe_t*)stream;
 	return !stream || (!pipestream->fd_read && !pipestream->fd_write) || pipestream->eos;
 }
 
 static void
-_pipe_stream_flush(stream_t* stream) {
+pipe_stream_flush(stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 }
 
 static void
-_pipe_stream_truncate(stream_t* stream, size_t size) {
+pipe_stream_truncate(stream_t* stream, size_t size) {
 	FOUNDATION_UNUSED(stream);
 	FOUNDATION_UNUSED(size);
 }
 
 static size_t
-_pipe_stream_size(stream_t* stream) {
+pipe_stream_size(stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 	return 0;
 }
 
 static void
-_pipe_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
+pipe_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	FOUNDATION_UNUSED(stream);
 	FOUNDATION_UNUSED(offset);
 	FOUNDATION_UNUSED(direction);
 }
 
 static size_t
-_pipe_stream_tell(stream_t* stream) {
+pipe_stream_tell(stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 	return 0;
 }
 
 static tick_t
-_pipe_stream_lastmod(const stream_t* stream) {
+pipe_stream_lastmod(const stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 	return time_current();
 }
 
 static size_t
-_pipe_stream_available_read(stream_t* stream) {
+pipe_stream_available_read(stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 	return 0;
 }
@@ -269,16 +269,16 @@ _pipe_stream_available_read(stream_t* stream) {
 #endif
 
 void
-_pipe_stream_initialize(void) {
-	_pipe_stream_vtable.read = _pipe_stream_read;
-	_pipe_stream_vtable.write = _pipe_stream_write;
-	_pipe_stream_vtable.eos = _pipe_stream_eos;
-	_pipe_stream_vtable.flush = _pipe_stream_flush;
-	_pipe_stream_vtable.truncate = _pipe_stream_truncate;
-	_pipe_stream_vtable.size = _pipe_stream_size;
-	_pipe_stream_vtable.seek = _pipe_stream_seek;
-	_pipe_stream_vtable.tell = _pipe_stream_tell;
-	_pipe_stream_vtable.lastmod = _pipe_stream_lastmod;
-	_pipe_stream_vtable.available_read = _pipe_stream_available_read;
-	_pipe_stream_vtable.finalize = _pipe_finalize;
+internal_pipe_stream_initialize(void) {
+	pipe_stream_vtable.read = pipe_stream_read;
+	pipe_stream_vtable.write = pipe_stream_write;
+	pipe_stream_vtable.eos = pipe_stream_eos;
+	pipe_stream_vtable.flush = pipe_stream_flush;
+	pipe_stream_vtable.truncate = pipe_stream_truncate;
+	pipe_stream_vtable.size = pipe_stream_size;
+	pipe_stream_vtable.seek = pipe_stream_seek;
+	pipe_stream_vtable.tell = pipe_stream_tell;
+	pipe_stream_vtable.lastmod = pipe_stream_lastmod;
+	pipe_stream_vtable.available_read = pipe_stream_available_read;
+	pipe_stream_vtable.finalize = pipe_finalize;
 }

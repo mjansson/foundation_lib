@@ -26,23 +26,23 @@
 #endif
 #endif
 
-static exception_handler_fn _exception_handler;
-static string_const_t _dump_name;
+static exception_handler_fn exception_handler_user;
+static string_const_t exception_dump_name_user;
 
 void
 exception_set_handler(exception_handler_fn handler, const char* name, size_t length) {
-	_exception_handler = handler;
-	_dump_name = (string_const_t){name, length};
+	exception_handler_user = handler;
+	exception_dump_name_user = (string_const_t){name, length};
 }
 
 string_const_t
 exception_dump_name(void) {
-	return _dump_name;
+	return exception_dump_name_user;
 }
 
 exception_handler_fn
 exception_handler(void) {
-	return _exception_handler;
+	return exception_handler_user;
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -54,7 +54,7 @@ typedef BOOL(STDCALL* MiniDumpWriteDumpFn)(HANDLE, DWORD, HANDLE, MINIDUMP_TYPE,
                                            CONST PMINIDUMP_CALLBACK_INFORMATION);
 
 static void
-_create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t namelen, char* dump_file, size_t* capacity) {
+create_mini_dump(EXCEPTION_POINTERS* pointers, const char* name, size_t namelen, char* dump_file, size_t* capacity) {
 	MINIDUMP_EXCEPTION_INFORMATION info;
 	HANDLE file;
 	SYSTEMTIME local_time;
@@ -148,21 +148,21 @@ struct exception_closure_t {
 
 typedef struct exception_closure_t exception_closure_t;
 
-static FOUNDATION_THREADLOCAL exception_closure_t _exception_closure;
+static FOUNDATION_THREADLOCAL exception_closure_t exception_closure;
 
 static LONG WINAPI
-_exception_filter(LPEXCEPTION_POINTERS pointers) {
-	if (_exception_closure.initialized) {
+exception_filter(LPEXCEPTION_POINTERS pointers) {
+	if (exception_closure.initialized) {
 		char dump_file_buffer[MAX_PATH];
 		size_t dump_file_len = sizeof(dump_file_buffer);
-		_exception_closure.triggered = true;
-		_create_mini_dump(pointers, STRING_ARGS(_exception_closure.name), dump_file_buffer, &dump_file_len);
-		if (_exception_closure.handler)
-			_exception_closure.handler(dump_file_buffer, dump_file_len);
+		exception_closure.triggered = true;
+		create_mini_dump(pointers, STRING_ARGS(exception_closure.name), dump_file_buffer, &dump_file_len);
+		if (exception_closure.handler)
+			exception_closure.handler(dump_file_buffer, dump_file_len);
 		if (_RtlRestoreContext)
-			_RtlRestoreContext(&_exception_closure.context, 0);
+			_RtlRestoreContext(&exception_closure.context, 0);
 		else
-			longjmp(_exception_closure.jmpbuf, 0);
+			longjmp(exception_closure.jmpbuf, 0);
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -191,7 +191,7 @@ FOUNDATION_DECLARE_THREAD_LOCAL(const char*, dump_name, 0)
 FOUNDATION_DECLARE_THREAD_LOCAL(exception_env_t, exception_env, 0)
 
 static string_t
-_create_mini_dump(void* context, string_const_t name, string_t dump_file) {
+create_mini_dump(void* context, string_const_t name, string_t dump_file) {
 	string_const_t tmp_dir;
 	string_const_t uuid_str;
 	if (!name.length)
@@ -211,7 +211,7 @@ _create_mini_dump(void* context, string_const_t name, string_t dump_file) {
 }
 
 static void
-FOUNDATION_ATTRIBUTE(noreturn) _exception_sigaction(int sig, siginfo_t* info, void* arg) {
+FOUNDATION_ATTRIBUTE(noreturn) exception_sigaction(int sig, siginfo_t* info, void* arg) {
 	FOUNDATION_UNUSED(sig);
 	FOUNDATION_UNUSED(info);
 	FOUNDATION_UNUSED(arg);
@@ -221,7 +221,7 @@ FOUNDATION_ATTRIBUTE(noreturn) _exception_sigaction(int sig, siginfo_t* info, vo
 	char file_name_buffer[BUILD_MAX_PATHLEN];
 	const char* name = get_thread_dump_name();
 	string_t dump_file = (string_t){file_name_buffer, sizeof(file_name_buffer)};
-	dump_file = _create_mini_dump(arg, (string_const_t){name, string_length(name)}, dump_file);
+	dump_file = create_mini_dump(arg, (string_const_t){name, string_length(name)}, dump_file);
 	exception_handler_fn handler = get_thread_exception_handler();
 	if (handler)
 		handler(dump_file.str, dump_file.length);
@@ -263,8 +263,7 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler, con
 	__try {
 		ret = fn(data);
 	} /*lint -e534*/
-	__except (_create_mini_dump(GetExceptionInformation(), name, length, buffer, &capacity),
-	          EXCEPTION_EXECUTE_HANDLER) {
+	__except (create_mini_dump(GetExceptionInformation(), name, length, buffer, &capacity), EXCEPTION_EXECUTE_HANDLER) {
 		ret = FOUNDATION_EXCEPTION_CAUGHT;
 		if (handler)
 			handler(buffer, capacity);
@@ -276,16 +275,16 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler, con
 #endif
 	return ret;
 #else
-	_exception_closure.handler = handler;
-	_exception_closure.name = string_const(name, length);
-	_exception_closure.triggered = false;
-	_exception_closure.initialized = true;
+	exception_closure.handler = handler;
+	exception_closure.name = string_const(name, length);
+	exception_closure.triggered = false;
+	exception_closure.initialized = true;
 	if (_RtlCaptureContext)
-		_RtlCaptureContext(&_exception_closure.context);
+		_RtlCaptureContext(&exception_closure.context);
 	else
-		setjmp(_exception_closure.jmpbuf);
+		setjmp(exception_closure.jmpbuf);
 	atomic_thread_fence_release();
-	if (_exception_closure.triggered) {
+	if (exception_closure.triggered) {
 		ret = FOUNDATION_EXCEPTION_CAUGHT;
 		error_context_clear();
 	} else {
@@ -324,19 +323,19 @@ exception_try(exception_try_fn fn, void* data, exception_handler_fn handler, con
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS && !FOUNDATION_USE_SEH
-static HMODULE _kernel_lib;
+static HMODULE kernel_lib;
 #endif
 
 int
-_exception_initialize(void) {
+internal_exception_initialize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	SetErrorMode(SEM_FAILCRITICALERRORS);
 #if !FOUNDATION_USE_SEH
-	SetUnhandledExceptionFilter(_exception_filter);
-	_kernel_lib = LoadLibraryA("kernel32.dll");
-	if (_kernel_lib) {
-		_RtlCaptureContext = (RtlCaptureContextFn)GetProcAddress(_kernel_lib, "RtlCaptureContext");
-		_RtlRestoreContext = (RtlRestoreContextFn)GetProcAddress(_kernel_lib, "RtlRestoreContext");
+	SetUnhandledExceptionFilter(exception_filter);
+	kernel_lib = LoadLibraryA("kernel32.dll");
+	if (kernel_lib) {
+		_RtlCaptureContext = (RtlCaptureContextFn)GetProcAddress(kernel_lib, "RtlCaptureContext");
+		_RtlRestoreContext = (RtlRestoreContextFn)GetProcAddress(kernel_lib, "RtlRestoreContext");
 	}
 	if (!_RtlCaptureContext || !_RtlRestoreContext) {
 		_RtlCaptureContext = 0;
@@ -348,7 +347,7 @@ _exception_initialize(void) {
 	memset(&action, 0, sizeof(action));
 
 	// Signals we process globally
-	action.sa_sigaction = _exception_sigaction;
+	action.sa_sigaction = exception_sigaction;
 	action.sa_flags = SA_SIGINFO;
 	if ((sigaction(SIGTRAP, &action, 0) < 0) || (sigaction(SIGABRT, &action, 0) < 0) ||
 	    (sigaction(SIGFPE, &action, 0) < 0) || (sigaction(SIGSEGV, &action, 0) < 0) ||
@@ -363,12 +362,12 @@ _exception_initialize(void) {
 }
 
 void
-_exception_finalize(void) {
+internal_exception_finalize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS && !FOUNDATION_USE_SEH
 	_RtlCaptureContext = 0;
 	_RtlRestoreContext = 0;
-	if (_kernel_lib)
-		FreeLibrary(_kernel_lib);
+	if (kernel_lib)
+		FreeLibrary(kernel_lib);
 #endif
 }
 
@@ -376,11 +375,8 @@ void
 exception_raise_debug_break(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DebugBreak();
-#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-	__builtin_trap();
 #else
-	static char* _illegal_ptr;
-	*_illegal_ptr = 1;
+	__builtin_trap();
 #endif
 }
 
@@ -388,11 +384,8 @@ void
 exception_raise_abort(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	DebugBreak();
-#elif FOUNDATION_COMPILER_GCC || FOUNDATION_COMPILER_CLANG
-	__builtin_trap();
-#else
-	static char* _illegal_ptr;
-	*_illegal_ptr = 1;
-#endif
 	process_exit(-1);
+#else
+	__builtin_trap();
+#endif
 }

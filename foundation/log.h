@@ -168,9 +168,10 @@ log_set_suppress(hash_t context, error_level_t level);
 FOUNDATION_API error_level_t
 log_suppress(hash_t context);
 
-/*! Clear all log suppression for all contexts */
+/*! Clear all log suppression for given context, or all context if null
+\param context Log context to clear, clears all contexts if set to zero */
 FOUNDATION_API void
-log_suppress_clear(void);
+log_suppress_clear(hash_t context);
 
 #endif
 

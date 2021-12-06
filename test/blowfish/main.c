@@ -16,7 +16,7 @@
 #define VARIABLEKEYTESTS_COUNT 34
 #define SETKEYTESTS_COUNT 24
 
-static const uint32_t _test_plaintext_left[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT] = {
+static const uint32_t test_plaintext_left[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT] = {
     0x00000000L, 0xFFFFFFFFL, 0x10000000L, 0x11111111L, 0x11111111L, 0x01234567L, 0x00000000L, 0x01234567L, 0x01A1D6D0L,
     0x5CD54CA8L, 0x0248D438L, 0x51454B58L, 0x42FD4430L, 0x059B5E08L, 0x0756D8E0L, 0x762514B8L, 0x3BDD1190L, 0x26955F68L,
     0x164D5E40L, 0x6B056E18L, 0x004BD6EFL, 0x480D3900L, 0x437540C8L, 0x072D43A0L, 0x02FE5577L, 0x1D9D5C50L, 0x30553228L,
@@ -25,7 +25,7 @@ static const uint32_t _test_plaintext_left[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_
     0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L,
     0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L, 0xFEDCBA98L};
 
-static const uint32_t _test_plaintext_right[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT] = {
+static const uint32_t test_plaintext_right[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT] = {
     0x00000000L, 0xFFFFFFFFL, 0x00000001L, 0x11111111L, 0x11111111L, 0x89ABCDEFL, 0x00000000L, 0x89ABCDEFL, 0x39776742L,
     0x3DEF57DAL, 0x06F67172L, 0x2DDF440AL, 0x59577FA2L, 0x51CF143AL, 0x774761D2L, 0x29BF486AL, 0x49372802L, 0x35AF609AL,
     0x4F275232L, 0x759F5CCAL, 0x09176062L, 0x6EE762F2L, 0x698F3CFAL, 0x77075292L, 0x8117F12AL, 0x18F728C2L, 0x6D6F295AL,
@@ -34,7 +34,7 @@ static const uint32_t _test_plaintext_right[VARIABLEKEYTESTS_COUNT + SETKEYTESTS
     0x76543210L, 0x76543210L, 0x76543210L, 0x76543210L, 0x76543210L, 0x76543210L, 0x76543210L, 0x76543210L, 0x76543210L,
     0x76543210L, 0x76543210L, 0x76543210L, 0x76543210L};
 
-static const unsigned char _test_key_variable[VARIABLEKEYTESTS_COUNT][8] = {
+static const unsigned char test_key_variable[VARIABLEKEYTESTS_COUNT][8] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
     {0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11},
     {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF}, {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11},
@@ -53,10 +53,10 @@ static const unsigned char _test_key_variable[VARIABLEKEYTESTS_COUNT][8] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
     {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF}, {0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10}};
 
-static const unsigned char _test_key_set[24] = {0xF0, 0xE1, 0xD2, 0xC3, 0xB4, 0xA5, 0x96, 0x87, 0x78, 0x69, 0x5A, 0x4B,
-                                                0x3C, 0x2D, 0x1E, 0x0F, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
+static const unsigned char test_key_set[24] = {0xF0, 0xE1, 0xD2, 0xC3, 0xB4, 0xA5, 0x96, 0x87, 0x78, 0x69, 0x5A, 0x4B,
+                                               0x3C, 0x2D, 0x1E, 0x0F, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
 
-static const uint32_t _test_ciphertext_left[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT] = {
+static const uint32_t test_ciphertext_left[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT] = {
     0x4EF99745L, 0x51866FD5L, 0x7D856F9AL, 0x2466DD87L, 0x61F9C380L, 0x7D0CC630L, 0x4EF99745L, 0x0ACEAB0FL, 0x59C68245L,
     0xB1B8CC0BL, 0x1730E577L, 0xA25E7856L, 0x353882B1L, 0x48F4D088L, 0x432193B7L, 0x13F04154L, 0x2EEDDA93L, 0xD887E039L,
     0x5F99D04FL, 0x4A057A3BL, 0x452031C1L, 0x7555AE39L, 0x53C55F9CL, 0x7A8E7BFAL, 0xCF9C5D7AL, 0xD1ABB290L, 0x55CB3774L,
@@ -65,7 +65,7 @@ static const uint32_t _test_ciphertext_left[VARIABLEKEYTESTS_COUNT + SETKEYTESTS
     0x9409DA87L, 0x884F8062L, 0x1F85031CL, 0x79D9373AL, 0x93142887L, 0x03429E83L, 0xA4299E27L, 0xAFD5AED1L, 0x10851C0EL,
     0xE6F51ED7L, 0x64A6E14AL, 0x80C7D7D4L, 0x05044B62L};
 
-static const uint32_t _test_ciphertext_right[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT] = {
+static const uint32_t test_ciphertext_right[VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT] = {
     0x6198DD78L, 0xB85ECB8AL, 0x613063F2L, 0x8B963C9DL, 0x2281B096L, 0xAFDA1EC7L, 0x6198DD78L, 0xC6A0A28DL, 0xEB05282BL,
     0x250F09A0L, 0x8BEA1DA4L, 0xCF2651EBL, 0x09CE8F1AL, 0x4C379918L, 0x8951FC98L, 0xD69D1AE5L, 0xFFD39C79L, 0x3C2DA6E3L,
     0x5B163969L, 0x24D3977BL, 0xE4FADA8EL, 0xF59B87BDL, 0xB49FC019L, 0x937E89A3L, 0x4986ADB5L, 0x658BC778L, 0xD13EF201L,
@@ -109,10 +109,10 @@ test_blowfish_finalize(void) {
 
 // Internal functions
 extern void
-_blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
+blowfish_encrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
 
 extern void
-_blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
+blowfish_decrypt_words(const blowfish_t* blowfish, uint32_t* lvalres, uint32_t* hvalres);
 
 DECLARE_TEST(blowfish, initialize) {
 	blowfish_t* blowfish;
@@ -122,35 +122,35 @@ DECLARE_TEST(blowfish, initialize) {
 	blowfish = blowfish_allocate();
 
 	for (i = 0; i < VARIABLEKEYTESTS_COUNT; ++i) {
-		blowfish_initialize(blowfish, _test_key_variable[i], 8);
+		blowfish_initialize(blowfish, test_key_variable[i], 8);
 
-		left = _test_plaintext_left[i];
-		right = _test_plaintext_right[i];
-		_blowfish_encrypt_words(blowfish, &left, &right);
+		left = test_plaintext_left[i];
+		right = test_plaintext_right[i];
+		blowfish_encrypt_words(blowfish, &left, &right);
 
-		EXPECT_EQ(memcmp(&left, &_test_ciphertext_left[i], 4), 0);
-		EXPECT_EQ(memcmp(&right, &_test_ciphertext_right[i], 4), 0);
+		EXPECT_EQ(memcmp(&left, &test_ciphertext_left[i], 4), 0);
+		EXPECT_EQ(memcmp(&right, &test_ciphertext_right[i], 4), 0);
 
-		_blowfish_decrypt_words(blowfish, &left, &right);
+		blowfish_decrypt_words(blowfish, &left, &right);
 
-		EXPECT_EQ(memcmp(&left, &_test_plaintext_left[i], 4), 0);
-		EXPECT_EQ(memcmp(&right, &_test_plaintext_right[i], 4), 0);
+		EXPECT_EQ(memcmp(&left, &test_plaintext_left[i], 4), 0);
+		EXPECT_EQ(memcmp(&right, &test_plaintext_right[i], 4), 0);
 	}
 
 	for (j = 1, i = VARIABLEKEYTESTS_COUNT; i < (VARIABLEKEYTESTS_COUNT + SETKEYTESTS_COUNT); ++i) {
-		blowfish_initialize(blowfish, _test_key_set, j++);
+		blowfish_initialize(blowfish, test_key_set, j++);
 
-		left = _test_plaintext_left[i];
-		right = _test_plaintext_right[i];
-		_blowfish_encrypt_words(blowfish, &left, &right);
+		left = test_plaintext_left[i];
+		right = test_plaintext_right[i];
+		blowfish_encrypt_words(blowfish, &left, &right);
 
-		EXPECT_EQ(memcmp(&left, &_test_ciphertext_left[i], 4), 0);
-		EXPECT_EQ(memcmp(&right, &_test_ciphertext_right[i], 4), 0);
+		EXPECT_EQ(memcmp(&left, &test_ciphertext_left[i], 4), 0);
+		EXPECT_EQ(memcmp(&right, &test_ciphertext_right[i], 4), 0);
 
-		_blowfish_decrypt_words(blowfish, &left, &right);
+		blowfish_decrypt_words(blowfish, &left, &right);
 
-		EXPECT_EQ(memcmp(&left, &_test_plaintext_left[i], 4), 0);
-		EXPECT_EQ(memcmp(&right, &_test_plaintext_right[i], 4), 0);
+		EXPECT_EQ(memcmp(&left, &test_plaintext_left[i], 4), 0);
+		EXPECT_EQ(memcmp(&right, &test_plaintext_right[i], 4), 0);
 	}
 
 	blowfish_deallocate(blowfish);
@@ -167,14 +167,14 @@ DECLARE_TEST(blowfish, known_data) {
 	blowfish = blowfish_allocate();
 
 	for (i = 0; i < VARIABLEKEYTESTS_COUNT; ++i) {
-		memcpy(&plaintext[0][(8 * i) + 0], &_test_plaintext_left[i], 4);
-		memcpy(&plaintext[0][(8 * i) + 4], &_test_plaintext_right[i], 4);
+		memcpy(&plaintext[0][(8 * i) + 0], &test_plaintext_left[i], 4);
+		memcpy(&plaintext[0][(8 * i) + 4], &test_plaintext_right[i], 4);
 	}
 
 	memcpy(plaintext[1], plaintext[0], VARIABLEKEYTESTS_COUNT * 8);
 
 	for (i = 0; i < VARIABLEKEYTESTS_COUNT; ++i) {
-		blowfish_initialize(blowfish, _test_key_variable[i], 8);
+		blowfish_initialize(blowfish, test_key_variable[i], 8);
 
 		// Add some unalignment to size of buffer to test re-alignment in implementation
 		blowfish_encrypt(blowfish, plaintext[0], 1 + VARIABLEKEYTESTS_COUNT * 8, BLOCKCIPHER_ECB, init_vector);

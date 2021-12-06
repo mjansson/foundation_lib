@@ -13,12 +13,12 @@
 #include <foundation/foundation.h>
 #include <test/test.h>
 
-static unsigned int _test_hist[64];
-static unsigned int _test_bits[64];
-static atomic32_t _test_thread_hist[64];
-static atomic32_t _test_thread_bits[64];
-static unsigned int _test_slice32 = 0x8000000U;        //( 1U << 32U ) / 32U;
-static uint64_t _test_slice64 = 0x400000000000000ULL;  //( 1ULL << 64ULL ) / 64ULL;
+static unsigned int test_hist[64];
+static unsigned int test_bits[64];
+static atomic32_t test_thread_hist[64];
+static atomic32_t test_thread_bits[64];
+static unsigned int test_slice32 = 0x8000000U;        //( 1U << 32U ) / 32U;
+static uint64_t test_slice64 = 0x400000000000000ULL;  //( 1ULL << 64ULL ) / 64ULL;
 
 static application_t
 test_random_application(void) {
@@ -63,35 +63,35 @@ DECLARE_TEST(random, distribution32) {
 	// Force allocations
 	random32();
 
-	memset(_test_bits, 0, sizeof(unsigned int) * 32);
-	memset(_test_hist, 0, sizeof(unsigned int) * 32);
+	memset(test_bits, 0, sizeof(unsigned int) * 32);
+	memset(test_hist, 0, sizeof(unsigned int) * 32);
 	for (i = 0; i < pass_count; ++i) {
 		num = random32();
 		for (j = 0; j < 32; ++j) {
 			if (num & (1 << j))
-				++_test_bits[j];
-			if ((num >= (_test_slice32 * j)) && ((j == 31) || (num < (_test_slice32 * (j + 1)))))
-				++_test_hist[j];
+				++test_bits[j];
+			if ((num >= (test_slice32 * j)) && ((j == 31) || (num < (test_slice32 * (j + 1)))))
+				++test_hist[j];
 		}
 	}
 
 	/*log_debugf( "Bit distribution:" );
 	for( j = 0; j < 32; ++j )
-	    log_debugf( "%2u: %u", j, _test_bits[j] );
+	    log_debugf( "%2u: %u", j, test_bits[j] );
 	log_debugf( "Value distribution:" );
 	for( j = 0; j < 32; ++j )
-	    log_debugf( "%08x-%08x: %u", ( _test_slice32 * j ), ( _test_slice32 * ( j + 1 ) ) - 1, _test_hist[j] );*/
+	    log_debugf( "%08x-%08x: %u", ( test_slice32 * j ), ( test_slice32 * ( j + 1 ) ) - 1, test_hist[j] );*/
 
 	for (j = 0; j < 32; ++j) {
-		if (_test_bits[j] < min_num)
-			min_num = _test_bits[j];
-		if (_test_bits[j] > max_num)
-			max_num = _test_bits[j];
+		if (test_bits[j] < min_num)
+			min_num = test_bits[j];
+		if (test_bits[j] > max_num)
+			max_num = test_bits[j];
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (j = 0; j < 32; ++j)
-		EXPECT_GT(_test_bits[j], 0U);
+		EXPECT_GT(test_bits[j], 0U);
 	EXPECT_LT(diff,
 	          0.004);  // << "Bits: min " << min_num << " : max " << max_num << " : diff " << diff;
 
@@ -100,27 +100,27 @@ DECLARE_TEST(random, distribution32) {
 	max_num = 0;
 	min_num = 0xFFFFFFFF;
 	for (j = 0; j < 32; ++j) {
-		if (_test_hist[j] < min_num)
-			min_num = _test_hist[j];
-		if (_test_hist[j] > max_num)
-			max_num = _test_hist[j];
+		if (test_hist[j] < min_num)
+			min_num = test_hist[j];
+		if (test_hist[j] > max_num)
+			max_num = test_hist[j];
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (j = 0; j < 32; ++j)
-		EXPECT_GT(_test_hist[j], 0U);
+		EXPECT_GT(test_hist[j], 0U);
 	EXPECT_LT(diff,
 	          0.02);  // << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
 	// log_debugf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
 	// Verify range distribution
-	memset(_test_bits, 0, sizeof(unsigned int) * 32);
+	memset(test_bits, 0, sizeof(unsigned int) * 32);
 	for (i = 0; i < pass_count; ++i) {
 		num = random32_range((j + 1) * 32, j * 32);
 		EXPECT_GE(num, j * 32U);
 		EXPECT_LT(num, (j + 1) * 32U);
-		++_test_bits[num % 32];
+		++test_bits[num % 32];
 		EXPECT_INTEQ(random32_range(i, i + 1), (int)i);
 	}
 
@@ -128,15 +128,15 @@ DECLARE_TEST(random, distribution32) {
 	max_num = 0;
 	min_num = 0xFFFFFFFF;
 	for (i = 0; i < 32; ++i) {
-		if (_test_bits[i] < min_num)
-			min_num = _test_bits[i];
-		if (_test_bits[i] > max_num)
-			max_num = _test_bits[i];
+		if (test_bits[i] < min_num)
+			min_num = test_bits[i];
+		if (test_bits[i] > max_num)
+			max_num = test_bits[i];
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (i = 0; i < 32; ++i)
-		EXPECT_GT(_test_bits[i], 0U);
+		EXPECT_GT(test_bits[i], 0U);
 	EXPECT_LT(diff,
 	          0.02);  // << "Range distribution: min " << min_num << " : max " << max_num << " : diff " << diff;
 
@@ -152,35 +152,35 @@ DECLARE_TEST(random, distribution64) {
 	uint64_t j;
 	real diff;
 
-	memset(_test_bits, 0, sizeof(unsigned int) * 64);
-	memset(_test_hist, 0, sizeof(unsigned int) * 64);
+	memset(test_bits, 0, sizeof(unsigned int) * 64);
+	memset(test_hist, 0, sizeof(unsigned int) * 64);
 	for (i = 0; i < pass_count; ++i) {
 		uint64_t num = random64();
 		for (j = 0; j < 64; ++j) {
 			if (num & (1ULL << j))
-				++_test_bits[j];
-			if ((num >= (_test_slice64 * j)) && ((j == 63) || (num < (_test_slice64 * (j + 1)))))
-				++_test_hist[j];
+				++test_bits[j];
+			if ((num >= (test_slice64 * j)) && ((j == 63) || (num < (test_slice64 * (j + 1)))))
+				++test_hist[j];
 		}
 	}
 
 	/*log_debugf( "Bit distribution:" );
 	for( j = 0; j < 64; ++j )
-	    log_debugf( "%2u: %u", (unsigned int)j, _test_bits[j] );
+	    log_debugf( "%2u: %u", (unsigned int)j, test_bits[j] );
 	log_debugf( "Value distribution:" );
 	for( j = 0; j < 64; ++j )
-	    log_debugf( "%016llx-%016llx: %u", ( _test_slice64 * j ), ( _test_slice64 * ( j + 1 ) ) - 1, _test_hist[j] );*/
+	    log_debugf( "%016llx-%016llx: %u", ( test_slice64 * j ), ( test_slice64 * ( j + 1 ) ) - 1, test_hist[j] );*/
 
 	for (j = 0; j < 64; ++j) {
-		if (_test_bits[j] < min_num)
-			min_num = _test_bits[j];
-		if (_test_bits[j] > max_num)
-			max_num = _test_bits[j];
+		if (test_bits[j] < min_num)
+			min_num = test_bits[j];
+		if (test_bits[j] > max_num)
+			max_num = test_bits[j];
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (j = 0; j < 64; ++j)
-		EXPECT_GT(_test_bits[j], 0U);
+		EXPECT_GT(test_bits[j], 0U);
 	EXPECT_LT(diff,
 	          0.004);  // << "Bits: min " << min_num << " : max " << max_num << " : diff " << diff;
 
@@ -189,28 +189,28 @@ DECLARE_TEST(random, distribution64) {
 	max_num = 0;
 	min_num = 0xFFFFFFFF;
 	for (j = 0; j < 64; ++j) {
-		if (_test_hist[j] < min_num)
-			min_num = _test_hist[j];
-		if (_test_hist[j] > max_num)
-			max_num = _test_hist[j];
+		if (test_hist[j] < min_num)
+			min_num = test_hist[j];
+		if (test_hist[j] > max_num)
+			max_num = test_hist[j];
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (j = 0; j < 64; ++j)
-		EXPECT_GT(_test_hist[j], 0U);
+		EXPECT_GT(test_hist[j], 0U);
 	EXPECT_LT(diff,
 	          0.02);  // << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
 	// log_debugf( "Histograms: min %u : max %u : diff %.5lf", min_num, max_num, (double)diff );
 
 	// Verify range distribution
-	memset(_test_bits, 0, sizeof(unsigned int) * 64);
+	memset(test_bits, 0, sizeof(unsigned int) * 64);
 	for (i = 0; i < pass_count; ++i) {
 		uint64_t num = random64_range((j + 1) * 64, j * 64);
 		uint64_t range = (uint64_t)i;
 		EXPECT_GE(num, j * 64U);
 		EXPECT_LT(num, (j + 1) * 64U);
-		++_test_bits[num % 64];
+		++test_bits[num % 64];
 		EXPECT_TYPEEQ(random64_range(range, range + 1), range, uint64_t, PRIu64);
 	}
 
@@ -218,15 +218,15 @@ DECLARE_TEST(random, distribution64) {
 	max_num = 0;
 	min_num = 0xFFFFFFFF;
 	for (i = 0; i < 64; ++i) {
-		if (_test_bits[i] < min_num)
-			min_num = _test_bits[i];
-		if (_test_bits[i] > max_num)
-			max_num = _test_bits[i];
+		if (test_bits[i] < min_num)
+			min_num = test_bits[i];
+		if (test_bits[i] > max_num)
+			max_num = test_bits[i];
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (i = 0; i < 64; ++i)
-		EXPECT_GT(_test_bits[i], 0U);
+		EXPECT_GT(test_bits[i], 0U);
 	EXPECT_LT(diff,
 	          0.02);  // << "Range distribution: min " << min_num << " : max " << max_num << " : diff " << diff;
 
@@ -241,30 +241,30 @@ DECLARE_TEST(random, distribution_real) {
 	real diff, num;
 	unsigned int max_num = 0, min_num = 0xFFFFFFFF;
 
-	memset(_test_hist, 0, sizeof(unsigned int) * 64);
+	memset(test_hist, 0, sizeof(unsigned int) * 64);
 	for (i = 0; i < pass_count; ++i) {
 		num = random_normalized();
 		EXPECT_GE(num, 0);
 		EXPECT_LT(num, 1);
 		idx = math_floor(num * REAL_C(64.0));
-		++_test_hist[(idx < 0 ? 0 : (idx > 63 ? 63 : idx))];
+		++test_hist[(idx < 0 ? 0 : (idx > 63 ? 63 : idx))];
 	}
 
 	/*log_debugf( "Value distribution:" );
 	for( i = 0; i < 64; ++i )
-	    log_debugf( "%lf-%lf: %u", ( (1.0/64.0) * (double)i ), ( (1.0/64.0) * (double)( i + 1 ) ) - 1, _test_hist[i]
+	    log_debugf( "%lf-%lf: %u", ( (1.0/64.0) * (double)i ), ( (1.0/64.0) * (double)( i + 1 ) ) - 1, test_hist[i]
 	);*/
 
 	for (i = 0; i < 64; ++i) {
-		if (_test_hist[i] < min_num)
-			min_num = _test_hist[i];
-		if (_test_hist[i] > max_num)
-			max_num = _test_hist[i];
+		if (test_hist[i] < min_num)
+			min_num = test_hist[i];
+		if (test_hist[i] > max_num)
+			max_num = test_hist[i];
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (i = 0; i < 64; ++i)
-		EXPECT_GT(_test_hist[i], 0U);
+		EXPECT_GT(test_hist[i], 0U);
 	EXPECT_LT(diff,
 	          0.02);  // << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 
@@ -284,9 +284,9 @@ random_thread(void* arg) {
 		num = random32();
 		for (j = 0; j < 32; ++j) {
 			if (num & (1 << j))
-				atomic_incr32(&_test_thread_bits[j], memory_order_relaxed);
-			if ((num >= (_test_slice32 * j)) && ((j == 31) || (num < (_test_slice32 * (j + 1)))))
-				atomic_incr32(&_test_thread_hist[j], memory_order_relaxed);
+				atomic_incr32(&test_thread_bits[j], memory_order_relaxed);
+			if ((num >= (test_slice32 * j)) && ((j == 31) || (num < (test_slice32 * (j + 1)))))
+				atomic_incr32(&test_thread_hist[j], memory_order_relaxed);
 		}
 	}
 	return 0;
@@ -300,8 +300,8 @@ DECLARE_TEST(random, threads) {
 	size_t i, j;
 	real diff;
 	for (i = 0; i < 32; ++i) {
-		atomic_store32(&_test_thread_bits[i], 0, memory_order_relaxed);
-		atomic_store32(&_test_thread_hist[i], 0, memory_order_relaxed);
+		atomic_store32(&test_thread_bits[i], 0, memory_order_relaxed);
+		atomic_store32(&test_thread_hist[i], 0, memory_order_relaxed);
 	}
 
 	for (i = 0; i < threads_count; ++i)
@@ -317,22 +317,22 @@ DECLARE_TEST(random, threads) {
 
 	/*log_debugf( "Bit distribution:" );
 	for( j = 0; j < 32; ++j )
-	    log_debugf( "%2d: %d", j, atomic_load32( &_test_thread_bits[j] ) );
+	    log_debugf( "%2d: %d", j, atomic_load32( &test_thread_bits[j] ) );
 	log_debugf( "Value distribution:" );
 	for( j = 0; j < 32; ++j )
-	    log_debugf( "%08x-%08x: %u", ( _test_slice32 * j ), ( _test_slice32 * ( j + 1 ) ) - 1, atomic_load32(
-	&_test_threaD_hist[j] ) );*/
+	    log_debugf( "%08x-%08x: %u", ( test_slice32 * j ), ( test_slice32 * ( j + 1 ) ) - 1, atomic_load32(
+	&test_thread_hist[j] ) );*/
 
 	for (j = 0; j < threads_count; ++j) {
-		if (atomic_load32(&_test_thread_bits[j], memory_order_acquire) < min_num)
-			min_num = atomic_load32(&_test_thread_bits[j], memory_order_acquire);
-		if (atomic_load32(&_test_thread_bits[j], memory_order_acquire) > max_num)
-			max_num = atomic_load32(&_test_thread_bits[j], memory_order_acquire);
+		if (atomic_load32(&test_thread_bits[j], memory_order_acquire) < min_num)
+			min_num = atomic_load32(&test_thread_bits[j], memory_order_acquire);
+		if (atomic_load32(&test_thread_bits[j], memory_order_acquire) > max_num)
+			max_num = atomic_load32(&test_thread_bits[j], memory_order_acquire);
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (j = 0; j < threads_count; ++j)
-		EXPECT_GT(atomic_load32(&_test_thread_bits[j], memory_order_acquire), 0);
+		EXPECT_GT(atomic_load32(&test_thread_bits[j], memory_order_acquire), 0);
 	EXPECT_LT(diff,
 	          0.004);  // << "Bits: min " << min_num << " : max " << max_num << " : diff " << diff;
 
@@ -341,15 +341,15 @@ DECLARE_TEST(random, threads) {
 	max_num = 0;
 	min_num = 0x7FFFFFFF;
 	for (j = 0; j < threads_count; ++j) {
-		if (atomic_load32(&_test_thread_hist[j], memory_order_acquire) < min_num)
-			min_num = atomic_load32(&_test_thread_hist[j], memory_order_acquire);
-		if (atomic_load32(&_test_thread_hist[j], memory_order_acquire) > max_num)
-			max_num = atomic_load32(&_test_thread_hist[j], memory_order_acquire);
+		if (atomic_load32(&test_thread_hist[j], memory_order_acquire) < min_num)
+			min_num = atomic_load32(&test_thread_hist[j], memory_order_acquire);
+		if (atomic_load32(&test_thread_hist[j], memory_order_acquire) > max_num)
+			max_num = atomic_load32(&test_thread_hist[j], memory_order_acquire);
 	}
 	diff = (real)(max_num - min_num) / ((real)min_num + ((real)(max_num - min_num) / REAL_C(2.0)));
 
 	for (j = 0; j < threads_count; ++j)
-		EXPECT_GT(atomic_load32(&_test_thread_hist[j], memory_order_acquire), 0);
+		EXPECT_GT(atomic_load32(&test_thread_hist[j], memory_order_acquire), 0);
 	EXPECT_LT(diff,
 	          0.02);  // << "Histograms: min " << min_num << " : max " << max_num << " : diff " << diff;
 

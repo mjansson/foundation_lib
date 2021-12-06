@@ -24,7 +24,7 @@
 #include <foundation/windows.h>
 
 static BOOL STDCALL
-_main_console_handler(DWORD control_type) {
+main_console_handler(DWORD control_type) {
 	const char* control_name = "UNKNOWN";
 	bool post_terminate = false;
 	bool handled = true;
@@ -85,7 +85,7 @@ WinMain(HINSTANCE instance, HINSTANCE previnst, LPSTR cline, int cmd_show) {
 	if (main_initialize() < 0)
 		return -1;
 
-	SetConsoleCtrlHandler(_main_console_handler, TRUE);
+	SetConsoleCtrlHandler(main_console_handler, TRUE);
 
 	thread_set_main();
 
@@ -172,7 +172,7 @@ main(int argc, char** argv)
 	int ret;
 
 #if !FOUNDATION_PLATFORM_ANDROID
-	_environment_main_args(argc, (const char* const*)argv);
+	environment_main_args(argc, (const char* const*)argv);
 #endif
 
 	ret = main_initialize();

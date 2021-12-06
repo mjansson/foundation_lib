@@ -13,6 +13,11 @@
 #include "virtualarray.h"
 #include "memory.h"
 #include "windows.h"
+#include "posix.h"
+
+#if FOUNDATION_PLATFORM_POSIX
+#include <sys/mman.h>
+#endif
 
 virtualarray_t*
 virtualarray_allocate(uint element_size, uint capacity) {
@@ -70,7 +75,7 @@ virtualarray_allocate_storage(uint element_size, size_t* capacity, uint* flags) 
 	}
 #else
 	if (!page_size)
-		page_size = sysconf(_SC_PAGESIZE);
+		page_size = (size_t)sysconf(_SC_PAGESIZE);
 #endif
 
 	size_t virtual_threshold = 4 * 4096;
@@ -90,7 +95,7 @@ virtualarray_allocate_storage(uint element_size, size_t* capacity, uint* flags) 
 #if FOUNDATION_PLATFORM_WINDOWS
 	return VirtualAlloc(0, size_needed, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 #else
-	return mmap(0, size_needed, PROT_READ | PROT_WRITE, flags, -1, 0);
+	return mmap(0, size_needed, PROT_READ | PROT_WRITE, (int)(*flags), -1, 0);
 #endif
 }
 

@@ -31,11 +31,11 @@ typedef struct {
 	test_case_t** cases;
 } test_group_t;
 
-static test_group_t** _test_groups;
-static bool _test_failed;
+static test_group_t** test_groups;
+static bool test_failed_flag;
 
 #if !BUILD_MONOLITHIC
-static bool _test_exiting;
+static bool test_exiting;
 
 static void*
 test_event_thread(void* arg) {
@@ -45,7 +45,7 @@ test_event_thread(void* arg) {
 
 	event_stream_set_beacon(system_event_stream(), &thread_self()->beacon);
 
-	while (!_test_exiting) {
+	while (!test_exiting) {
 		block = event_stream_process(system_event_stream());
 		while ((event = event_next(block, event))) {
 			switch (event->id) {
@@ -78,9 +78,9 @@ test_add_test(test_fn fn, const char* group_name, size_t group_length, const cha
 	unsigned int ig, gsize;
 	test_group_t* test_group = 0;
 	test_case_t* test_case = 0;
-	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
-		if (string_equal(_test_groups[ig]->name.str, _test_groups[ig]->name.length, group_name, group_length)) {
-			test_group = _test_groups[ig];
+	for (ig = 0, gsize = array_size(test_groups); ig < gsize; ++ig) {
+		if (string_equal(test_groups[ig]->name.str, test_groups[ig]->name.length, group_name, group_length)) {
+			test_group = test_groups[ig];
 			break;
 		}
 	}
@@ -88,7 +88,7 @@ test_add_test(test_fn fn, const char* group_name, size_t group_length, const cha
 	if (!test_group) {
 		test_group = memory_allocate(0, sizeof(test_group_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		test_group->name = string_const(group_name, group_length);
-		array_push(_test_groups, test_group);
+		array_push(test_groups, test_group);
 	}
 
 	test_case = memory_allocate(0, sizeof(test_case_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
@@ -109,7 +109,7 @@ test_run(void) {
 	log_infof(HASH_TEST, STRING_CONST("Running test suite: %.*s"), (int)test_suite.application().short_name.length,
 	          test_suite.application().short_name.str);
 
-	_test_failed = false;
+	test_failed_flag = false;
 	thread_set_main();
 
 #if !BUILD_MONOLITHIC
@@ -122,21 +122,20 @@ test_run(void) {
 	error_set_handler(test_error_handler);
 #endif
 
-	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
-		log_infof(HASH_TEST, STRING_CONST("Running tests from group %.*s"), STRING_FORMAT(_test_groups[ig]->name));
-		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic) {
-			log_infof(HASH_TEST, STRING_CONST("  Running %.*s tests"),
-			          STRING_FORMAT(_test_groups[ig]->cases[ic]->name));
-			result = _test_groups[ig]->cases[ic]->fn();
+	for (ig = 0, gsize = array_size(test_groups); ig < gsize; ++ig) {
+		log_infof(HASH_TEST, STRING_CONST("Running tests from group %.*s"), STRING_FORMAT(test_groups[ig]->name));
+		for (ic = 0, csize = array_size(test_groups[ig]->cases); ic < csize; ++ic) {
+			log_infof(HASH_TEST, STRING_CONST("  Running %.*s tests"), STRING_FORMAT(test_groups[ig]->cases[ic]->name));
+			result = test_groups[ig]->cases[ic]->fn();
 			if (result != 0) {
 				log_warn(HASH_TEST, WARNING_SUSPICIOUS, STRING_CONST("    FAILED"));
-				_test_failed = true;
+				test_failed_flag = true;
 			} else {
 				log_info(HASH_TEST, STRING_CONST("    PASSED"));
 			}
 #if BUILD_MONOLITHIC
 			if (test_should_terminate()) {
-				_test_failed = true;
+				test_failed_flag = true;
 				goto exit;
 			}
 #endif
@@ -144,7 +143,7 @@ test_run(void) {
 	}
 
 #if !BUILD_MONOLITHIC
-	_test_exiting = true;
+	test_exiting = true;
 	thread_signal(&thread_event);
 	thread_finalize(&thread_event);
 #else
@@ -152,23 +151,23 @@ exit:
 #endif
 
 	log_infof(HASH_TEST, STRING_CONST("Finished test suite: %.*s%.*s"),
-	          STRING_FORMAT(test_suite.application().short_name), !_test_failed ? 0 : 9, " (FAILED)");
+	          STRING_FORMAT(test_suite.application().short_name), !test_failed_flag ? 0 : 9, " (FAILED)");
 }
 
 static void
 test_free(void) {
 	unsigned int ig, gsize, ic, csize;
-	for (ig = 0, gsize = array_size(_test_groups); ig < gsize; ++ig) {
-		for (ic = 0, csize = array_size(_test_groups[ig]->cases); ic < csize; ++ic)
-			memory_deallocate(_test_groups[ig]->cases[ic]);
-		array_deallocate(_test_groups[ig]->cases);
-		memory_deallocate(_test_groups[ig]);
+	for (ig = 0, gsize = array_size(test_groups); ig < gsize; ++ig) {
+		for (ic = 0, csize = array_size(test_groups[ig]->cases); ic < csize; ++ic)
+			memory_deallocate(test_groups[ig]->cases[ic]);
+		array_deallocate(test_groups[ig]->cases);
+		memory_deallocate(test_groups[ig]);
 	}
-	array_deallocate(_test_groups);
-	_test_groups = 0;
+	array_deallocate(test_groups);
+	test_groups = 0;
 
 	// Abort memory tracking if failed test(s)
-	if (_test_failed)
+	if (test_failed_flag)
 		memory_set_tracker(memory_tracker_none());
 }
 
@@ -182,7 +181,7 @@ test_run_all(void) {
 	test_free();
 
 	test_suite.finalize();
-	if (_test_failed) {
+	if (test_failed_flag) {
 		process_set_exit_code(-1);
 		return -1;
 	}
@@ -368,15 +367,15 @@ test_error_handler(error_level_t level, error_t err) {
 	return 0;
 }
 
-static void (*_test_fail_hook)(void);
+static void (*test_fail_hook)(void);
 
 void
 test_prefail(void) {
 	atomic_thread_fence_sequentially_consistent();
 	log_set_suppress(HASH_TEST, ERRORLEVEL_DEBUG);
 	log_enable_stdout(true);
-	if (_test_fail_hook)
-		_test_fail_hook();
+	if (test_fail_hook)
+		test_fail_hook();
 }
 
 void*
@@ -386,5 +385,5 @@ test_failed(void) {
 
 void
 test_set_fail_hook(void (*hook_fn)(void)) {
-	_test_fail_hook = hook_fn;
+	test_fail_hook = hook_fn;
 }

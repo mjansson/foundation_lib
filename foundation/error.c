@@ -71,7 +71,7 @@ error_context_set(error_context_t* context) {
 }
 
 void
-_error_context_push(const char* name, size_t name_length, const char* data, size_t data_length) {
+error_context_push_impl(const char* name, size_t name_length, const char* data, size_t data_length) {
 	error_context_t* context = get_thread_error_context();
 	if (!context) {
 		size_t capacity = sizeof(error_context_t) + (sizeof(error_frame_t) * foundation_config().error_context_depth);
@@ -88,8 +88,8 @@ _error_context_push(const char* name, size_t name_length, const char* data, size
 }
 
 void
-_error_context_push_format(const char* name, size_t name_length, char* data, size_t data_length,
-                           const char* data_format, size_t data_format_length, ...) {
+error_context_push_format_impl(const char* name, size_t name_length, char* data, size_t data_length,
+                               const char* data_format, size_t data_format_length, ...) {
 	error_context_t* context = get_thread_error_context();
 	if (!context) {
 		size_t capacity = sizeof(error_context_t) + (sizeof(error_frame_t) * foundation_config().error_context_depth);
@@ -97,6 +97,12 @@ _error_context_push_format(const char* name, size_t name_length, char* data, siz
 		set_thread_error_context(context);
 	}
 	// Format the data string
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic push
+#if __has_warning("-Wformat-nonliteral")
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
+#endif
 	string_t data_string = string(0, 0);
 	if (data_length && data_format_length) {
 		va_list data_list;
@@ -110,24 +116,27 @@ _error_context_push_format(const char* name, size_t name_length, char* data, siz
 	context->frame[context->depth].data.length = data_string.length ? data_string.length : 9;
 	if (context->depth < foundation_config().error_context_depth - 1)
 		++context->depth;
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic pop
+#endif
 }
 
 void
-_error_context_pop(void) {
+error_context_pop_impl(void) {
 	error_context_t* context = get_thread_error_context();
 	if (context && context->depth > 0)
 		--context->depth;
 }
 
 void
-_error_context_clear(void) {
+error_context_clear_impl(void) {
 	error_context_t* context = get_thread_error_context();
 	if (context)
 		context->depth = 0;
 }
 
 string_t
-_error_context_buffer(char* buffer, size_t size) {
+error_context_buffer_impl(char* buffer, size_t size) {
 	error_context_t* context = get_thread_error_context();
 	string_t result = {buffer, size};
 	if (context) {
@@ -158,12 +167,12 @@ _error_context_buffer(char* buffer, size_t size) {
 }
 
 error_context_t*
-_error_context(void) {
+error_context_impl(void) {
 	return get_thread_error_context();
 }
 
 void
-_error_context_thread_finalize(void) {
+error_context_thread_finalize_impl(void) {
 	error_context_t* context = get_thread_error_context();
 	if (context) {
 		FOUNDATION_ASSERT_MSG(!context->depth, "Error context thread exit with non-zero context stack");

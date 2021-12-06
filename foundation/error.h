@@ -62,17 +62,17 @@ error_context_set(error_context_t* context);
 
 #if BUILD_ENABLE_ERROR_CONTEXT
 
-#define _error_context_push_proxy(...)    \
-	do {                                  \
-		_error_context_push(__VA_ARGS__); \
+#define _error_context_push_proxy(...)        \
+	do {                                      \
+		error_context_push_impl(__VA_ARGS__); \
 	} while (0)
 
-#define _error_context_push_format_proxy(...)    \
-	do {                                         \
-		_error_context_push_format(__VA_ARGS__); \
+#define _error_context_push_format_proxy(...)        \
+	do {                                             \
+		error_context_push_format_impl(__VA_ARGS__); \
 	} while (0)
 
-#define _error_context_buffer_proxy(...) _error_context_buffer(__VA_ARGS__)
+#define _error_context_buffer_proxy(...) error_context_buffer_impl(__VA_ARGS__)
 
 /*! Push a new error context and associated data on the error context stack.
 Both context and data must be valid for as long as it remains on the stack.
@@ -99,15 +99,15 @@ Both context and data must be valid for as long as it remains on the stack.
 	} while (0)
 
 /*! Pop the top error context off the error context stack */
-#define error_context_pop()   \
-	do {                      \
-		_error_context_pop(); \
+#define error_context_pop()       \
+	do {                          \
+		error_context_pop_impl(); \
 	} while (0)
 
 /*! Clear the error context */
-#define error_context_clear()   \
-	do {                        \
-		_error_context_clear(); \
+#define error_context_clear()       \
+	do {                            \
+		error_context_clear_impl(); \
 	} while (0)
 
 /*! Generate a error context stack description string in the given buffer, limited
@@ -117,7 +117,7 @@ to the given size.
 #define error_context_buffer(...) _error_context_buffer_proxy(__VA_ARGS__)
 
 /*! Get the current error context, or 0 if no context set/available. */
-#define error_context() _error_context()
+#define error_context() error_context_impl()
 
 /*! Make a local declaration depending on if error contexts are enabled in the build
 or not. If error contexts are disabled the expression will evaluate to void and not
@@ -126,32 +126,32 @@ evaluate any code.
 #define error_context_declare_local(decl) decl
 
 /*! Clean up thread local storage related to error context on thread exit. */
-#define error_context_thread_finalize()   \
-	do {                                  \
-		_error_context_thread_finalize(); \
+#define error_context_thread_finalize()       \
+	do {                                      \
+		error_context_thread_finalize_impl(); \
 	} while (0)
 
 FOUNDATION_API void
-_error_context_push(const char* name, size_t name_length, const char* data, size_t data_length);
+error_context_push_impl(const char* name, size_t name_length, const char* data, size_t data_length);
 
 FOUNDATION_API void
-_error_context_push_format(const char* name, size_t name_length, char* data, size_t data_length,
-                           const char* data_format, size_t data_format_length, ...);
+error_context_push_format_impl(const char* name, size_t name_length, char* data, size_t data_length,
+                               const char* data_format, size_t data_format_length, ...);
 
 FOUNDATION_API void
-_error_context_pop(void);
+error_context_pop_impl(void);
 
 FOUNDATION_API void
-_error_context_clear(void);
+error_context_clear_impl(void);
 
 FOUNDATION_API string_t
-_error_context_buffer(char* buffer, size_t capacity);
+error_context_buffer_impl(char* buffer, size_t capacity);
 
 FOUNDATION_API error_context_t*
-_error_context(void);
+error_context_impl(void);
 
 FOUNDATION_API void
-_error_context_thread_finalize(void);
+error_context_thread_finalize_impl(void);
 
 #else
 

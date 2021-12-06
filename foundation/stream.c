@@ -13,6 +13,13 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic push
+#if __has_warning("-Wreserved-identifier")
+#pragma clang diagnostic ignored "-Wreserved-identifier"
+#endif
+#endif
+
 #include <stdarg.h>
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -25,10 +32,10 @@
 #include <sys/stat.h>
 #endif
 
-static hashtable64_t* _stream_protocol_table;
+static hashtable64_t* stream_protocol_table;
 
 static stream_t*
-_stream_open_stdout(const char* path, size_t length, unsigned int mode) {
+stream_open_stdout_protocol(const char* path, size_t length, unsigned int mode) {
 	FOUNDATION_UNUSED(path);
 	FOUNDATION_UNUSED(length);
 	stream_t* stream = stream_open_stdout();
@@ -37,7 +44,7 @@ _stream_open_stdout(const char* path, size_t length, unsigned int mode) {
 }
 
 static stream_t*
-_stream_open_stderr(const char* path, size_t length, unsigned int mode) {
+stream_open_stderr_protocol(const char* path, size_t length, unsigned int mode) {
 	FOUNDATION_UNUSED(path);
 	FOUNDATION_UNUSED(length);
 	stream_t* stream = stream_open_stderr();
@@ -46,7 +53,7 @@ _stream_open_stderr(const char* path, size_t length, unsigned int mode) {
 }
 
 static stream_t*
-_stream_open_stdin(const char* path, size_t length, unsigned int mode) {
+stream_open_stdin_protocol(const char* path, size_t length, unsigned int mode) {
 	FOUNDATION_UNUSED(path);
 	FOUNDATION_UNUSED(length);
 	stream_t* stream = stream_open_stdin();
@@ -55,34 +62,34 @@ _stream_open_stdin(const char* path, size_t length, unsigned int mode) {
 }
 
 int
-_stream_initialize(void) {
-	_stream_protocol_table = hashtable64_allocate(32);
+internal_stream_initialize(void) {
+	stream_protocol_table = hashtable64_allocate(32);
 
 	stream_set_protocol_handler(0, 0, fs_open_file);
 #if FOUNDATION_PLATFORM_ANDROID
 	stream_set_protocol_handler(STRING_CONST("asset"), asset_stream_open);
 #endif
 	stream_set_protocol_handler(STRING_CONST("file"), fs_open_file);
-	stream_set_protocol_handler(STRING_CONST("stdout"), _stream_open_stdout);
-	stream_set_protocol_handler(STRING_CONST("stderr"), _stream_open_stderr);
-	stream_set_protocol_handler(STRING_CONST("stdin"), _stream_open_stdin);
+	stream_set_protocol_handler(STRING_CONST("stdout"), stream_open_stdout_protocol);
+	stream_set_protocol_handler(STRING_CONST("stderr"), stream_open_stderr_protocol);
+	stream_set_protocol_handler(STRING_CONST("stdin"), stream_open_stdin_protocol);
 	return 0;
 }
 
 void
-_stream_finalize(void) {
-	hashtable64_deallocate(_stream_protocol_table);
-	_stream_protocol_table = 0;
+internal_stream_finalize(void) {
+	hashtable64_deallocate(stream_protocol_table);
+	stream_protocol_table = 0;
 }
 
 void
 stream_set_protocol_handler(const char* protocol, size_t length, stream_open_fn fn) {
-	hashtable64_set(_stream_protocol_table, hash(protocol, length), (uintptr_t)fn);
+	hashtable64_set(stream_protocol_table, hash(protocol, length), (uintptr_t)fn);
 }
 
 stream_open_fn
 stream_protocol_handler(const char* protocol, size_t length) {
-	return (stream_open_fn)(uintptr_t)hashtable64_get(_stream_protocol_table, hash(protocol, length));
+	return (stream_open_fn)(uintptr_t)hashtable64_get(stream_protocol_table, hash(protocol, length));
 }
 
 void
@@ -1224,7 +1231,7 @@ struct stream_std_t {
 typedef FOUNDATION_ALIGN(8) struct stream_std_t stream_std_t;
 
 static size_t
-_stream_stdin_read(stream_t* stream, void* buffer, size_t size) {
+stream_stdin_read(stream_t* stream, void* buffer, size_t size) {
 	stream_std_t* stdstream = (stream_std_t*)stream;
 	FILE* stdfile = (FILE*)stdstream->std;
 	char* bytebuffer = (char*)buffer;
@@ -1245,19 +1252,19 @@ _stream_stdin_read(stream_t* stream, void* buffer, size_t size) {
 }
 
 static size_t
-_stream_stdout_write(stream_t* stream, const void* buffer, size_t size) {
+stream_stdout_write(stream_t* stream, const void* buffer, size_t size) {
 	stream_std_t* stdstream = (stream_std_t*)stream;
 	size_t was_written = fwrite(buffer, 1, (size_t)size, stdstream->std);
 	return was_written;
 }
 
 static void
-_stream_stdout_flush(stream_t* stream) {
+stream_stdout_flush(stream_t* stream) {
 	fflush(((stream_std_t*)stream)->std);
 }
 
 static stream_t*
-_stream_std_clone(stream_t* stream) {
+stream_std_clone(stream_t* stream) {
 	stream_std_t* clone =
 	    memory_allocate(HASH_STREAM, sizeof(stream_std_t), 8, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 	memcpy(clone, stream, sizeof(stream_std_t));
@@ -1266,12 +1273,12 @@ _stream_std_clone(stream_t* stream) {
 }
 
 static bool
-_stream_stdin_eos(stream_t* stream) {
+stream_stdin_eos(stream_t* stream) {
 	return ((stream_std_t*)stream)->eos;
 }
 
 static size_t
-_stream_stdin_available_read(stream_t* stream) {
+stream_stdin_available_read(stream_t* stream) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	HANDLE in_handle;
@@ -1309,18 +1316,18 @@ _stream_stdin_available_read(stream_t* stream) {
 }
 
 static tick_t
-_stream_std_last_modified(const stream_t* stream) {
+stream_std_last_modified(const stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 	return time_system();
 }
 
-static stream_vtable_t _stream_stdout_vtable = {
-    0, _stream_stdout_write, 0, _stream_stdout_flush, 0, 0, 0, 0, _stream_std_last_modified, 0, 0, 0, 0, 0,
-    0, _stream_std_clone};
+static stream_vtable_t stream_stdout_vtable = {
+    0, stream_stdout_write, 0, stream_stdout_flush, 0, 0, 0, 0, stream_std_last_modified, 0, 0, 0, 0, 0,
+    0, stream_std_clone};
 
-static stream_vtable_t _stream_stdin_vtable = {
-    _stream_stdin_read,           0, _stream_stdin_eos, 0, 0, 0, 0, 0, _stream_std_last_modified, 0, 0, 0, 0,
-    _stream_stdin_available_read, 0, _stream_std_clone};
+static stream_vtable_t stream_stdin_vtable = {
+    stream_stdin_read,           0, stream_stdin_eos, 0, 0, 0, 0, 0, stream_std_last_modified, 0, 0, 0, 0,
+    stream_stdin_available_read, 0, stream_std_clone};
 
 stream_t*
 stream_open_stdout(void) {
@@ -1330,7 +1337,7 @@ stream_open_stdout(void) {
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
 	stream->type = STREAMTYPE_STDSTREAM;
-	stream->vtable = &_stream_stdout_vtable;
+	stream->vtable = &stream_stdout_vtable;
 	stream->path = string_clone(STRING_CONST("stdout://"));
 	stream->std = stdout;
 	return (stream_t*)stream;
@@ -1344,7 +1351,7 @@ stream_open_stderr(void) {
 	stream->sequential = 1;
 	stream->mode = STREAM_OUT;
 	stream->type = STREAMTYPE_STDSTREAM;
-	stream->vtable = &_stream_stdout_vtable;
+	stream->vtable = &stream_stdout_vtable;
 	stream->path = string_clone(STRING_CONST("stderr://"));
 	stream->std = stderr;
 	return (stream_t*)stream;
@@ -1358,8 +1365,12 @@ stream_open_stdin(void) {
 	stream->sequential = 1;
 	stream->mode = STREAM_IN;
 	stream->type = STREAMTYPE_STDSTREAM;
-	stream->vtable = &_stream_stdin_vtable;
+	stream->vtable = &stream_stdin_vtable;
 	stream->path = string_clone(STRING_CONST("stdin://"));
 	stream->std = stdin;
 	return (stream_t*)stream;
 }
+
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic pop
+#endif

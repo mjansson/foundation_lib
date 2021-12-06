@@ -24,111 +24,108 @@ file may change at any time. */
 // Internal entry points
 
 FOUNDATION_API int
-_atomic_initialize(void);
+internal_atomic_initialize(void);
 
 FOUNDATION_API void
-_atomic_finalize(void);
+internal_atomic_finalize(void);
 
 FOUNDATION_API int
-_assert_initialize(void);
+internal_assert_initialize(void);
 
 FOUNDATION_API void
-_assert_finalize(void);
+internal_assert_finalize(void);
 
 FOUNDATION_API void
-_ringbuffer_stream_initialize(void);
+internal_ringbuffer_stream_initialize(void);
 
 FOUNDATION_API void
-_buffer_stream_initialize(void);
+internal_buffer_stream_initialize(void);
 
 #if FOUNDATION_PLATFORM_ANDROID
 FOUNDATION_API void
-_asset_stream_initialize(void);
+internal_asset_stream_initialize(void);
 #endif
 
 FOUNDATION_API void
-_pipe_stream_initialize(void);
+internal_pipe_stream_initialize(void);
 
 FOUNDATION_API int
-_log_initialize(void);
+internal_log_initialize(void);
 
 FOUNDATION_API void
-_log_finalize(void);
+internal_log_finalize(void);
 
 FOUNDATION_API int
-_memory_initialize(const memory_system_t memory);
+internal_memory_initialize(const memory_system_t memory);
 
 FOUNDATION_API void
-_memory_finalize(void);
+internal_memory_finalize(void);
 
 FOUNDATION_API int
-_time_initialize(void);
+internal_time_initialize(void);
 
 FOUNDATION_API void
-_time_finalize(void);
+internal_time_finalize(void);
 
 FOUNDATION_API int
-_thread_initialize(void);
+internal_thread_initialize(void);
 
 FOUNDATION_API void
-_thread_finalize(void);
+internal_thread_finalize(void);
 
 FOUNDATION_API int
-_environment_initialize(const application_t application);
+internal_environment_initialize(const application_t application);
 
 FOUNDATION_API void
-_environment_finalize(void);
+internal_environment_finalize(void);
 
 FOUNDATION_API int
-_library_initialize(void);
+internal_library_initialize(void);
 
 FOUNDATION_API void
-_library_finalize(void);
+internal_library_finalize(void);
 
 FOUNDATION_API int
-_system_initialize(void);
+internal_system_initialize(void);
 
 FOUNDATION_API void
-_system_finalize(void);
+internal_system_finalize(void);
 
 FOUNDATION_API int
-_stream_initialize(void);
+internal_stream_initialize(void);
 
 FOUNDATION_API void
-_stream_finalize(void);
+internal_stream_finalize(void);
 
 FOUNDATION_API int
-_fs_initialize(void);
+internal_fs_initialize(void);
 
 FOUNDATION_API void
-_fs_finalize(void);
+internal_fs_finalize(void);
 
 FOUNDATION_API int
-_random_initialize(void);
+internal_random_initialize(void);
 
 FOUNDATION_API void
-_random_finalize(void);
-
-FOUNDATION_API void
-_profile_thread_finalize(void);
+internal_random_finalize(void);
 
 FOUNDATION_API int
-_static_hash_initialize(void);
+internal_static_hash_initialize(void);
 
 FOUNDATION_API void
-_static_hash_finalize(void);
+internal_static_hash_finalize(void);
 
 FOUNDATION_API int
-_stacktrace_initialize(void);
+internal_stacktrace_initialize(void);
 
 FOUNDATION_API void
-_stacktrace_finalize(void);
+internal_stacktrace_finalize(void);
 
 FOUNDATION_API int
-_exception_initialize(void);
+internal_exception_initialize(void);
 
 FOUNDATION_API void
-_exception_finalize(void);
+internal_exception_finalize(void);
 
 // Internal functions
 
@@ -139,4 +136,7 @@ FOUNDATION_API uint64_t
 hashtable64_raw(hashtable64_t* table, size_t slot);
 
 FOUNDATION_API void
-_environment_main_args(int argc, const char* const* argv);
+environment_main_args(int argc, const char* const* argv);
+
+FOUNDATION_API void
+profile_thread_finalize(void);

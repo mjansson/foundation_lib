@@ -17,7 +17,7 @@ static const uint32_t ARRAY_WATERMARK = 0x52524145U;
 static const unsigned int ARRAY_DEFAULT_ALIGN = 16U;
 
 const void*
-_array_verifyfn(const void* const* arr) {
+internal_array_verifyfn(const void* const* arr) {
 	if (!FOUNDATION_VALIDATE_MSG(!(*arr) || (_array_raw_const(*arr)[2] == ARRAY_WATERMARK),
 	                             "Invalid array (bad watermark)"))
 		return 0;
@@ -28,18 +28,18 @@ _array_verifyfn(const void* const* arr) {
 }
 
 void*
-_array_resizefn(void** arr, size_t count, size_t itemsize) {
+internal_array_resizefn(void** arr, size_t count, size_t itemsize) {
 	if (!(*arr) && count)
-		_array_growfn(arr, count, 1, itemsize);
+		internal_array_growfn(arr, count, 1, itemsize);
 	else if (*arr && (_array_rawcapacity(*arr) < count))
-		_array_growfn(arr, count - _array_rawcapacity(*arr), 1, itemsize);
+		internal_array_growfn(arr, count - _array_rawcapacity(*arr), 1, itemsize);
 	if (*arr)
 		_array_rawsize(*arr) = (uint32_t)count;
 	return *arr;
 }
 
 void*
-_array_growfn(void** arr, size_t count, size_t factor, size_t itemsize) {
+internal_array_growfn(void** arr, size_t count, size_t factor, size_t itemsize) {
 	size_t prev_capacity = *arr ? _array_rawcapacity(*arr) : 0;
 	size_t capacity = *arr ? (factor * prev_capacity + count) : count;
 	size_t prev_storage_size = itemsize * prev_capacity;

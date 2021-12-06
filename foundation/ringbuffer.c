@@ -15,7 +15,7 @@
 
 #define RINGBUFFER_FROM_STREAM(stream) ((ringbuffer_t*)&stream->total_read)
 
-static stream_vtable_t _ringbuffer_stream_vtable;
+static stream_vtable_t ringbuffer_stream_vtable;
 
 ringbuffer_t*
 ringbuffer_allocate(size_t size) {
@@ -156,7 +156,7 @@ ringbuffer_total_written(ringbuffer_t* buffer) {
 }
 
 static size_t
-_ringbuffer_stream_read(stream_t* stream, void* dest, size_t size) {
+ringbuffer_stream_read(stream_t* stream, void* dest, size_t size) {
 	stream_ringbuffer_t* rbstream = (stream_ringbuffer_t*)stream;
 	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM(rbstream);
 
@@ -185,7 +185,7 @@ _ringbuffer_stream_read(stream_t* stream, void* dest, size_t size) {
 }
 
 static size_t
-_ringbuffer_stream_write(stream_t* stream, const void* source, size_t size) {
+ringbuffer_stream_write(stream_t* stream, const void* source, size_t size) {
 	stream_ringbuffer_t* rbstream = (stream_ringbuffer_t*)stream;
 	ringbuffer_t* buffer = RINGBUFFER_FROM_STREAM(rbstream);
 
@@ -215,29 +215,29 @@ _ringbuffer_stream_write(stream_t* stream, const void* source, size_t size) {
 }
 
 static bool
-_ringbuffer_stream_eos(stream_t* stream) {
+ringbuffer_stream_eos(stream_t* stream) {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	return buffer->total_size ? (buffer->total_read >= buffer->total_size) : false;
 }
 
 static void
-_ringbuffer_stream_flush(stream_t* stream) {
+ringbuffer_stream_flush(stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 }
 
 static void
-_ringbuffer_stream_truncate(stream_t* stream, size_t size) {
+ringbuffer_stream_truncate(stream_t* stream, size_t size) {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	buffer->total_size = size;
 }
 
 static size_t
-_ringbuffer_stream_size(stream_t* stream) {
+ringbuffer_stream_size(stream_t* stream) {
 	return ((stream_ringbuffer_t*)stream)->total_size;
 }
 
 static void
-_ringbuffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
+ringbuffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	if ((direction != STREAM_SEEK_CURRENT) || (offset < 0)) {
 		log_error(0, ERROR_UNSUPPORTED,
 		          STRING_CONST("Invalid call, only forward seeking allowed on ringbuffer streams"));
@@ -245,23 +245,23 @@ _ringbuffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t dir
 	}
 
 	/*lint -e{534,571} */
-	_ringbuffer_stream_read(stream, 0, (size_t)offset);
+	ringbuffer_stream_read(stream, 0, (size_t)offset);
 }
 
 static size_t
-_ringbuffer_stream_tell(stream_t* stream) {
+ringbuffer_stream_tell(stream_t* stream) {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	return (size_t)buffer->total_read;
 }
 
 static tick_t
-_ringbuffer_stream_lastmod(const stream_t* stream) {
+ringbuffer_stream_lastmod(const stream_t* stream) {
 	FOUNDATION_UNUSED(stream);
 	return time_system();
 }
 
 static size_t
-_ringbuffer_stream_available_read(stream_t* stream) {
+ringbuffer_stream_available_read(stream_t* stream) {
 	stream_ringbuffer_t* buffer = (stream_ringbuffer_t*)stream;
 	return (size_t)(buffer->total_write - buffer->total_read);
 }
@@ -293,11 +293,11 @@ ringbuffer_stream_initialize(stream_ringbuffer_t* stream, size_t buffer_size, si
 
 	stream->total_size = total_size;
 
-	stream->vtable = &_ringbuffer_stream_vtable;
+	stream->vtable = &ringbuffer_stream_vtable;
 }
 
 static void
-_ringbuffer_stream_finalize(stream_t* stream) {
+ringbuffer_stream_finalize(stream_t* stream) {
 	stream_ringbuffer_t* bufferstream = (stream_ringbuffer_t*)stream;
 
 	if (!bufferstream || (stream->type != STREAMTYPE_RINGBUFFER))
@@ -308,17 +308,17 @@ _ringbuffer_stream_finalize(stream_t* stream) {
 }
 
 void
-_ringbuffer_stream_initialize(void) {
+internal_ringbuffer_stream_initialize(void) {
 	// Setup global vtable
-	_ringbuffer_stream_vtable.read = _ringbuffer_stream_read;
-	_ringbuffer_stream_vtable.write = _ringbuffer_stream_write;
-	_ringbuffer_stream_vtable.eos = _ringbuffer_stream_eos;
-	_ringbuffer_stream_vtable.flush = _ringbuffer_stream_flush;
-	_ringbuffer_stream_vtable.truncate = _ringbuffer_stream_truncate;
-	_ringbuffer_stream_vtable.size = _ringbuffer_stream_size;
-	_ringbuffer_stream_vtable.seek = _ringbuffer_stream_seek;
-	_ringbuffer_stream_vtable.tell = _ringbuffer_stream_tell;
-	_ringbuffer_stream_vtable.lastmod = _ringbuffer_stream_lastmod;
-	_ringbuffer_stream_vtable.available_read = _ringbuffer_stream_available_read;
-	_ringbuffer_stream_vtable.finalize = _ringbuffer_stream_finalize;
+	ringbuffer_stream_vtable.read = ringbuffer_stream_read;
+	ringbuffer_stream_vtable.write = ringbuffer_stream_write;
+	ringbuffer_stream_vtable.eos = ringbuffer_stream_eos;
+	ringbuffer_stream_vtable.flush = ringbuffer_stream_flush;
+	ringbuffer_stream_vtable.truncate = ringbuffer_stream_truncate;
+	ringbuffer_stream_vtable.size = ringbuffer_stream_size;
+	ringbuffer_stream_vtable.seek = ringbuffer_stream_seek;
+	ringbuffer_stream_vtable.tell = ringbuffer_stream_tell;
+	ringbuffer_stream_vtable.lastmod = ringbuffer_stream_lastmod;
+	ringbuffer_stream_vtable.available_read = ringbuffer_stream_available_read;
+	ringbuffer_stream_vtable.finalize = ringbuffer_stream_finalize;
 }

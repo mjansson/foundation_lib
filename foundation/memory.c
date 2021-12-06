@@ -38,9 +38,9 @@
 #endif
 
 /*lint -e728 */
-static const memory_tracker_t _memory_no_tracker;
-static memory_system_t _memory_system;
-static bool _memory_initialized;
+static const memory_tracker_t memory_no_tracker;
+static memory_system_t memory_system_current;
+static bool memory_initialized;
 
 typedef FOUNDATION_ALIGN(8) struct {
 	atomic32_t allocations_total;
@@ -51,7 +51,7 @@ typedef FOUNDATION_ALIGN(8) struct {
 
 FOUNDATION_STATIC_ASSERT(sizeof(memory_statistics_t) == sizeof(memory_statistics_atomic_t), "statistics sizes differs");
 
-static memory_statistics_atomic_t _memory_stats;
+static memory_statistics_atomic_t memory_stats;
 
 #if BUILD_ENABLE_MEMORY_GUARD
 #define MEMORY_GUARD_VALUE 0xDEADBEEF
@@ -59,23 +59,23 @@ static memory_statistics_atomic_t _memory_stats;
 
 #if BUILD_ENABLE_MEMORY_TRACKER
 
-static memory_tracker_t _memory_tracker;
-static memory_tracker_t _memory_tracker_preinit;
+static memory_tracker_t memory_tracker_current;
+static memory_tracker_t memory_tracker_preinit;
 
 static void
-_memory_track(void* addr, size_t size);
+memory_track(void* addr, size_t size);
 
 static void
-_memory_untrack(void* addr);
+memory_untrack(void* addr);
 
 #else
 
-#define _memory_track(addr, size) \
-	do {                          \
-		(void)sizeof((addr));     \
-		(void)sizeof((size));     \
+#define memory_track(addr, size) \
+	do {                         \
+		(void)sizeof((addr));    \
+		(void)sizeof((size));    \
 	} while (0)
-#define _memory_untrack(addr) \
+#define memory_untrack(addr)  \
 	do {                      \
 		(void)sizeof((addr)); \
 	} while (0)
@@ -83,16 +83,16 @@ _memory_untrack(void* addr);
 #endif
 
 int
-_memory_initialize(const memory_system_t memory) {
+internal_memory_initialize(const memory_system_t memory) {
 	int ret;
-	_memory_system = memory;
-	memset(&_memory_stats, 0, sizeof(_memory_stats));
-	ret = _memory_system.initialize();
+	memory_system_current = memory;
+	memset(&memory_stats, 0, sizeof(memory_stats));
+	ret = memory_system_current.initialize();
 	if (ret == 0) {
-		_memory_initialized = true;
+		memory_initialized = true;
 #if BUILD_ENABLE_MEMORY_TRACKER
-		if (_memory_tracker_preinit.initialize)
-			memory_set_tracker(_memory_tracker_preinit);
+		if (memory_tracker_preinit.initialize)
+			memory_set_tracker(memory_tracker_preinit);
 #endif
 	}
 	atomic_thread_fence_release();
@@ -100,23 +100,23 @@ _memory_initialize(const memory_system_t memory) {
 }
 
 void
-_memory_finalize(void) {
+internal_memory_finalize(void) {
 #if BUILD_ENABLE_MEMORY_TRACKER
-	_memory_tracker_preinit = _memory_tracker;
-	if (_memory_tracker.finalize)
-		_memory_tracker.finalize();
+	memory_tracker_preinit = memory_tracker_current;
+	if (memory_tracker_current.finalize)
+		memory_tracker_current.finalize();
 #endif
-	if (_memory_system.thread_finalize)
-		_memory_system.thread_finalize();
-	memory_set_tracker(_memory_no_tracker);
-	_memory_system.finalize();
-	_memory_initialized = false;
+	if (memory_system_current.thread_finalize)
+		memory_system_current.thread_finalize();
+	memory_set_tracker(memory_no_tracker);
+	memory_system_current.finalize();
+	memory_initialized = false;
 }
 
 #if BUILD_ENABLE_MEMORY_GUARD
 
 static void*
-_memory_guard_initialize(void* memory, size_t size, size_t align) {
+memory_guard_initialize(void* memory, size_t size, size_t align) {
 	if (align < (FOUNDATION_MIN_ALIGN * 2))
 		align = FOUNDATION_MIN_ALIGN * 2;
 	void* start = pointer_offset(memory, align);
@@ -132,7 +132,7 @@ _memory_guard_initialize(void* memory, size_t size, size_t align) {
 }
 
 static void*
-_memory_guard_verify(void* memory) {
+memory_guard_verify(void* memory) {
 	uint32_t* guard_header = pointer_offset(memory, -FOUNDATION_MIN_ALIGN * 2);
 	uint32_t align = *guard_header;
 	uint32_t size = *(guard_header + 1);
@@ -154,40 +154,40 @@ _memory_guard_verify(void* memory) {
 
 void*
 memory_allocate(hash_t context, size_t size, unsigned int align, unsigned int hint) {
-	void* p = _memory_system.allocate(context ? context : memory_context(), size, align, hint);
-	_memory_track(p, size);
+	void* p = memory_system_current.allocate(context ? context : memory_context(), size, align, hint);
+	memory_track(p, size);
 	return p;
 }
 
 void*
 memory_reallocate(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint) {
-	_memory_untrack(p);
-	p = _memory_system.reallocate(p, size, align, oldsize, hint);
-	_memory_track(p, size);
+	memory_untrack(p);
+	p = memory_system_current.reallocate(p, size, align, oldsize, hint);
+	memory_track(p, size);
 	return p;
 }
 
 void
 memory_deallocate(void* p) {
-	_memory_untrack(p);
-	_memory_system.deallocate(p);
+	memory_untrack(p);
+	memory_system_current.deallocate(p);
 }
 
 size_t
 memory_size(const void* p) {
-	return p ? _memory_system.usable_size(p) : 0;
+	return p ? memory_system_current.usable_size(p) : 0;
 }
 
 bool
 memory_verify(const void* p) {
-	return _memory_system.verify(p);
+	return memory_system_current.verify(p);
 }
 
 memory_statistics_t
 memory_statistics(void) {
 	memory_statistics_t stats;
 	atomic_thread_fence_acquire();
-	memcpy(&stats, &_memory_stats, sizeof(memory_statistics_t));
+	memcpy(&stats, &memory_stats, sizeof(memory_statistics_t));
 	return stats;
 }
 
@@ -259,18 +259,18 @@ memory_context_thread_finalize(void) {
 
 void
 memory_thread_initialize(void) {
-	if (_memory_system.thread_initialize)
-		_memory_system.thread_initialize();
+	if (memory_system_current.thread_initialize)
+		memory_system_current.thread_initialize();
 }
 
 void
 memory_thread_finalize(void) {
-	if (_memory_system.thread_finalize)
-		_memory_system.thread_finalize();
+	if (memory_system_current.thread_finalize)
+		memory_system_current.thread_finalize();
 }
 
 static void*
-_memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
+memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
 	FOUNDATION_UNUSED(hint);
 	void* memory;
 
@@ -299,7 +299,7 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 	}
 #endif
 #if BUILD_ENABLE_MEMORY_GUARD
-	memory = _memory_guard_initialize(memory, size, align);
+	memory = memory_guard_initialize(memory, size, align);
 #endif
 	if (!memory) {
 		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"),
@@ -309,22 +309,22 @@ _memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) 
 }
 
 static void*
-_memory_allocate_malloc(hash_t context, size_t size, unsigned int align, unsigned int hint) {
+memory_allocate_malloc(hash_t context, size_t size, unsigned int align, unsigned int hint) {
 	void* block;
 	FOUNDATION_UNUSED(context);
-	block = _memory_allocate_malloc_raw(size, align, hint);
+	block = memory_allocate_malloc_raw(size, align, hint);
 	if (block && (hint & MEMORY_ZERO_INITIALIZED))
 		memset(block, 0, (size_t)size);
 	return block;
 }
 
 static void
-_memory_deallocate_malloc(void* p) {
+memory_deallocate_malloc(void* p) {
 	if (!p)
 		return;
 
 #if BUILD_ENABLE_MEMORY_GUARD
-	p = _memory_guard_verify(p);
+	p = memory_guard_verify(p);
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS
 	_aligned_free(p);
@@ -334,7 +334,7 @@ _memory_deallocate_malloc(void* p) {
 }
 
 static void*
-_memory_reallocate_malloc(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint) {
+memory_reallocate_malloc(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint) {
 #if BUILD_ENABLE_MEMORY_GUARD
 	if (align < FOUNDATION_MIN_ALIGN)
 		align = FOUNDATION_MIN_ALIGN;
@@ -346,10 +346,10 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned int align, size_t oldsi
 		return realloc(p, size);
 #endif
 #endif
-	void* memory = _memory_allocate_malloc_raw(size, align, hint);
+	void* memory = memory_allocate_malloc_raw(size, align, hint);
 	if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
 		memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
-	_memory_deallocate_malloc(p);
+	memory_deallocate_malloc(p);
 
 	if (!memory) {
 		string_const_t errmsg = system_error_message(0);
@@ -361,8 +361,15 @@ _memory_reallocate_malloc(void* p, size_t size, unsigned int align, size_t oldsi
 	return memory;
 }
 
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic push
+#if __has_warning("-Wcast-qual")
+#pragma clang diagnostic ignored "-Wcast-qual"
+#endif
+#endif
+
 static size_t
-_memory_usable_size_malloc(const void* p) {
+memory_usable_size_malloc(const void* p) {
 #if BUILD_ENABLE_MEMORY_GUARD
 	const uint32_t* guard_header = pointer_offset_const(p, -FOUNDATION_MIN_ALIGN * 2);
 	return guard_header[1];
@@ -370,41 +377,45 @@ _memory_usable_size_malloc(const void* p) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _msize((void*)p);
 #else
-	return memory_usable_size(p);
+	return malloc_usable_size((void*)p);
 #endif
 #endif
 }
 
 static bool
-_memory_verify_malloc(const void* p) {
+memory_verify_malloc(const void* p) {
 #if BUILD_ENABLE_MEMORY_GUARD
-	return _memory_guard_verify((void*)p) != 0;
+	return memory_guard_verify((void*)p) != 0;
 #else
 	FOUNDATION_UNUSED(p);
 	return true;
 #endif
 }
 
+#if FOUNDATION_COMPILER_CLANG
+#pragma clang diagnostic pop
+#endif
+
 static int
-_memory_initialize_malloc(void) {
+memory_initialize_malloc(void) {
 	return 0;
 }
 
 static void
-_memory_finalize_malloc(void) {
+memory_finalize_malloc(void) {
 }
 
 memory_system_t
 memory_system_malloc(void) {
 	memory_system_t memsystem;
 	memset(&memsystem, 0, sizeof(memsystem));
-	memsystem.allocate = _memory_allocate_malloc;
-	memsystem.reallocate = _memory_reallocate_malloc;
-	memsystem.deallocate = _memory_deallocate_malloc;
-	memsystem.usable_size = _memory_usable_size_malloc;
-	memsystem.verify = _memory_verify_malloc;
-	memsystem.initialize = _memory_initialize_malloc;
-	memsystem.finalize = _memory_finalize_malloc;
+	memsystem.allocate = memory_allocate_malloc;
+	memsystem.reallocate = memory_reallocate_malloc;
+	memsystem.deallocate = memory_deallocate_malloc;
+	memsystem.usable_size = memory_usable_size_malloc;
+	memsystem.verify = memory_verify_malloc;
+	memsystem.initialize = memory_initialize_malloc;
+	memsystem.finalize = memory_finalize_malloc;
 	return memsystem;
 }
 
@@ -424,12 +435,12 @@ memory_tracker_dump(memory_tracker_handler_fn handler) {
 
 void
 memory_set_tracker(memory_tracker_t tracker) {
-	memory_tracker_t old_tracker = _memory_tracker;
+	memory_tracker_t old_tracker = memory_tracker_current;
 
 	if ((old_tracker.track == tracker.track) && (old_tracker.untrack == tracker.untrack))
 		return;
 
-	_memory_tracker = _memory_no_tracker;
+	memory_tracker_current = memory_no_tracker;
 
 	if (old_tracker.abort)
 		old_tracker.abort();
@@ -437,32 +448,32 @@ memory_set_tracker(memory_tracker_t tracker) {
 	if (old_tracker.finalize)
 		old_tracker.finalize();
 
-	if (_memory_initialized) {
+	if (memory_initialized) {
 		if (tracker.initialize)
 			tracker.initialize();
 
-		_memory_tracker = tracker;
+		memory_tracker_current = tracker;
 	} else {
-		_memory_tracker_preinit = tracker;
+		memory_tracker_preinit = tracker;
 	}
 }
 
 static void
-_memory_track(void* addr, size_t size) {
-	if (addr && _memory_tracker.track)
-		_memory_tracker.track(addr, size);
+memory_track(void* addr, size_t size) {
+	if (addr && memory_tracker_current.track)
+		memory_tracker_current.track(addr, size);
 }
 
 static void
-_memory_untrack(void* addr) {
-	if (addr && _memory_tracker.untrack)
-		_memory_tracker.untrack(addr);
+memory_untrack(void* addr) {
+	if (addr && memory_tracker_current.untrack)
+		memory_tracker_current.untrack(addr);
 }
 
 void
 memory_tracker_dump(memory_tracker_handler_fn handler) {
-	if (_memory_tracker.dump)
-		_memory_tracker.dump(handler);
+	if (memory_tracker_current.dump)
+		memory_tracker_current.dump(handler);
 }
 
 FOUNDATION_ALIGNED_STRUCT(memory_tag_t, 8) {
@@ -482,44 +493,43 @@ struct memory_tag_bucket_t {
 
 typedef struct memory_tag_bucket_t memory_tag_bucket_t;
 
-static memory_tag_bucket_t* _memory_tag_map;
-static atomic32_t _memory_tag_next;
-static bool _memory_tracker_initialized;
+static memory_tag_bucket_t* memory_tag_map;
+static bool memory_tracker_initialized;
 
 #define MEMORY_TAG_MAP_SIZE 3947
 
 static int
-_memory_tracker_initialize(void) {
-	if (!_memory_tracker_initialized) {
+memory_tracker_initialize(void) {
+	if (!memory_tracker_initialized) {
 		size_t size = sizeof(memory_tag_bucket_t) * MEMORY_TAG_MAP_SIZE;
-		_memory_tag_map = _memory_system.allocate(0, size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
-		_memory_tracker_initialized = true;
+		memory_tag_map = memory_system_current.allocate(0, size, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+		memory_tracker_initialized = true;
 	}
 
 	return 0;
 }
 
 static void
-_memory_tracker_cleanup(void) {
-	_memory_tracker_initialized = false;
-	if (_memory_tag_map) {
-		_memory_system.deallocate(_memory_tag_map);
-		_memory_tag_map = nullptr;
+memory_tracker_cleanup(void) {
+	memory_tracker_initialized = false;
+	if (memory_tag_map) {
+		memory_system_current.deallocate(memory_tag_map);
+		memory_tag_map = nullptr;
 	}
 }
 
 static void
-_memory_tracker_finalize(void) {
+memory_tracker_finalize(void) {
 #if FOUNDATION_PLATFORM_APPLE
 	// Hack to allow system dispatch threads time to finalize
 	// and free memory during shutdown
 	thread_sleep(100);
 #endif
 
-	_memory_tracker_initialized = false;
-	if (_memory_tag_map) {
+	memory_tracker_initialized = false;
+	if (memory_tag_map) {
 		for (uint ibucket = 0; ibucket < MEMORY_TAG_MAP_SIZE; ++ibucket) {
-			memory_tag_bucket_t* bucket = _memory_tag_map + ibucket;
+			memory_tag_bucket_t* bucket = memory_tag_map + ibucket;
 			memory_tag_t* tag = bucket->tags;
 			for (size_t itag = 0; tag && (itag < bucket->size); ++itag, ++tag) {
 				void* addr = tag->address;
@@ -533,21 +543,21 @@ _memory_tracker_finalize(void) {
 				}
 			}
 			if (bucket->tags)
-				_memory_system.deallocate(bucket->tags);
+				memory_system_current.deallocate(bucket->tags);
 			bucket->tags = 0;
 			bucket->size = 0;
 			bucket->capacity = 0;
 		}
 	}
-	_memory_tracker_cleanup();
+	memory_tracker_cleanup();
 }
 
 static void
-_memory_tracker_dump(memory_tracker_handler_fn handler) {
-	if (!_memory_tracker_initialized || !_memory_tag_map)
+memory_tracker_dump_impl(memory_tracker_handler_fn handler) {
+	if (!memory_tracker_initialized || !memory_tag_map)
 		return;
 	for (uint ibucket = 0; ibucket < MEMORY_TAG_MAP_SIZE; ++ibucket) {
-		memory_tag_bucket_t* bucket = _memory_tag_map + ibucket;
+		memory_tag_bucket_t* bucket = memory_tag_map + ibucket;
 		memory_tag_t* tag = bucket->tags;
 		for (size_t itag = 0; tag && (itag < bucket->size); ++itag, ++tag) {
 			void* addr = tag->address;
@@ -560,19 +570,19 @@ _memory_tracker_dump(memory_tracker_handler_fn handler) {
 }
 
 static void
-_memory_tracker_track(void* addr, size_t size) {
-	if (!addr || !_memory_tracker_initialized || !_memory_tag_map)
+memory_tracker_track(void* addr, size_t size) {
+	if (!addr || !memory_tracker_initialized || !memory_tag_map)
 		return;
 
 	uintptr_t bucket_index = (uintptr_t)addr % MEMORY_TAG_MAP_SIZE;
-	memory_tag_bucket_t* bucket = _memory_tag_map + bucket_index;
+	memory_tag_bucket_t* bucket = memory_tag_map + bucket_index;
 	while (!atomic_cas32(&bucket->lock, 1, 0, memory_order_acquire, memory_order_acquire))
 		thread_yield();
 
 	if (bucket->size >= bucket->capacity) {
 		size_t new_capacity = (bucket->capacity ? (bucket->capacity << 2) : 1024);
-		bucket->tags = _memory_system.reallocate(bucket->tags, sizeof(memory_tag_t) * new_capacity, 8,
-		                                         sizeof(memory_tag_t) * bucket->capacity, MEMORY_PERSISTENT);
+		bucket->tags = memory_system_current.reallocate(bucket->tags, sizeof(memory_tag_t) * new_capacity, 8,
+		                                                sizeof(memory_tag_t) * bucket->capacity, MEMORY_PERSISTENT);
 		bucket->capacity = new_capacity;
 	}
 
@@ -585,21 +595,21 @@ _memory_tracker_track(void* addr, size_t size) {
 	atomic_store32(&bucket->lock, 0, memory_order_release);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
-	atomic_incr32(&_memory_stats.allocations_total, memory_order_relaxed);
-	atomic_incr32(&_memory_stats.allocations_current, memory_order_relaxed);
-	atomic_add32(&_memory_stats.allocated_total, (int32_t)size, memory_order_relaxed);
-	atomic_add32(&_memory_stats.allocated_current, (int32_t)size, memory_order_relaxed);
+	atomic_incr32(&memory_stats.allocations_total, memory_order_relaxed);
+	atomic_incr32(&memory_stats.allocations_current, memory_order_relaxed);
+	atomic_add32(&memory_stats.allocated_total, (int32_t)size, memory_order_relaxed);
+	atomic_add32(&memory_stats.allocated_current, (int32_t)size, memory_order_relaxed);
 	atomic_thread_fence_release();
 #endif
 }
 
 static void
-_memory_tracker_untrack(void* addr) {
-	if (!addr || !_memory_tracker_initialized || !_memory_tag_map)
+memory_tracker_untrack(void* addr) {
+	if (!addr || !memory_tracker_initialized || !memory_tag_map)
 		return;
 
 	uintptr_t bucket_index = (uintptr_t)addr % MEMORY_TAG_MAP_SIZE;
-	memory_tag_bucket_t* bucket = _memory_tag_map + bucket_index;
+	memory_tag_bucket_t* bucket = memory_tag_map + bucket_index;
 	while (!atomic_cas32(&bucket->lock, 1, 0, memory_order_acquire, memory_order_acquire))
 		thread_yield();
 
@@ -623,8 +633,8 @@ _memory_tracker_untrack(void* addr) {
 	atomic_store32(&bucket->lock, 0, memory_order_release);
 
 #if BUILD_ENABLE_MEMORY_STATISTICS
-	atomic_decr32(&_memory_stats.allocations_current, memory_order_relaxed);
-	atomic_add32(&_memory_stats.allocated_current, -(int32_t)size, memory_order_relaxed);
+	atomic_decr32(&memory_stats.allocations_current, memory_order_relaxed);
+	atomic_add32(&memory_stats.allocated_current, -(int32_t)size, memory_order_relaxed);
 	atomic_thread_fence_release();
 #endif
 }
@@ -633,19 +643,19 @@ _memory_tracker_untrack(void* addr) {
 
 memory_tracker_t
 memory_tracker_local(void) {
-	memory_tracker_t tracker = _memory_no_tracker;
+	memory_tracker_t tracker = memory_no_tracker;
 #if BUILD_ENABLE_MEMORY_TRACKER
-	tracker.track = _memory_tracker_track;
-	tracker.untrack = _memory_tracker_untrack;
-	tracker.dump = _memory_tracker_dump;
-	tracker.initialize = _memory_tracker_initialize;
-	tracker.abort = _memory_tracker_cleanup;
-	tracker.finalize = _memory_tracker_finalize;
+	tracker.track = memory_tracker_track;
+	tracker.untrack = memory_tracker_untrack;
+	tracker.dump = memory_tracker_dump_impl;
+	tracker.initialize = memory_tracker_initialize;
+	tracker.abort = memory_tracker_cleanup;
+	tracker.finalize = memory_tracker_finalize;
 #endif
 	return tracker;
 }
 
 memory_tracker_t
 memory_tracker_none(void) {
-	return _memory_no_tracker;
+	return memory_no_tracker;
 }

@@ -669,7 +669,7 @@ math_smoothstep(real t) {
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
 math_smoothstep_double(double t) {
-	return (REAL_C(3.0) - REAL_C(2.0) * t) * (t * t);
+	return (3.0 - 2.0 * t) * (t * t);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real
@@ -679,7 +679,7 @@ math_smootherstep(real t) {
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL double
 math_smootherstep_double(double t) {
-	return (t * t * t) * (t * (t * REAL_C(6.0) - REAL_C(15.0)) + REAL_C(10.0));
+	return (t * t * t) * (t * (t * 6.0 - 15.0) + 10.0);
 }
 
 static FOUNDATION_FORCEINLINE FOUNDATION_CONSTCALL real

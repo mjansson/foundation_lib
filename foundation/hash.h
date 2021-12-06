@@ -67,14 +67,14 @@ see the hashstrings.txt and corresponding hashstrings.h header
 #if BUILD_ENABLE_STATIC_HASH_DEBUG
 
 FOUNDATION_API void
-_static_hash_store(const void* key, size_t len, hash_t value);
+static_hash_store(const void* key, size_t len, hash_t value);
 
 static FOUNDATION_FORCEINLINE hash_t
 static_hash(const void* key, size_t len, hash_t value) {
 	hash_t ref = hash(key, len);
 	FOUNDATION_ASSERT_MSGFORMAT(!value || (ref == value), "Static hash fail: %s -> 0x%" PRIx64 ", expected 0x%" PRIx64,
 	                            (const char*)key, ref, value);
-	_static_hash_store(key, len, ref);
+	static_hash_store(key, len, ref);
 	return ref;
 }
 

@@ -24,48 +24,48 @@
 #error Not implemented on this platform!
 #endif
 
-static tick_t _time_freq;
-static double _time_oofreq;
-static tick_t _time_startup;
+static tick_t time_freq;
+static double time_oofreq;
+static tick_t time_start;
 
 #if FOUNDATION_PLATFORM_APPLE
 
-static mach_timebase_info_data_t _time_info;
+static mach_timebase_info_data_t time_info;
 
 static void
 absolutetime_to_nanoseconds(uint64_t mach_time, tick_t* clock) {
-	*clock = (tick_t)(mach_time * _time_info.numer / _time_info.denom);
+	*clock = (tick_t)(mach_time * time_info.numer / time_info.denom);
 }
 
 #endif
 
 int
-_time_initialize(void) {
+internal_time_initialize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	tick_t unused;
-	if (!QueryPerformanceFrequency((LARGE_INTEGER*)&_time_freq) || !QueryPerformanceCounter((LARGE_INTEGER*)&unused))
+	if (!QueryPerformanceFrequency((LARGE_INTEGER*)&time_freq) || !QueryPerformanceCounter((LARGE_INTEGER*)&unused))
 		return -1;
 #elif FOUNDATION_PLATFORM_APPLE
-	if (mach_timebase_info(&_time_info))
+	if (mach_timebase_info(&time_info))
 		return -1;
-	_time_freq = 1000000000LL;
+	time_freq = 1000000000LL;
 #elif FOUNDATION_PLATFORM_POSIX
 	struct timespec ts = {.tv_sec = 0, .tv_nsec = 0};
 	if (clock_gettime(CLOCK_MONOTONIC, &ts))
 		return -1;
-	_time_freq = 1000000000LL;
+	time_freq = 1000000000LL;
 #else
 #error Not implemented
 #endif
 
-	_time_oofreq = 1.0 / (double)_time_freq;
-	_time_startup = time_current();
+	time_oofreq = 1.0 / (double)time_freq;
+	time_start = time_current();
 
 	return 0;
 }
 
 void
-_time_finalize(void) {
+internal_time_finalize(void) {
 }
 
 tick_t
@@ -95,12 +95,12 @@ time_current(void) {
 
 tick_t
 time_startup(void) {
-	return _time_startup;
+	return time_start;
 }
 
 tick_t
 time_ticks_per_second(void) {
-	return _time_freq;
+	return time_freq;
 }
 
 tick_t
@@ -111,7 +111,7 @@ time_diff(const tick_t from, const tick_t to) {
 deltatime_t
 time_elapsed(const tick_t t) {
 	tick_t ticks = time_elapsed_ticks(t);
-	return (deltatime_t)((double)ticks * _time_oofreq);
+	return (deltatime_t)((double)ticks * time_oofreq);
 }
 
 tick_t
@@ -149,12 +149,12 @@ time_elapsed_ticks(const tick_t t) {
 
 deltatime_t
 time_ticks_to_seconds(const tick_t dt) {
-	return (deltatime_t)((double)dt * _time_oofreq);
+	return (deltatime_t)((double)dt * time_oofreq);
 }
 
 deltatime_t
 time_ticks_to_milliseconds(const tick_t dt) {
-	return (deltatime_t)(((double)dt * 1000.0) * _time_oofreq);
+	return (deltatime_t)(((double)dt * 1000.0) * time_oofreq);
 }
 
 #if FOUNDATION_PLATFORM_WINDOWS

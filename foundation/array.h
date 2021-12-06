@@ -242,7 +242,7 @@ in array. Position and number of elements ARE ranged checked
 #define _array_header_size 4UL
 
 #if BUILD_DEBUG
-#define _array_verify(a) ((a) && _array_verifyfn((const void* const*)&(a)))
+#define _array_verify(a) ((a) && internal_array_verifyfn((const void* const*)&(a)))
 #else
 #define _array_verify(a) (a)
 #endif
@@ -260,8 +260,8 @@ in array. Position and number of elements ARE ranged checked
 	(((n) > 0) && (!_array_verify(a) || (_array_rawsize_const(a) + (n)) > _array_rawcapacity_const(a)))
 #define _array_maybegrow(a, n) (_array_needgrow(a, (n)) ? _array_grow(a, n, 2) : (a))
 #define _array_maybegrowfixed(a, n) (_array_needgrow(a, (n)) ? _array_grow(a, n, 1) : (a))
-#define _array_grow(a, n, f) (_array_growfn((void**)&(a), (n), (f), _array_elementsize(a)))
-#define _array_resize(a, n) (_array_resizefn((void**)&(a), (n), _array_elementsize(a)))
+#define _array_grow(a, n, f) (internal_array_growfn((void**)&(a), (n), (f), _array_elementsize(a)))
+#define _array_resize(a, n) (internal_array_resizefn((void**)&(a), (n), _array_elementsize(a)))
 
 #define _array_verify_index(a, n) ((uint32_t)(n) < _array_rawsize(a))
 
@@ -274,7 +274,7 @@ with each element size given by itemsize.
 \param itemsize  Size of a single item
 \return          New array pointer */
 FOUNDATION_API void*
-_array_growfn(void** arr, size_t count, size_t factor, size_t itemsize);
+internal_array_growfn(void** arr, size_t count, size_t factor, size_t itemsize);
 
 /*! \internal Array resize function. This will reallocate array storage if needed
 \param arr      Pointer to array
@@ -282,10 +282,10 @@ _array_growfn(void** arr, size_t count, size_t factor, size_t itemsize);
 \param itemsize Size of a single item
 \return         New array pointer */
 FOUNDATION_API void*
-_array_resizefn(void** arr, size_t count, size_t itemsize);
+internal_array_resizefn(void** arr, size_t count, size_t itemsize);
 
 /*! \internal Verify array integrity. Will cause an assert if array is not valid.
 \param arr      Pointer to array
 \return         Array if valid, null if invalid */
 FOUNDATION_API const void*
-_array_verifyfn(const void* const* arr);
+internal_array_verifyfn(const void* const* arr);

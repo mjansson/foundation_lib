@@ -40,24 +40,24 @@ struct library_t {
 
 typedef FOUNDATION_ALIGN(8) struct library_t library_t;
 
-static objectmap_t* _library_map;
+static objectmap_t* library_map;
 
 int
-_library_initialize(void) {
-	_library_map = objectmap_allocate(foundation_config().library_max);
-	if (!_library_map)
+internal_library_initialize(void) {
+	library_map = objectmap_allocate(foundation_config().library_max);
+	if (!library_map)
 		return -1;
 	return 0;
 }
 
 void
-_library_finalize(void) {
-	objectmap_deallocate(_library_map);
-	_library_map = 0;
+internal_library_finalize(void) {
+	objectmap_deallocate(library_map);
+	library_map = 0;
 }
 
 static void
-_library_destroy(void* obj) {
+library_destroy(void* obj) {
 	library_t* library = obj;
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -109,12 +109,12 @@ library_load(const char* name, size_t length) {
 	// Locate already loaded library, brute force iteration
 	library = 0;
 	name_hash = string_hash(basename, base_length);
-	for (i = 0, size = _library_map ? objectmap_size(_library_map) : 0; i < size; ++i) {
-		library = objectmap_raw_lookup(_library_map, i);
+	for (i = 0, size = library_map ? objectmap_size(library_map) : 0; i < size; ++i) {
+		library = objectmap_raw_lookup(library_map, i);
 		if (library && (library->name_hash == name_hash)) {
 			if (string_equal(library->name, library->name_length, basename, base_length)) {
-				id = objectmap_raw_id(_library_map, i);
-				if (objectmap_acquire(_library_map, id) == library)
+				id = objectmap_raw_id(library_map, i);
+				if (objectmap_acquire(library_map, id) == library)
 					return id;
 			}
 		}
@@ -173,19 +173,20 @@ library_load(const char* name, size_t length) {
 #endif
 
 	if (!lib) {
-		log_debugf(0, STRING_CONST("Unable to load dynamic library '%.*s': %s"), (int)length, name, dlerror());
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to load dynamic library '%.*s': %s"), (int)length,
+		          name, dlerror());
 		error_context_pop();
 		return 0;
 	}
 
 #endif
 
-	if (!_library_map) {
+	if (!library_map) {
 		error_context_pop();
 		return 0;
 	}
 
-	id = objectmap_reserve(_library_map);
+	id = objectmap_reserve(library_map);
 	if (!id) {
 #if FOUNDATION_PLATFORM_WINDOWS
 		FreeLibrary(dll);
@@ -205,7 +206,7 @@ library_load(const char* name, size_t length) {
 #elif FOUNDATION_PLATFORM_POSIX
 	library->lib = lib;
 #endif
-	objectmap_set(_library_map, id, library);
+	objectmap_set(library_map, id, library);
 
 	error_context_pop();
 
@@ -214,17 +215,17 @@ library_load(const char* name, size_t length) {
 
 object_t
 library_ref(object_t id) {
-	return objectmap_acquire(_library_map, id) ? id : 0;
+	return objectmap_acquire(library_map, id) ? id : 0;
 }
 
 void
 library_release(object_t id) {
-	objectmap_release(_library_map, id, _library_destroy);
+	objectmap_release(library_map, id, library_destroy);
 }
 
 void*
 library_symbol(object_t id, const char* name, size_t length) {
-	library_t* library = objectmap_lookup(_library_map, id);
+	library_t* library = objectmap_lookup(library_map, id);
 	FOUNDATION_UNUSED(length);
 	if (library) {
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -242,7 +243,7 @@ library_symbol(object_t id, const char* name, size_t length) {
 
 string_const_t
 library_name(object_t id) {
-	library_t* library = objectmap_lookup(_library_map, id);
+	library_t* library = objectmap_lookup(library_map, id);
 	if (library)
 		return string_const(library->name, library->name_length);
 	return string_null();
@@ -250,18 +251,18 @@ library_name(object_t id) {
 
 bool
 library_valid(object_t id) {
-	return objectmap_lookup(_library_map, id) != 0;
+	return objectmap_lookup(library_map, id) != 0;
 }
 
 #else
 
 int
-_library_initialize(void) {
+internal_library_initialize(void) {
 	return 0;
 }
 
 void
-_library_finalize(void) {
+internal_library_finalize(void) {
 }
 
 object_t

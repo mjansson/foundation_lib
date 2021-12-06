@@ -40,8 +40,8 @@ typedef union {
 	uuid_t uuid;
 } uuid_convert_t;
 
-static atomic32_t _uuid_last_counter;
-static atomic64_t _uuid_last_hostid;
+static atomic32_t uuid_last_counter;
+static atomic64_t uuid_last_hostid;
 
 // 6ba7b810-9dad-11d1-80b4-00c04fd430c8
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
@@ -76,7 +76,7 @@ uuid_generate_time(void) {
 
 	// Allows creation of 10000 unique timestamps per millisecond
 	current_time = time_system();
-	current_counter = atomic_incr32(&_uuid_last_counter, memory_order_relaxed) % 10000;
+	current_counter = atomic_incr32(&uuid_last_counter, memory_order_relaxed) % 10000;
 
 	current_tick =
 	    (current_time * 10000LL) + current_counter + 0x01B21DD213814000LL;  // Convert to 100ns since UUID UTC base
@@ -92,10 +92,10 @@ uuid_generate_time(void) {
 	time_uuid.clock_seq_hi_and_reserved = ((clock_seq & 0x3F00) >> 8);
 
 	// If hardware node ID is null, use random and set identifier (multicast) bit
-	host_id = atomic_load64(&_uuid_last_hostid, memory_order_relaxed);
+	host_id = (uint64_t)atomic_load64(&uuid_last_hostid, memory_order_relaxed);
 	if (!host_id) {
 		host_id = system_hostid();
-		atomic_store64(&_uuid_last_hostid, host_id, memory_order_relaxed);
+		atomic_store64(&uuid_last_hostid, (int64_t)host_id, memory_order_relaxed);
 	}
 	if (host_id) {
 		for (in = 0; in < 6; ++in) {

@@ -28,36 +28,35 @@ main(int, char**);
 
 #endif
 
-static foundation_config_t _config;
-static bool _initialized;
+static foundation_config_t foundation_cfg;
+static bool foundation_initialized;
 
 static void
 foundation_initialize_config(const foundation_config_t config) {
-	_config.library_max = (config.library_max ? config.library_max : 32);
-	_config.fs_monitor_max = (config.fs_monitor_max ? config.fs_monitor_max : 16);
-	_config.error_context_depth = (config.error_context_depth ? config.error_context_depth : 32);
-	_config.memory_context_depth = (config.memory_context_depth ? config.memory_context_depth : 32);
-	_config.stacktrace_depth = (config.stacktrace_depth ? config.stacktrace_depth : 32);
-	_config.event_block_chunk = (config.event_block_chunk ? config.event_block_chunk : (8 * 1024));
-	_config.event_block_limit = (config.event_block_limit ? config.event_block_limit : (512 * 1024));
-	_config.thread_stack_size = (config.thread_stack_size ? config.thread_stack_size : 0x10000);
-
-	_config.hash_store_size = config.hash_store_size;
-	_config.random_state_prealloc = config.random_state_prealloc;
+	foundation_cfg.library_max = (config.library_max ? config.library_max : 32);
+	foundation_cfg.fs_monitor_max = (config.fs_monitor_max ? config.fs_monitor_max : 16);
+	foundation_cfg.error_context_depth = (config.error_context_depth ? config.error_context_depth : 32);
+	foundation_cfg.memory_context_depth = (config.memory_context_depth ? config.memory_context_depth : 32);
+	foundation_cfg.stacktrace_depth = (config.stacktrace_depth ? config.stacktrace_depth : 32);
+	foundation_cfg.event_block_chunk = (config.event_block_chunk ? config.event_block_chunk : (8 * 1024));
+	foundation_cfg.event_block_limit = (config.event_block_limit ? config.event_block_limit : (512 * 1024));
+	foundation_cfg.thread_stack_size = (config.thread_stack_size ? config.thread_stack_size : 0x10000);
+	foundation_cfg.hash_store_size = config.hash_store_size;
+	foundation_cfg.random_state_prealloc = config.random_state_prealloc;
 }
 
 #define SUBSYSTEM_INIT(system) \
 	if (ret == 0)              \
-	ret = _##system##_initialize()
+	ret = internal_##system##_initialize()
 #define SUBSYSTEM_INIT_ARGS(system, ...) \
 	if (ret == 0)                        \
-	ret = _##system##_initialize(__VA_ARGS__)
+	ret = internal_##system##_initialize(__VA_ARGS__)
 
 int
 foundation_initialize(const memory_system_t memory, const application_t application, const foundation_config_t config) {
 	int ret = 0;
 
-	if (_initialized)
+	if (foundation_initialized)
 		return 0;
 
 	process_set_exit_code(PROCESS_EXIT_SUCCESS);
@@ -113,42 +112,42 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 #endif
 #endif
 
-	_initialized = true;
+	foundation_initialized = true;
 
 	return 0;
 }
 
 void
 foundation_finalize(void) {
-	if (!_initialized)
+	if (!foundation_initialized)
 		return;
-	_initialized = false;
+	foundation_initialized = false;
 
 	profile_finalize();
 
-	_fs_finalize();
-	_stream_finalize();
-	_system_finalize();
-	_library_finalize();
-	_environment_finalize();
-	_random_finalize();
-	_thread_finalize();
-	_time_finalize();
-	_log_finalize();
-	_assert_finalize();
-	_exception_finalize();
-	_stacktrace_finalize();
-	_static_hash_finalize();
-	_memory_finalize();
-	_atomic_finalize();
+	internal_fs_finalize();
+	internal_stream_finalize();
+	internal_system_finalize();
+	internal_library_finalize();
+	internal_environment_finalize();
+	internal_random_finalize();
+	internal_thread_finalize();
+	internal_time_finalize();
+	internal_log_finalize();
+	internal_assert_finalize();
+	internal_exception_finalize();
+	internal_stacktrace_finalize();
+	internal_static_hash_finalize();
+	internal_memory_finalize();
+	internal_atomic_finalize();
 }
 
 bool
 foundation_is_initialized(void) {
-	return _initialized;
+	return foundation_initialized;
 }
 
 foundation_config_t
 foundation_config(void) {
-	return _config;
+	return foundation_cfg;
 }

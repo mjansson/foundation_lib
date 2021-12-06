@@ -46,7 +46,7 @@ static void
 test_array_finalize(void) {
 }
 
-typedef FOUNDATION_ALIGNED_STRUCT(_basic_type, 8) {
+typedef FOUNDATION_ALIGNED_STRUCT(basic_type, 8) {
 	int intval;
 	float32_t floatval;
 	object_t objval;
@@ -54,7 +54,7 @@ typedef FOUNDATION_ALIGNED_STRUCT(_basic_type, 8) {
 }
 basic_t;
 
-typedef FOUNDATION_ALIGNED_STRUCT(_combined_type, 8) {
+typedef FOUNDATION_ALIGNED_STRUCT(combined_type, 8) {
 	int intval;
 	int _ipadding;
 	union {
@@ -108,12 +108,12 @@ DECLARE_TEST(array, allocation) {
 
 	// Verify invalid arrays are caught (bad watermark and size/capacity)
 	assert_set_handler(assert_ignore);
-	EXPECT_EQ(_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
+	EXPECT_EQ(internal_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
 	array_fail[2] = 0x52524145U;
 	array_fail[1] = 32;
-	EXPECT_EQ(_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
+	EXPECT_EQ(internal_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
 	array_fail[0] = 32;
-	EXPECT_NE(_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
+	EXPECT_NE(internal_array_verifyfn((const void* const*)&array_fail_ptr), nullptr);
 	assert_set_handler(0);
 
 	// Reserve

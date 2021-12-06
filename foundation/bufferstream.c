@@ -13,7 +13,7 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
-static stream_vtable_t _buffer_stream_vtable;
+static stream_vtable_t buffer_stream_vtable;
 
 stream_t*
 buffer_stream_allocate(void* buffer, unsigned int mode, size_t size, size_t capacity, bool adopt, bool grow) {
@@ -56,11 +56,11 @@ buffer_stream_initialize(stream_buffer_t* stream, void* buffer, unsigned int mod
 	if (mode & STREAM_ATEND)
 		stream->current = stream->size;
 
-	stream->vtable = &_buffer_stream_vtable;
+	stream->vtable = &buffer_stream_vtable;
 }
 
 static void
-_buffer_stream_finalize(stream_t* stream) {
+buffer_stream_finalize(stream_t* stream) {
 	stream_buffer_t* bufferstream = (stream_buffer_t*)stream;
 
 	if (!bufferstream || (stream->type != STREAMTYPE_MEMORY))
@@ -72,7 +72,7 @@ _buffer_stream_finalize(stream_t* stream) {
 }
 
 static size_t
-_buffer_stream_read(stream_t* stream, void* dest, size_t size) {
+buffer_stream_read(stream_t* stream, void* dest, size_t size) {
 	size_t available;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
@@ -92,7 +92,7 @@ _buffer_stream_read(stream_t* stream, void* dest, size_t size) {
 }
 
 static size_t
-_buffer_stream_write(stream_t* stream, const void* source, size_t size) {
+buffer_stream_write(stream_t* stream, const void* source, size_t size) {
 	size_t available, want;
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 
@@ -132,19 +132,19 @@ _buffer_stream_write(stream_t* stream, const void* source, size_t size) {
 }
 
 static bool
-_buffer_stream_eos(stream_t* stream) {
+buffer_stream_eos(stream_t* stream) {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	return buffer_stream->current >= buffer_stream->size;
 }
 
 static void
-_buffer_stream_flush(stream_t* stream) {
+buffer_stream_flush(stream_t* stream) {
 	// lint --e{715, 818} stream unused and could be const, but it's really a vtable function
 	FOUNDATION_UNUSED(stream);
 }
 
 static void
-_buffer_stream_truncate(stream_t* stream, size_t size) {
+buffer_stream_truncate(stream_t* stream, size_t size) {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	if (buffer_stream->capacity >= size) {
 		buffer_stream->size = size;
@@ -163,12 +163,12 @@ _buffer_stream_truncate(stream_t* stream, size_t size) {
 
 /*lint -e{818} Function prototype must match stream interface */
 static size_t
-_buffer_stream_size(stream_t* stream) {
+buffer_stream_size(stream_t* stream) {
 	return ((const stream_buffer_t*)stream)->size;
 }
 
 static void
-_buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
+buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	stream_buffer_t* buffer_stream = (stream_buffer_t*)stream;
 	size_t new_current = 0;
 	/*lint --e{571} Used when offset < 0*/
@@ -190,34 +190,34 @@ _buffer_stream_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t directi
 }
 
 static size_t
-_buffer_stream_tell(stream_t* stream) {
+buffer_stream_tell(stream_t* stream) {
 	return ((const stream_buffer_t*)stream)->current;
 }
 
 static tick_t
-_buffer_stream_lastmod(const stream_t* stream) {
+buffer_stream_lastmod(const stream_t* stream) {
 	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
 	return buffer_stream->lastmod;
 }
 
 static size_t
-_buffer_stream_available_read(stream_t* stream) {
+buffer_stream_available_read(stream_t* stream) {
 	const stream_buffer_t* buffer_stream = (const stream_buffer_t*)stream;
 	return buffer_stream->size - buffer_stream->current;
 }
 
 void
-_buffer_stream_initialize(void) {
-	memset(&_buffer_stream_vtable, 0, sizeof(_buffer_stream_vtable));
-	_buffer_stream_vtable.read = _buffer_stream_read;
-	_buffer_stream_vtable.write = _buffer_stream_write;
-	_buffer_stream_vtable.eos = _buffer_stream_eos;
-	_buffer_stream_vtable.flush = _buffer_stream_flush;
-	_buffer_stream_vtable.truncate = _buffer_stream_truncate;
-	_buffer_stream_vtable.size = _buffer_stream_size;
-	_buffer_stream_vtable.seek = _buffer_stream_seek;
-	_buffer_stream_vtable.tell = _buffer_stream_tell;
-	_buffer_stream_vtable.lastmod = _buffer_stream_lastmod;
-	_buffer_stream_vtable.available_read = _buffer_stream_available_read;
-	_buffer_stream_vtable.finalize = _buffer_stream_finalize;
+internal_buffer_stream_initialize(void) {
+	memset(&buffer_stream_vtable, 0, sizeof(buffer_stream_vtable));
+	buffer_stream_vtable.read = buffer_stream_read;
+	buffer_stream_vtable.write = buffer_stream_write;
+	buffer_stream_vtable.eos = buffer_stream_eos;
+	buffer_stream_vtable.flush = buffer_stream_flush;
+	buffer_stream_vtable.truncate = buffer_stream_truncate;
+	buffer_stream_vtable.size = buffer_stream_size;
+	buffer_stream_vtable.seek = buffer_stream_seek;
+	buffer_stream_vtable.tell = buffer_stream_tell;
+	buffer_stream_vtable.lastmod = buffer_stream_lastmod;
+	buffer_stream_vtable.available_read = buffer_stream_available_read;
+	buffer_stream_vtable.finalize = buffer_stream_finalize;
 }
