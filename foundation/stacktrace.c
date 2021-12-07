@@ -554,13 +554,13 @@ initialize_symbol_resolve() {
 		CallSymInitialize(GetCurrentProcess(), 0, TRUE);
 	}
 
-	_load_process_modules();
+	load_process_modules();
 
 	symbol_resolve_initialized = true;
 
 #elif FOUNDATION_PLATFORM_ANDROID
 
-	_load_process_modules();
+	load_process_modules();
 
 #else
 

@@ -94,7 +94,7 @@ environment_set_executable_paths(char* executable_path, size_t length) {
 		env_executable_name = string_clone(executable_path, length);
 	}
 #if FOUNDATION_PLATFORM_WINDOWS
-	if ((environment_executable_name.length > 4) &&
+	if ((env_executable_name.length > 4) &&
 	    (string_ends_with(STRING_ARGS(env_executable_name), STRING_CONST(".exe")) ||
 	     string_ends_with(STRING_ARGS(env_executable_name), STRING_CONST(".Exe")) ||
 	     string_ends_with(STRING_ARGS(env_executable_name), STRING_CONST(".EXE")))) {
@@ -265,7 +265,7 @@ internal_environment_finalize(void) {
 	string_array_deallocate(env_argv);
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	string_deallocate(environment_var.str);
+	string_deallocate(env_var.str);
 #endif
 	string_deallocate(env_executable_name.str);
 	string_deallocate(env_executable_dir.str);

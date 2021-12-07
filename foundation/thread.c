@@ -13,24 +13,18 @@
 #include <foundation/foundation.h>
 #include <foundation/internal.h>
 
+#if FOUNDATION_COMPILER_CLANG
 #if __has_warning("-Wreserved-identifier")
 #pragma clang diagnostic ignored "-Wreserved-identifier"
+#endif
 #endif
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #include <foundation/windows.h>
 #include <process.h>
 
-typedef DWORD(WINAPI* GetCurrentProcessorNumberFn)(VOID);
-typedef HRESULT(WINAPI* SetThreadDescriptionFn)(HANDLE, PCWSTR);
-
-static DWORD WINAPI
-GetCurrentProcessorNumberFallback(VOID) {
-	return 0;
-}
-
-static GetCurrentProcessorNumberFn GetCurrentProcessorNumber = GetCurrentProcessorNumberFallback;
-static SetThreadDescriptionFn SetThreadDescription;
+typedef HRESULT (WINAPI* SetThreadDescriptionFn)(HANDLE, PCWSTR);
+static SetThreadDescriptionFn SetThreadDescriptionImpl;
 
 #endif
 
@@ -57,12 +51,9 @@ static uint64_t thread_main_id;
 int
 internal_thread_initialize(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	// TODO: look into GetCurrentProcessorNumberEx for 64+ core support
-	GetCurrentProcessorNumberFn getprocidfn;
-	SetThreadDescriptionFn setthreaddescfn;
 	HMODULE kernel32 = GetModuleHandleA("kernel32");
-	GetCurrentProcessorNumber = (GetCurrentProcessorNumberFn)GetProcAddress(kernel32, "GetCurrentProcessorNumber");
-	SetThreadDescription = (SetThreadDescriptionFn)GetProcAddress(kernel32, "SetThreadDescription");
+	if (kernel32 != INVALID_HANDLE_VALUE)
+		SetThreadDescriptionImpl = (SetThreadDescriptionFn)GetProcAddress(kernel32, "SetThreadDescription");
 #endif
 
 	thread_main_id = thread_id();
@@ -142,10 +133,10 @@ thread_set_name(const char* name, size_t length) {
 #if (FOUNDATION_COMPILER_MSVC || FOUNDATION_COMPILER_INTEL)
 	thread_set_debugger_name(name);
 #endif
-	if (SetThreadDescription) {
+	if (SetThreadDescriptionImpl) {
 		wchar_t wname[64];
 		wstring_from_string(wname, sizeof(wname) / sizeof(wname[0]), name, length);
-		SetThreadDescription(GetCurrentThread(), wname);
+		SetThreadDescriptionImpl(GetCurrentThread(), wname);
 	}
 #elif FOUNDATION_PLATFORM_LINUX || FOUNDATION_PLATFORM_ANDROID
 	prctl(PR_SET_NAME, name, 0, 0, 0);
@@ -400,7 +391,9 @@ thread_id(void) {
 unsigned int
 thread_hardware(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	return _fnGetCurrentProcessorNumber();
+	PROCESSOR_NUMBER processor_number;
+	GetCurrentProcessorNumberEx(&processor_number);
+	return (processor_number.Group * 64) + processor_number.Number;
 #elif FOUNDATION_PLATFORM_LINUX
 	return (unsigned int)sched_getcpu();
 #elif FOUNDATION_PLATFORM_ANDROID

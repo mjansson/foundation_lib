@@ -222,7 +222,7 @@ main(int argc, char** argv)
 
 #if FOUNDATION_PLATFORM_WINDOWS
 
-	SetConsoleCtrlHandler(_main_console_handler, TRUE);
+	SetConsoleCtrlHandler(main_console_handler, TRUE);
 
 #endif
 
