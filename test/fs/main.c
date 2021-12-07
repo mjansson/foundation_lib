@@ -612,27 +612,27 @@ DECLARE_TEST(fs, monitor) {
 	event_block_t* block;
 	event_t* event;
 
-	fname = string_from_uint_static(random64(), false, 0, 0);
+	fname = string_from_uint_static(random64(), true, 0, 0);
 	testpath = path_allocate_concat(STRING_ARGS(environment_temporary_directory()), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(testpath));
 
-	fname = string_from_uint_static(random64(), false, 0, 0);
+	fname = string_from_uint_static(random64(), true, 0, 0);
 	filetestpath = path_allocate_concat(STRING_ARGS(testpath), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(filetestpath));
 
-	fname = string_from_uint_static(random64(), false, 0, 0);
+	fname = string_from_uint_static(random64(), true, 0, 0);
 	subtestpath = path_allocate_concat(STRING_ARGS(testpath), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(subtestpath));
 
-	fname = string_from_uint_static(random64(), false, 0, 0);
+	fname = string_from_uint_static(random64(), true, 0, 0);
 	filesubtestpath = path_allocate_concat(STRING_ARGS(subtestpath), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(filesubtestpath));
 
-	fname = string_from_uint_static(random64(), false, 0, 0);
+	fname = string_from_uint_static(random64(), true, 0, 0);
 	presubtestpath = path_allocate_concat(STRING_ARGS(testpath), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(presubtestpath));
 
-	fname = string_from_uint_static(random64(), false, 0, 0);
+	fname = string_from_uint_static(random64(), true, 0, 0);
 	prefilesubtestpath = path_allocate_concat(STRING_ARGS(presubtestpath), STRING_ARGS(fname));
 	unterminate(STRING_ARGS(prefilesubtestpath));
 
@@ -640,7 +640,7 @@ DECLARE_TEST(fs, monitor) {
 		fname = string_from_uint_static(random64(), false, 0, 0);
 		multisubtestpath[isub] = path_allocate_concat(STRING_ARGS(testpath), STRING_ARGS(fname));
 		for (ifilesub = 0; ifilesub < MULTICOUNT; ++ifilesub) {
-			fname = string_from_uint_static(random64(), false, 0, 0);
+			fname = string_from_uint_static(random64(), true, 0, 0);
 			multifilesubtestpath[isub][ifilesub] =
 			    path_allocate_concat(STRING_ARGS(multisubtestpath[isub]), STRING_ARGS(fname));
 			unterminate(STRING_ARGS(multifilesubtestpath[isub][ifilesub]));
