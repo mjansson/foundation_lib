@@ -137,10 +137,10 @@ internal_environment_initialize(const application_t application) {
 
 #elif FOUNDATION_PLATFORM_APPLE
 
-	environment_ns_command_line(&environment_argv);
+	environment_ns_command_line(&env_argv);
 
 	// TODO: Read executable name from system, not command line (might be set to anything)
-	string_t exe_path = string_copy(buffer, sizeof(buffer), environment_argv[0].str, environment_argv[0].length);
+	string_t exe_path = string_copy(buffer, sizeof(buffer), env_argv[0].str, env_argv[0].length);
 	exe_path = path_absolute(exe_path.str, exe_path.length, sizeof(buffer));
 	environment_set_executable_paths(exe_path.str, exe_path.length);
 

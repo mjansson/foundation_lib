@@ -144,7 +144,7 @@ fs_monitor(const char* path, size_t length) {
 			fs_monitors[mi].path = path_clone;
 #if FOUNDATION_PLATFORM_MACOS
 			// On macOS file system monitors are run in system dispatch
-			fs_monitor(fs_monitors + mi);
+			fs_monitor_thread(fs_monitors + mi);
 #else
 			thread_initialize(&fs_monitors[mi].thread, fs_monitor_thread, fs_monitors + mi, STRING_CONST("fs_monitor"),
 			                  THREAD_PRIORITY_BELOWNORMAL, 0);

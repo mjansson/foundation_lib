@@ -129,8 +129,12 @@ FOUNDATION_PRINTFCALL(5, 0)
 		// This is guaranteed to always fit in minimum size of 388 bytes defined above, so need is
 		// always > 0
 		if (log_prefix) {
-			if (tid >= 0x10000)
-				log_tid_width = 5;
+			if (tid >= 0x1000000)
+				log_tid_width = math_max(8, log_tid_width);
+			else if (tid >= 0x100000)
+				log_tid_width = math_max(6, log_tid_width);
+			else if (tid >= 0x10000)
+				log_tid_width = math_max(5, log_tid_width);
 			need = snprintf(buffer, (unsigned int)size, "[%d:%02d:%02d.%03d] <%-*" PRIx64 ":%-*u> %.*s",
 			                timestamp.hours, timestamp.minutes, timestamp.seconds, timestamp.milliseconds,
 			                log_tid_width, tid, log_hwthread_width, hwthreadid, (int)prefix_length, prefix);

@@ -15,15 +15,15 @@
 #include <foundation/apple.h>
 
 extern void
-_environment_ns_command_line(string_t** argv);
+environment_ns_command_line(string_t** argv);
 extern string_t
-_environment_ns_home_directory(char*, size_t);
+environment_ns_home_directory(char*, size_t);
 extern string_t
-_environment_ns_temporary_directory(char*, size_t);
+environment_ns_temporary_directory(char*, size_t);
 extern string_t
-_environment_ns_current_working_directory(char* buffer, size_t capacity);
+environment_ns_current_working_directory(char* buffer, size_t capacity);
 extern bool
-_environment_ns_set_current_working_directory(const char* buffer, size_t length);
+environment_ns_set_current_working_directory(const char* buffer, size_t length);
 
 string_t
 environment_bundle_identifier(char* target, size_t maxlength) {
@@ -44,7 +44,7 @@ environment_bundle_path(char* buffer, size_t capacity) {
 }
 
 void
-_environment_ns_command_line(string_t** argv) {
+environment_ns_command_line(string_t** argv) {
 	@autoreleasepool {
 		char buffer[BUILD_MAX_PATHLEN];
 		NSArray* arguments = [[NSProcessInfo processInfo] arguments];
@@ -57,7 +57,7 @@ _environment_ns_command_line(string_t** argv) {
 }
 
 string_t
-_environment_ns_home_directory(char* buffer, size_t capacity) {
+environment_ns_home_directory(char* buffer, size_t capacity) {
 	@autoreleasepool {
 		NSString* homestr = NSHomeDirectory();
 		CFStringRef home = (__bridge CFStringRef)homestr;
@@ -68,7 +68,7 @@ _environment_ns_home_directory(char* buffer, size_t capacity) {
 }
 
 string_t
-_environment_ns_temporary_directory(char* buffer, size_t capacity) {
+environment_ns_temporary_directory(char* buffer, size_t capacity) {
 	@autoreleasepool {
 		NSString* tmpstr = NSTemporaryDirectory();
 		CFStringRef tmp = (__bridge CFStringRef)tmpstr;
@@ -79,7 +79,7 @@ _environment_ns_temporary_directory(char* buffer, size_t capacity) {
 }
 
 string_t
-_environment_ns_current_working_directory(char* buffer, size_t capacity) {
+environment_ns_current_working_directory(char* buffer, size_t capacity) {
 	@autoreleasepool {
 		NSFileManager* filemgr = [[NSFileManager alloc] init];
 		NSString* tmpstr = [filemgr currentDirectoryPath];
@@ -91,7 +91,7 @@ _environment_ns_current_working_directory(char* buffer, size_t capacity) {
 }
 
 bool
-_environment_ns_set_current_working_directory(const char* buffer, size_t length) {
+environment_ns_set_current_working_directory(const char* buffer, size_t length) {
 	if (!buffer || !length)
 		return false;
 	@autoreleasepool {

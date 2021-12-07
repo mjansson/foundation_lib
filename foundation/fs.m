@@ -19,11 +19,11 @@
 #include <dispatch/queue.h>
 #include <sys/stat.h>
 
-void*
-_fs_event_stream_create(const char* path, size_t length);
+extern void*
+fs_event_stream_create(const char* path, size_t length);
 
-void
-_fs_event_stream_destroy(void* stream);
+extern void
+fs_event_stream_destroy(void* stream);
 
 // This implementation is not optimal in any way, but will do for now
 // Memory allocation mania should really be cleaned up
@@ -38,18 +38,18 @@ struct file_node_t {
 };
 
 static void
-_fs_node_deallocate(file_node_t* node) {
+fs_node_deallocate(file_node_t* node) {
 	string_deallocate(node->name.str);
 	string_array_deallocate(node->files);
 	for (size_t isub = 0, subsize = array_size(node->subdirs); isub < subsize; ++isub)
-		_fs_node_deallocate(node->subdirs[isub]);
+		fs_node_deallocate(node->subdirs[isub]);
 	array_deallocate(node->subdirs);
 	array_deallocate(node->last_modified);
 	memory_deallocate(node);
 }
 
 static void
-_fs_node_populate(file_node_t* node, const char* fullpath, size_t length) {
+fs_node_populate(file_node_t* node, const char* fullpath, size_t length) {
 	string_t* subdirs = fs_subdirs(fullpath, length);
 	for (size_t isub = 0, subsize = array_size(subdirs); isub < subsize; ++isub) {
 		file_node_t* child = memory_allocate(0, sizeof(file_node_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
@@ -68,13 +68,13 @@ _fs_node_populate(file_node_t* node, const char* fullpath, size_t length) {
 
 	for (size_t isub = 0, subsize = array_size(node->subdirs); isub < subsize; ++isub) {
 		string_t subpath = path_allocate_concat(fullpath, length, STRING_ARGS(node->subdirs[isub]->name));
-		_fs_node_populate(node->subdirs[isub], STRING_ARGS(subpath));
+		fs_node_populate(node->subdirs[isub], STRING_ARGS(subpath));
 		string_deallocate(subpath.str);
 	}
 }
 
 static file_node_t*
-_fs_node_find(file_node_t* root, const char* path, size_t pathlen) {
+fs_node_find(file_node_t* root, const char* path, size_t pathlen) {
 	if (!pathlen || string_equal(path, pathlen, STRING_CONST("/")))
 		return root;
 
@@ -99,7 +99,7 @@ _fs_node_find(file_node_t* root, const char* path, size_t pathlen) {
 }
 
 static void
-_fs_node_send_deletions(file_node_t* node, const char* path, size_t pathlen) {
+fs_node_send_deletions(file_node_t* node, const char* path, size_t pathlen) {
 	char pathbuf[BUILD_MAX_PATHLEN];
 
 	for (size_t ifile = 0, fsize = array_size(node->files); ifile < fsize; ++ifile) {
@@ -109,12 +109,12 @@ _fs_node_send_deletions(file_node_t* node, const char* path, size_t pathlen) {
 
 	for (size_t isub = 0, subsize = array_size(node->subdirs); isub < subsize; ++isub) {
 		string_t pathstr = path_concat(pathbuf, sizeof(pathbuf), path, pathlen, STRING_ARGS(node->subdirs[isub]->name));
-		_fs_node_send_deletions(node->subdirs[isub], STRING_ARGS(pathstr));
+		fs_node_send_deletions(node->subdirs[isub], STRING_ARGS(pathstr));
 	}
 }
 
 static void
-_fs_node_send_creations(file_node_t* node, const char* path, size_t pathlen) {
+fs_node_send_creations(file_node_t* node, const char* path, size_t pathlen) {
 	char pathbuf[BUILD_MAX_PATHLEN];
 
 	for (size_t ifile = 0, fsize = array_size(node->files); ifile < fsize; ++ifile) {
@@ -124,14 +124,14 @@ _fs_node_send_creations(file_node_t* node, const char* path, size_t pathlen) {
 
 	for (size_t isub = 0, subsize = array_size(node->subdirs); isub < subsize; ++isub) {
 		string_t pathstr = path_concat(pathbuf, sizeof(pathbuf), path, pathlen, STRING_ARGS(node->subdirs[isub]->name));
-		_fs_node_send_creations(node->subdirs[isub], STRING_ARGS(pathstr));
+		fs_node_send_creations(node->subdirs[isub], STRING_ARGS(pathstr));
 	}
 }
 
 static void
-_fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data, size_t events_count,
-                          const char* const event_paths[], const FSEventStreamEventFlags event_flags[],
-                          const FSEventStreamEventId event_ids[]) {
+fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data, size_t events_count,
+                         const char* const event_paths[], const FSEventStreamEventFlags event_flags[],
+                         const FSEventStreamEventId event_ids[]) {
 	file_node_t* root_node = user_data;
 	char pathbuf[BUILD_MAX_PATHLEN];
 	FOUNDATION_UNUSED(stream_ref);
@@ -144,6 +144,11 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data, siz
 		for (size_t i = 0; i < events_count; ++i) {
 			const char* rawpath = event_paths[i];
 			size_t rawpath_len = string_length(rawpath);
+
+			if ((rawpath_len > 8) && (strncmp(rawpath, "/private", 8) == 0)) {
+				rawpath += 8;
+				rawpath_len -= 8;
+			}
 
 			FSEventStreamEventFlags flags = event_flags[i];
 			FSEventStreamEventId identifier = event_ids[i];
@@ -168,7 +173,7 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data, siz
 				const char* subpath = path + root_node->name.length + 1;
 				size_t subpath_len = path_len - root_node->name.length - 1;
 
-				file_node_t* node = _fs_node_find(root_node, subpath, subpath_len);
+				file_node_t* node = fs_node_find(root_node, subpath, subpath_len);
 				if (!node)
 					continue;
 
@@ -229,8 +234,8 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data, siz
 						// Recurse and send out file deletion events
 						string_t pathstr = path_concat(pathbuf, sizeof(pathbuf), rawpath, rawpath_len,
 						                               STRING_ARGS(node->subdirs[iexist]->name));
-						_fs_node_send_deletions(node->subdirs[iexist], STRING_ARGS(pathstr));
-						_fs_node_deallocate(node->subdirs[iexist]);
+						fs_node_send_deletions(node->subdirs[iexist], STRING_ARGS(pathstr));
+						fs_node_deallocate(node->subdirs[iexist]);
 						array_erase_memcpy(node->subdirs, iexist);
 						--existsize;
 					} else {
@@ -258,8 +263,8 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data, siz
 
 						string_t pathstr =
 						    path_concat(pathbuf, sizeof(pathbuf), rawpath, rawpath_len, STRING_ARGS(child->name));
-						_fs_node_populate(child, STRING_ARGS(pathstr));
-						_fs_node_send_creations(child, pathstr.str + root_ofs, pathstr.length - root_ofs);
+						fs_node_populate(child, STRING_ARGS(pathstr));
+						fs_node_send_creations(child, pathstr.str + root_ofs, pathstr.length - root_ofs);
 					}
 				}
 
@@ -274,12 +279,12 @@ _fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data, siz
 }
 
 static const void*
-_fs_event_stream_retain(const void* info) {
+fs_event_stream_retain(const void* info) {
 	return info;
 }
 
 static void
-_fs_event_stream_release(const void* info) {
+fs_event_stream_release(const void* info) {
 #if FOUNDATION_COMPILER_CLANG
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-qual"
@@ -289,7 +294,7 @@ _fs_event_stream_release(const void* info) {
 	bool bootstrap_thread = !thread_is_entered();
 	if (bootstrap_thread)
 		thread_enter();
-	_fs_node_deallocate((file_node_t*)info);
+	fs_node_deallocate((file_node_t*)info);
 	if (bootstrap_thread)
 		thread_exit();
 #if FOUNDATION_COMPILER_CLANG
@@ -298,12 +303,12 @@ _fs_event_stream_release(const void* info) {
 }
 
 void*
-_fs_event_stream_create(const char* path, size_t length) {
+fs_event_stream_create(const char* path, size_t length) {
 	@autoreleasepool {
 		file_node_t* node = memory_allocate(0, sizeof(file_node_t), 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
 		node->name = string_clone(path, length);
 
-		_fs_node_populate(node, STRING_ARGS(node->name));
+		fs_node_populate(node, STRING_ARGS(node->name));
 
 		NSString* nspath = [[NSString alloc] initWithBytes:path length:length encoding:NSUTF8StringEncoding];
 		NSArray* patharr = [NSArray arrayWithObject:nspath];
@@ -311,11 +316,11 @@ _fs_event_stream_create(const char* path, size_t length) {
 		FSEventStreamContext context;
 		memset(&context, 0, sizeof(context));
 		context.info = node;
-		context.retain = _fs_event_stream_retain;
-		context.release = _fs_event_stream_release;
+		context.retain = fs_event_stream_retain;
+		context.release = fs_event_stream_release;
 
 		// TODO: Implement allocator based on foundation memory allocation subsystem
-		void* stream = FSEventStreamCreate(0, (FSEventStreamCallback)&_fs_event_stream_callback, &context,
+		void* stream = FSEventStreamCreate(0, (FSEventStreamCallback)&fs_event_stream_callback, &context,
 		                                   (__bridge CFArrayRef)patharr, kFSEventStreamEventIdSinceNow,
 		                                   (CFAbsoluteTime)latency, kFSEventStreamCreateFlagNone);
 		if (stream) {
@@ -334,7 +339,7 @@ _fs_event_stream_create(const char* path, size_t length) {
 }
 
 void
-_fs_event_stream_destroy(void* stream) {
+fs_event_stream_destroy(void* stream) {
 	if (!stream)
 		return;
 

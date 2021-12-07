@@ -381,6 +381,10 @@ uint64_t
 thread_id(void) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	return GetCurrentThreadId();
+#elif FOUNDATION_PLATFORM_APPLE
+	uint64_t tid = 0;
+	pthread_threadid_np(0, &tid);
+	return tid;
 #elif FOUNDATION_PLATFORM_POSIX
 	return (uint64_t)gettid();
 #else

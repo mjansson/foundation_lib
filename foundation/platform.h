@@ -331,20 +331,20 @@ thread local storage to ensure maximum portability across supported platforms */
 #undef FOUNDATION_ARCH_ENDIAN_LITTLE
 #define FOUNDATION_ARCH_ENDIAN_LITTLE 1
 #define FOUNDATION_PLATFORM_DESCRIPTION "macOS x86"
-
-#elif defined(__powerpc64__) || defined(__POWERPC64__)
-#undef FOUNDATION_ARCH_PPC_64
-#define FOUNDATION_ARCH_PPC_64 1
-#undef FOUNDATION_ARCH_ENDIAN_BIG
-#define FOUNDATION_ARCH_ENDIAN_BIG 1
-#define FOUNDATION_PLATFORM_DESCRIPTION "macOS PPC64"
-#elif defined(__powerpc__) || defined(__POWERPC__)
-#undef FOUNDATION_ARCH_PPC
-#define FOUNDATION_ARCH_PPC 1
-#undef FOUNDATION_ARCH_ENDIAN_BIG
-#define FOUNDATION_ARCH_ENDIAN_BIG 1
-#define FOUNDATION_PLATFORM_DESCRIPTION "macOS PPC"
-
+#elif defined(__arm64__) || defined(__aarch64__)
+#undef FOUNDATION_ARCH_ARM
+#define FOUNDATION_ARCH_ARM 1
+#undef FOUNDATION_ARCH_ARM_64
+#define FOUNDATION_ARCH_ARM_64 1
+#undef FOUNDATION_ARCH_ENDIAN_LITTLE
+#define FOUNDATION_ARCH_ENDIAN_LITTLE 1
+#if defined(__ARM64_ARCH_8__)
+#undef FOUNDATION_ARCH_ARM8_64
+#define FOUNDATION_ARCH_ARM8_64 1
+#define FOUNDATION_PLATFORM_DESCRIPTION "macOS ARM64v8"
+#else
+#error Unrecognized ARM architecture
+#endif
 #else
 #error Unknown architecture
 #endif

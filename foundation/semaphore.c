@@ -225,18 +225,6 @@ semaphore_post_multiple(semaphore_t* semaphore, uint count) {
 #endif
 }
 
-void
-semaphore_post_multiple(semaphore_t* semaphore) {
-	if (!semaphore->name.length) {
-		dispatch_semaphore_signal(semaphore->sem.unnamed);
-	}
-#if FOUNDATION_PLATFORM_MACOS
-	else {
-		sem_post(semaphore->sem.named);
-	}
-#endif
-}
-
 #elif FOUNDATION_PLATFORM_POSIX
 
 bool

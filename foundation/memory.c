@@ -30,6 +30,8 @@
 #endif
 
 #if FOUNDATION_PLATFORM_APPLE
+extern size_t
+malloc_size(const void *ptr);
 #define FOUNDATION_MIN_ALIGN 16
 #elif FOUNDATION_ARCH_ARM_64 || FOUNDATION_ARCH_X86_64 || FOUNDATION_ARCH_PPC_64
 #define FOUNDATION_MIN_ALIGN 16
@@ -376,6 +378,8 @@ memory_usable_size_malloc(const void* p) {
 #else
 #if FOUNDATION_PLATFORM_WINDOWS
 	return _msize((void*)p);
+#elif FOUNDATION_PLATFORM_APPLE
+	return malloc_size(p);
 #else
 	return malloc_usable_size((void*)p);
 #endif

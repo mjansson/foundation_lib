@@ -22,6 +22,7 @@
 #endif
 
 #if FOUNDATION_PLATFORM_MACOS
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #include <foundation/apple.h>
 #include <sys/event.h>
 #endif
@@ -327,12 +328,7 @@ process_spawn(process_t* proc) {
 	if (proc->flags & PROCESS_MACOS_USE_OPENAPPLICATION) {
 		proc->pid = 0;
 
-		LSApplicationParameters params;
-		ProcessSerialNumber psn;
 		FSRef* fsref = memory_allocate(0, sizeof(FSRef), 0, MEMORY_TEMPORARY | MEMORY_ZERO_INITIALIZED);
-
-		memset(&params, 0, sizeof(LSApplicationParameters));
-		memset(&psn, 0, sizeof(ProcessSerialNumber));
 
 		string_const_t pathstripped = string_strip(proc->path.str, proc->path.length, STRING_CONST("\""));
 		size_t localcap = pathstripped.length + 5;
@@ -354,6 +350,12 @@ process_spawn(process_t* proc) {
 			                                         (CFIndex)proc->args[i].length, kCFStringEncodingUTF8, false));
 
 		CFArrayRef argvref = CFArrayCreate(0, (const void**)args, (CFIndex)array_size(args), 0);
+
+		LSApplicationParameters params;
+		ProcessSerialNumber psn;
+
+		memset(&params, 0, sizeof(LSApplicationParameters));
+		memset(&psn, 0, sizeof(ProcessSerialNumber));
 
 		params.flags = kLSLaunchDefaults;
 		params.application = fsref;
