@@ -29,9 +29,9 @@ class ClangToolchain(toolchain.Toolchain):
     #Default variables
     self.sysroot = ''
     if self.target.is_ios():
-      self.deploymenttarget = '9.0'
+      self.deploymenttarget = '15.0'
     if self.target.is_macos():
-      self.deploymenttarget = '10.7'
+      self.deploymenttarget = '12.0'
 
     #Command definitions
     self.cccmd = '$toolchain$cc -MMD -MT $out -MF $out.d $includepaths $moreincludepaths $cflags $carchflags $cconfigflags $cmoreflags $cenvflags -c $in -o $out'
