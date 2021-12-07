@@ -683,6 +683,8 @@ thread local storage to ensure maximum portability across supported platforms */
 #if __has_warning("-Wformat-non-iso")
 #pragma clang diagnostic ignored "-Wformat-non-iso"
 #endif
+#else
+#define STDCALL
 #endif
 
 #if __has_warning("-Wreserved-id-macro")
@@ -745,6 +747,8 @@ thread local storage to ensure maximum portability across supported platforms */
 #pragma GCC diagnostic ignored "-Wformat"
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
 #pragma GCC diagnostic ignored "-Wpedantic"
+#else
+#define STDCALL
 #endif
 
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
@@ -786,6 +790,8 @@ thread local storage to ensure maximum portability across supported platforms */
 #if FOUNDATION_PLATFORM_WINDOWS
 #define STDCALL __stdcall
 #define va_copy(d, s) ((d) = (s))
+#else
+#define STDCALL
 #endif
 
 #include <intrin.h>
@@ -837,6 +843,8 @@ thread local storage to ensure maximum portability across supported platforms */
 
 #if FOUNDATION_PLATFORM_WINDOWS
 #define STDCALL __stdcall
+#else
+#define STDCALL
 #endif
 
 #if defined(FOUNDATION_COMPILE) && FOUNDATION_COMPILE && !defined(_CRT_SECURE_NO_WARNINGS)
