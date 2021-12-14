@@ -114,7 +114,8 @@ bucketarray_append(bucketarray_t* array, bucketarray_t* append) {
 		if (dst_index == dst_bucket_size) {
 			dst_index = 0;
 			++dst_bucket_idx;
-			dst = array->bucket[dst_bucket_idx];
+			if (copy_count)
+				dst = array->bucket[dst_bucket_idx];
 		} else {
 			dst = pointer_offset(dst, this_byte_count);
 		}
