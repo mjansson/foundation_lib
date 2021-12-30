@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "windows.h"
 #include "posix.h"
+#include "apple.h"
 
 #if FOUNDATION_PLATFORM_POSIX
 #include <sys/mman.h>
@@ -93,10 +94,22 @@ virtualarray_allocate_storage(uint element_size, size_t* capacity, uint* flags) 
 	size_needed = num_pages * page_size;
 	*capacity = (size_needed / element_size);
 #if FOUNDATION_PLATFORM_WINDOWS
-	return VirtualAlloc(0, size_needed, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	void* buffer = VirtualAlloc(0, size_needed, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	FOUNDATION_ASSERT_MSG(buffer, "Failed to map virtual memory for virtual array storage");
 #else
-	return mmap(0, size_needed, PROT_READ | PROT_WRITE, (int)(*flags), -1, 0);
+#ifndef MAP_UNINITIALIZED
+#define MAP_UNINITIALIZED 0
 #endif
+	int mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED;
+#if FOUNDATION_PLATFORM_APPLE && !TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR
+	int fd = (int)VM_MAKE_TAG(240U);
+#else
+	int fd = -1;
+#endif
+	void* buffer = mmap(0, size_needed, PROT_READ | PROT_WRITE, mmap_flags, fd, 0);
+	FOUNDATION_ASSERT_MSG(buffer && (buffer != MAP_FAILED), "Failed to map virtual memory for virtual array storage");
+#endif
+	return buffer;
 }
 
 static void
