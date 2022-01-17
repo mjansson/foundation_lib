@@ -55,18 +55,15 @@ static volatile bool _delegate_received_terminate = false;
 	@autoreleasepool {
 		log_debug(0, STRING_CONST("Application init done, launching main"));
 		if (![NSThread isMultiThreaded])
-			log_warn(0, WARNING_SUSPICIOUS,
-			         STRING_CONST("Application is STILL not multithreaded!"));
+			log_warn(0, WARNING_SUSPICIOUS, STRING_CONST("Application is STILL not multithreaded!"));
 	}
 
 	string_t name = {0, 0};
 	const application_t* app = environment_application();
 
-	string_const_t aname =
-	    app->short_name.length ? app->short_name : string_const(STRING_CONST("unknown"));
+	string_const_t aname = app->short_name.length ? app->short_name : string_const(STRING_CONST("unknown"));
 	string_const_t vstr = string_from_version_static(app->version);
-	name = string_merge_varg(0, 0, 0, true, STRING_ARGS(aname), STRING_CONST("-"),
-	                         STRING_ARGS(vstr), nullptr);
+	name = string_merge_varg(0, 0, 0, true, STRING_ARGS(aname), STRING_CONST("-"), STRING_ARGS(vstr), nullptr);
 
 	if (app->exception_handler)
 		exception_set_handler(app->exception_handler, STRING_ARGS(name));
@@ -82,7 +79,9 @@ static volatile bool _delegate_received_terminate = false;
 	@autoreleasepool {
 #if FOUNDATION_PLATFORM_MACOS
 		log_debug(0, STRING_CONST("Calling application terminate"));
-		[NSApp terminate:nil];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[NSApp terminate:nil];
+		});
 #endif
 		log_debug(0, STRING_CONST("Main thread exiting"));
 
@@ -258,8 +257,7 @@ delegate_window(void) {
 		flash.backgroundColor = [UIColor redColor];
 		[(__bridge UIWindow*)delegate_window() addSubview:flash];
 
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-		                             (int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)),
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((double)(duration + 0.1) * (double)NSEC_PER_SEC)),
 		               dispatch_get_main_queue(), ^{
 			             [flash removeFromSuperview];
 		               });
