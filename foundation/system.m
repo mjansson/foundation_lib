@@ -36,21 +36,24 @@ system_show_alert(const char* title, size_t title_length, const char* message, s
 	@autoreleasepool {
 #if FOUNDATION_PLATFORM_MACOS
 
-		NSAlert* alert = [[NSAlert alloc] init];
-		NSString* message_text = [[NSString alloc] initWithBytes:title
-		                                                  length:title_length
-		                                                encoding:NSUTF8StringEncoding];
-		NSString* informative_text = [[NSString alloc] initWithBytes:message
-		                                                      length:message_length
-		                                                    encoding:NSUTF8StringEncoding];
-		NSString* ok_text = [NSString stringWithCString:"OK" encoding:NSASCIIStringEncoding];
-		NSString* cancel_text = [NSString stringWithCString:"Cancel" encoding:NSASCIIStringEncoding];
-		[alert setMessageText:message_text];
-		[alert setInformativeText:informative_text];
-		[alert addButtonWithTitle:ok_text];
-		[alert addButtonWithTitle:cancel_text];
-		[alert setAlertStyle:NSAlertStyleWarning];
-		NSInteger button = [alert runModal];
+		__block NSInteger button = 1;
+		dispatch_sync(dispatch_get_main_queue(), ^{
+		  NSAlert* alert = [[NSAlert alloc] init];
+		  NSString* message_text = [[NSString alloc] initWithBytes:title
+			                                                length:title_length
+			                                              encoding:NSUTF8StringEncoding];
+		  NSString* informative_text = [[NSString alloc] initWithBytes:message
+			                                                    length:message_length
+			                                                  encoding:NSUTF8StringEncoding];
+		  NSString* ok_text = [NSString stringWithCString:"OK" encoding:NSASCIIStringEncoding];
+		  NSString* cancel_text = [NSString stringWithCString:"Cancel" encoding:NSASCIIStringEncoding];
+		  [alert setMessageText:message_text];
+		  [alert setInformativeText:informative_text];
+		  [alert addButtonWithTitle:ok_text];
+		  [alert addButtonWithTitle:cancel_text];
+		  [alert setAlertStyle:NSAlertStyleWarning];
+		  button = [alert runModal];
+		});
 		return (button == 1 /*NSAlertDefaultReturn*/) ? 1 : 0;
 
 #elif FOUNDATION_PLATFORM_IOS
