@@ -47,8 +47,8 @@ https://discord.gg/M8BwTQrt6c
 The latest source code maintained by Mattias Jansson is always available at  
 <https://github.com/mjansson/foundation_lib>
 
-Master branch is used for stable releases. Development is done in feature branches from the develop branch  
-<https://github.com/mjansson/foundation_lib/tree/develop>
+Main branch is used for development. Releases are tags on main branch.
+<https://github.com/mjansson/foundation_lib/releases>
 
 Cross-platform build system uses Ninja  
 <https://ninja-build.org/>
