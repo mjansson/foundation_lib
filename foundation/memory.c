@@ -337,30 +337,36 @@ memory_deallocate_malloc(void* p) {
 
 static void*
 memory_reallocate_malloc(void* p, size_t size, unsigned int align, size_t oldsize, unsigned int hint) {
+	void* block = nullptr;
 #if BUILD_ENABLE_MEMORY_GUARD
 	if (align < FOUNDATION_MIN_ALIGN)
 		align = FOUNDATION_MIN_ALIGN;
 #else
 #if FOUNDATION_PLATFORM_WINDOWS
-	return _aligned_realloc(p, size, align > FOUNDATION_MIN_ALIGN ? align : FOUNDATION_MIN_ALIGN);
+	block = _aligned_realloc(p, size, align > FOUNDATION_MIN_ALIGN ? align : FOUNDATION_MIN_ALIGN);
 #else
 	if (align <= FOUNDATION_MIN_ALIGN)
-		return realloc(p, size);
+		block = realloc(p, size);
 #endif
 #endif
-	void* memory = memory_allocate_malloc_raw(size, align, hint);
-	if (p && memory && oldsize && !(hint & MEMORY_NO_PRESERVE))
-		memcpy(memory, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
-	memory_deallocate_malloc(p);
+	if (!block) {
+		block = memory_allocate_malloc_raw(size, align, hint);
+		if (p && block && oldsize && !(hint & MEMORY_NO_PRESERVE))
+			memcpy(block, p, (size < oldsize) ? (size_t)size : (size_t)oldsize);
+		memory_deallocate_malloc(p);
+	}
 
-	if (!memory) {
+	if (!block) {
 		string_const_t errmsg = system_error_message(0);
 		log_panicf(HASH_MEMORY, ERROR_OUT_OF_MEMORY,
 		           STRING_CONST("Unable to reallocate memory (%" PRIsize " -> %" PRIsize " @ 0x%" PRIfixPTR "): %.*s"),
 		           oldsize, size, (uintptr_t)p, STRING_FORMAT(errmsg));
+	} else {
+		if ((hint & MEMORY_ZERO_INITIALIZED) && block && (size > oldsize))
+			memset(pointer_offset(block, oldsize), 0, (oldsize - size));
 	}
 
-	return memory;
+	return block;
 }
 
 #if FOUNDATION_COMPILER_CLANG
