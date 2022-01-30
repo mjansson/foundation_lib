@@ -89,6 +89,12 @@ bucketarray_erase(bucketarray_t* array, size_t index);
 FOUNDATION_API void*
 bucketarray_get(bucketarray_t* array, size_t index);
 
+/*! Get indexed element
+\param array Array pointer
+\param index Element index */
+FOUNDATION_API const void*
+bucketarray_get_const(const bucketarray_t* array, size_t index);
+
 /*! Copy bucket array to flat buffer
 \param array Array pointer
 \param destination Destination buffer */

@@ -215,6 +215,14 @@ bucketarray_get(bucketarray_t* array, size_t index) {
 	return pointer_offset(array->bucket[bucket_idx], array->element_size * element_index);
 }
 
+const void*
+bucketarray_get_const(const bucketarray_t* array, size_t index) {
+	FOUNDATION_ASSERT(index < array->count);
+	size_t bucket_idx = index >> array->bucket_shift;
+	size_t element_index = index & array->bucket_mask;
+	return pointer_offset_const(array->bucket[bucket_idx], array->element_size * element_index);
+}
+
 void
 bucketarray_copy(bucketarray_t* array, void* destination) {
 	void* current_destination = destination;
