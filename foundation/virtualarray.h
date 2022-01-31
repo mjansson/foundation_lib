@@ -79,6 +79,12 @@ virtualarray_clear(virtualarray_t* array);
 FOUNDATION_API void
 virtualarray_clear_and_free(virtualarray_t* array);
 
+/*! Reset the array by clearing and setting a new element size
+\param array Array to reset
+\param element_size New element size */
+FOUNDATION_API void
+virtualarray_reset(virtualarray_t* array, size_t element_size);
+
 /*! Resize the array, NOT initializing the new elements
 \param array Array to resize
 \param count New number of elements

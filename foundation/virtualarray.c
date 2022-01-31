@@ -63,6 +63,13 @@ virtualarray_clear(virtualarray_t* array) {
 	array->count = 0;
 }
 
+void
+virtualarray_reset(virtualarray_t* array, size_t element_size) {
+	array->count = 0;
+	array->capacity = (array->capacity * array->element_size) / element_size;
+	array->element_size = (uint)element_size;
+}
+
 static size_t page_size;
 
 static void*
@@ -79,7 +86,7 @@ virtualarray_allocate_storage(uint element_size, size_t* capacity, uint* flags) 
 		page_size = (size_t)sysconf(_SC_PAGESIZE);
 #endif
 
-	size_t virtual_threshold = 4 * 4096;
+	size_t virtual_threshold = 16 * 4096;
 	size_t size_needed = (*capacity) * element_size;
 	if (size_needed < virtual_threshold) {
 		*flags = VIRTUALARRAY_MEMORY_ALLOCATED;
