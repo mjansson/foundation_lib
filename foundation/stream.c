@@ -1149,7 +1149,7 @@ stream_write_float32(stream_t* stream, float32_t data) {
 			stream_write(stream, &data, 4);
 		}
 	} else {
-		string_const_t value = string_from_real_static((real)data, 0, 0, 0);
+		string_const_t value = string_from_float32_static(data, 0, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
 }
@@ -1166,7 +1166,7 @@ stream_write_float64(stream_t* stream, float64_t data) {
 			stream_write(stream, &data, 8);
 		}
 	} else {
-		string_const_t value = string_from_real_static((real)data, 0, 0, 0);
+		string_const_t value = string_from_float64_static(data, 0, 0, 0);
 		stream_write_string(stream, value.str, value.length);
 	}
 }

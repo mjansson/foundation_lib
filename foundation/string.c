@@ -1497,9 +1497,9 @@ string_from_float32(char* buffer, size_t capacity, float32_t val, unsigned int p
 	if (!capacity)
 		return (string_t){buffer, 0};
 	if (precision)
-		len = snprintf(buffer, capacity, "%.*f", precision, (double)val);
+		len = snprintf(buffer, capacity, "%.*g", precision, (double)val);
 	else
-		len = snprintf(buffer, capacity, "%.7f", (double)val);
+		len = snprintf(buffer, capacity, "%.*g", FLT_DECIMAL_DIG, (double)val);
 
 	ulen = (unsigned int)len;
 	if ((len < 0) || (ulen >= capacity)) {
@@ -1547,9 +1547,9 @@ string_from_float64(char* buffer, size_t capacity, float64_t val, unsigned int p
 	if (!capacity)
 		return (string_t){buffer, 0};
 	if (precision)
-		len = snprintf(buffer, capacity, "%.*lf", precision, val);
+		len = snprintf(buffer, capacity, "%.*lg", precision, val);
 	else
-		len = snprintf(buffer, capacity, "%.16lf", val);
+		len = snprintf(buffer, capacity, "%.*lg", DBL_DECIMAL_DIG, val);
 
 	ulen = (unsigned int)len;
 	if ((len < 0) || (ulen >= capacity)) {
