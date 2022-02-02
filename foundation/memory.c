@@ -363,7 +363,7 @@ memory_reallocate_malloc(void* p, size_t size, unsigned int align, size_t oldsiz
 		           oldsize, size, (uintptr_t)p, STRING_FORMAT(errmsg));
 	} else {
 		if ((hint & MEMORY_ZERO_INITIALIZED) && block && (size > oldsize))
-			memset(pointer_offset(block, oldsize), 0, (oldsize - size));
+			memset(pointer_offset(block, oldsize), 0, (size - oldsize));
 	}
 
 	return block;
