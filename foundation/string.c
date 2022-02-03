@@ -192,7 +192,7 @@ string_resize(char* str, size_t length, size_t capacity, size_t new_length, char
 	FOUNDATION_ASSERT(length <= capacity);
 	if (new_length >= capacity) {
 		str = capacity ? memory_reallocate(str, new_length + 1, 0, capacity, 0) :
-		                 memory_allocate(HASH_STRING, new_length + 1, 0, MEMORY_PERSISTENT);
+                         memory_allocate(HASH_STRING, new_length + 1, 0, MEMORY_PERSISTENT);
 	}
 	if (length < new_length)
 		memset(str + length, c, new_length - length);
@@ -1521,7 +1521,7 @@ string_from_float32(char* buffer, size_t capacity, float32_t val, unsigned int p
 	}
 
 	// Some cleanups
-	if (string_equal(buffer, ulen, "-0", 2)) {
+	if (string_equal(buffer, ulen, "-0", 2) || string_equal(buffer, ulen, "-", 1)) {
 		buffer[0] = '0';
 		buffer[1] = 0;
 		ulen = 1;
