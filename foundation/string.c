@@ -1571,7 +1571,7 @@ string_from_float64(char* buffer, size_t capacity, float64_t val, unsigned int p
 	}
 
 	// Some cleanups
-	if (string_equal(buffer, ulen, "-0", 2)) {
+	if (string_equal(buffer, ulen, "-0", 2) || string_equal(buffer, ulen, "-", 1)) {
 		buffer[0] = '0';
 		buffer[1] = 0;
 		ulen = 1;

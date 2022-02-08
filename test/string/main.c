@@ -2187,7 +2187,7 @@ DECLARE_TEST(string, convert) {
 	EXPECT_EQ(str.length, 0);
 
 	str = string_from_real(buffer, 3, 1, 0, 0, '=');
-	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.")));
+	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1")));
 
 	str = string_from_real(buffer, 3, REAL_C(1.1), 8, 16, '=');
 	EXPECT_STRINGEQ(str, string_const(STRING_CONST("1.")));
