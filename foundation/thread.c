@@ -446,7 +446,7 @@ thread_set_hardware(uint group, uint64_t mask) {
 	}
 #else
 	// TODO: Implement
-	FOUNDATION_UNUSED(mask);
+	FOUNDATION_UNUSED(group, mask);
 #endif
 }
 
