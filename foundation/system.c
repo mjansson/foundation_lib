@@ -237,9 +237,17 @@ system_username(char* buffer, size_t capacity) {
 	return (string_t){buffer, size};
 }
 
+static size_t processor_total_count;
+extern size_t processor_group_count;
+size_t processor_group_count;
+
 size_t
 system_hardware_threads(void) {
-	size_t hardware_threads = 0;
+	if (processor_total_count)
+		return processor_total_count;
+
+	size_t processor_count = 0;
+	size_t group_count = 1;
 
 	object_t kernel_lib = library_load(STRING_CONST("kernel32"));
 	if (kernel_lib) {
@@ -248,19 +256,33 @@ system_hardware_threads(void) {
 		DWORD(STDCALL * get_processor_count)
 		(WORD) = (DWORD(STDCALL*)(WORD))library_symbol(kernel_lib, STRING_CONST("GetActiveProcessorCount"));
 
-		if (get_group_count && get_processor_count) {
-			int group_count = get_group_count();
-			for (int igroup = 0; igroup < group_count; ++igroup)
-				hardware_threads += get_processor_count((WORD)igroup);
+		if (get_group_count)
+			group_count = (size_t)get_group_count();
+		if (get_processor_count)
+			processor_count = (size_t)get_processor_count(ALL_PROCESSOR_GROUPS);
+
+		if (group_count > 1) {
+			// Force process affinity to span all groups
+			for (size_t igroup = group_count; igroup > 0; --igroup) {
+				GROUP_AFFINITY affinity = {0};
+				affinity.Group = (WORD)(igroup - 1);
+				affinity.Mask = (ULONG_PTR)-1;
+				SetThreadGroupAffinity(GetCurrentThread(), &affinity, 0);
+			}
 		}
+
 		library_release(kernel_lib);
 	}
-	if (!hardware_threads) {
+	if (!processor_count) {
 		SYSTEM_INFO system_info;
 		GetSystemInfo(&system_info);
-		hardware_threads = system_info.dwNumberOfProcessors;
+		processor_count = (size_t)system_info.dwNumberOfProcessors;
 	}
-	return hardware_threads ? hardware_threads : 2;
+
+	processor_total_count = processor_count;
+	processor_group_count = group_count;
+
+	return processor_total_count;
 }
 
 void

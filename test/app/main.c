@@ -194,8 +194,10 @@ test_thread(void* arg) {
 
 	if (system_hardware_threads() > 1) {
 		uint64_t core = random64_range(0, system_hardware_threads());
+		uint group = (uint)(core / 64);
+		core &= 64;
 		uint64_t mask = (1ULL << core);
-		thread_set_hardware(mask);
+		thread_set_hardware(group, mask);
 		for (size_t iloop = 0, lsize = 512 * 1024; iloop < lsize; ++iloop) {
 			random64();
 			// Not all platforms support setting thread cpu affinity

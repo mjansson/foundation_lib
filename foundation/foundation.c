@@ -68,6 +68,7 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	SUBSYSTEM_INIT_ARGS(memory, memory);
 	SUBSYSTEM_INIT(static_hash);
 	SUBSYSTEM_INIT(assert);
+	SUBSYSTEM_INIT(library);
 	SUBSYSTEM_INIT(log);
 	SUBSYSTEM_INIT(time);
 	SUBSYSTEM_INIT(thread);
@@ -77,7 +78,6 @@ foundation_initialize(const memory_system_t memory, const application_t applicat
 	SUBSYSTEM_INIT(stacktrace);
 	SUBSYSTEM_INIT(exception);
 	SUBSYSTEM_INIT_ARGS(environment, application);
-	SUBSYSTEM_INIT(library);
 	SUBSYSTEM_INIT(system);
 
 	if (ret)
