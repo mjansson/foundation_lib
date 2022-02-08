@@ -23,7 +23,7 @@
 #include <foundation/windows.h>
 #include <process.h>
 
-typedef HRESULT (WINAPI* SetThreadDescriptionFn)(HANDLE, PCWSTR);
+typedef HRESULT(WINAPI* SetThreadDescriptionFn)(HANDLE, PCWSTR);
 static SetThreadDescriptionFn SetThreadDescriptionImpl;
 
 #endif
@@ -456,10 +456,25 @@ thread_self(void) {
 	return get_thread_self();
 }
 
+#if FOUNDATION_PLATFORM_WINDOWS
+extern size_t processor_group_count;
+static atomic32_t selected_group_counter;
+#endif
+
 void
 thread_enter(void) {
 	set_thread_entered(1);
 	memory_thread_initialize();
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	if (processor_group_count > 1) {
+		GROUP_AFFINITY affinity = {0};
+		affinity.Group =
+		    (WORD)((size_t)atomic_incr32(&selected_group_counter, memory_order_relaxed) % processor_group_count);
+		affinity.Mask = (ULONG_PTR)-1;
+		SetThreadGroupAffinity(GetCurrentThread(), &affinity, 0);
+	}
+#endif
 }
 
 void
