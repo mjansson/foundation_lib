@@ -261,6 +261,16 @@ system_hardware_threads(void) {
 		if (get_processor_count)
 			processor_count = (size_t)get_processor_count(ALL_PROCESSOR_GROUPS);
 
+		if (group_count > 1) {
+			// Force process affinity to span all groups
+			for (size_t igroup = group_count; igroup > 0; --igroup) {
+				GROUP_AFFINITY affinity = {0};
+				affinity.Group = (WORD)(igroup - 1);
+				affinity.Mask = (ULONG_PTR)-1;
+				SetThreadGroupAffinity(GetCurrentThread(), &affinity, 0);
+			}
+		}
+
 		library_release(kernel_lib);
 	}
 	if (!processor_count) {

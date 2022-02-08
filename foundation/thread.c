@@ -26,6 +26,9 @@
 typedef HRESULT(WINAPI* SetThreadDescriptionFn)(HANDLE, PCWSTR);
 static SetThreadDescriptionFn SetThreadDescriptionImpl;
 
+extern size_t processor_group_count;
+static atomic32_t selected_group_counter;
+
 #endif
 
 #if FOUNDATION_PLATFORM_POSIX
@@ -414,13 +417,21 @@ thread_hardware(void) {
 }
 
 void
-thread_set_hardware(uint64_t mask) {
+thread_set_hardware(uint group, uint64_t mask) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	DWORD_PTR procmask = 0;
-	DWORD_PTR sysmask = 0;
-	GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
-	SetThreadAffinityMask(GetCurrentThread(), (DWORD_PTR)mask & procmask);
+	if (processor_group_count > 1) {
+		GROUP_AFFINITY affinity = {0};
+		affinity.Group = group;
+		affinity.Mask = mask;
+		SetThreadGroupAffinity(GetCurrentThread(), &affinity, 0);
+	} else {
+		DWORD_PTR procmask = 0;
+		DWORD_PTR sysmask = 0;
+		GetProcessAffinityMask(GetCurrentProcess(), &procmask, &sysmask);
+		SetThreadAffinityMask(GetCurrentThread(), (DWORD_PTR)mask & procmask);
+	}
 #elif FOUNDATION_PLATFORM_LINUX
+	FOUNDATION_UNUSED(group);
 	uint64_t ibit, bsize;
 	cpu_set_t set;
 	CPU_ZERO(&set);
@@ -456,11 +467,6 @@ thread_self(void) {
 	return get_thread_self();
 }
 
-#if FOUNDATION_PLATFORM_WINDOWS
-extern size_t processor_group_count;
-static atomic32_t selected_group_counter;
-#endif
-
 void
 thread_enter(void) {
 	set_thread_entered(1);
@@ -468,11 +474,18 @@ thread_enter(void) {
 
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (processor_group_count > 1) {
-		GROUP_AFFINITY affinity = {0};
-		affinity.Group =
-		    (WORD)((size_t)atomic_incr32(&selected_group_counter, memory_order_relaxed) % processor_group_count);
-		affinity.Mask = (ULONG_PTR)-1;
-		SetThreadGroupAffinity(GetCurrentThread(), &affinity, 0);
+		// From MSDN:
+		// Starting with Windows 11 and Windows Server 2022, on a system with more than 64 processors,
+		// process and thread affinities span all processors in the system, across all processor
+		// groups, by default.
+		// So for Windows 10 or earlier we round robin threads on all processor groups
+		/* if (!IsWindows11OrGreater())*/ {
+			GROUP_AFFINITY affinity = {0};
+			affinity.Group =
+				(WORD)((size_t)atomic_incr32(&selected_group_counter, memory_order_relaxed) % processor_group_count);
+			affinity.Mask = (ULONG_PTR)-1;
+			SetThreadGroupAffinity(GetCurrentThread(), &affinity, 0);
+		}
 	}
 #endif
 }

@@ -130,9 +130,10 @@ thread_set_name(const char* name, size_t length);
 represented by a bitfield, where a set bit indicates affinity for the
 corresponding core. For example, to set affinity to core 2 and 3, use
 (1<<2)|(1<<3) as mask.
+\param group Processor group
 \param mask CPU core mask for which the thread is allowed to execute on */
 FOUNDATION_API void
-thread_set_hardware(uint64_t mask);
+thread_set_hardware(uint group, uint64_t mask);
 
 /*! Get name for calling thread.
 \return Thread name */
