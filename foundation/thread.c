@@ -421,7 +421,7 @@ thread_set_hardware(uint group, uint64_t mask) {
 #if FOUNDATION_PLATFORM_WINDOWS
 	if (processor_group_count > 1) {
 		GROUP_AFFINITY affinity = {0};
-		affinity.Group = group;
+		affinity.Group = (WORD)group;
 		affinity.Mask = mask;
 		SetThreadGroupAffinity(GetCurrentThread(), &affinity, 0);
 	} else {
