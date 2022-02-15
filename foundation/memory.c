@@ -287,7 +287,17 @@ memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
 		size += align * 2;
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS
+#if BUILD_ENABLE_MEMORY_GUARD > 1
+	size_t paged_size = size;
+	if (paged_size % 4096)
+		paged_size += 4096 - (paged_size % 4096);
+	memory = VirtualAlloc(0, paged_size + 8192, MEM_COMMIT, PAGE_READWRITE);
+	VirtualFree(memory, 4096, MEM_DECOMMIT);
+	memory = pointer_offset(memory, 4096);
+	VirtualFree(pointer_offset(memory, paged_size), 4096, MEM_DECOMMIT);
+#else
 	memory = _aligned_malloc(size, align);
+#endif
 #else
 	if (align > FOUNDATION_MIN_ALIGN) {
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
@@ -329,7 +339,11 @@ memory_deallocate_malloc(void* p) {
 	p = memory_guard_verify(p);
 #endif
 #if FOUNDATION_PLATFORM_WINDOWS
+#if BUILD_ENABLE_MEMORY_GUARD > 1
+	VirtualFree(pointer_offset(p, -4096), 0, MEM_RELEASE);
+#else
 	_aligned_free(p);
+#endif
 #else
 	free(p);
 #endif
