@@ -299,6 +299,18 @@ memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
 	memory = _aligned_malloc(size, align);
 #endif
 #else
+#if BUILD_ENABLE_MEMORY_GUARD > 1
+	size_t page_size = (size_t)sysconf(_SC_PAGESIZE);
+	size_t paged_size = size;
+	if (paged_size % page_size)
+		paged_size += page_size - (paged_size % page_size);
+	memory = mmap(0, paged_size + (page_size * 3), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	size_t* size_store = memory;
+	*size_store = paged_size;
+	munmap(pointer_offset(memory, page_size), page_size);
+	memory = pointer_offset(memory, page_size * 2);
+	munmap(pointer_offset(memory, paged_size), page_size);
+#else
 	if (align > FOUNDATION_MIN_ALIGN) {
 #if FOUNDATION_PLATFORM_APPLE || FOUNDATION_PLATFORM_ANDROID
 		if (posix_memalign(&memory, align, size))
@@ -309,6 +321,7 @@ memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
 	} else {
 		memory = malloc(size);
 	}
+#endif
 #endif
 #if BUILD_ENABLE_MEMORY_GUARD
 	memory = memory_guard_initialize(memory, size, align);
@@ -345,7 +358,14 @@ memory_deallocate_malloc(void* p) {
 	_aligned_free(p);
 #endif
 #else
+#if BUILD_ENABLE_MEMORY_GUARD > 1
+	size_t page_size = (size_t)sysconf(_SC_PAGESIZE);
+	size_t* size_store = pointer_offset(p, -(page_size * 2));
+	munmap(p, *size_store);
+	munmap(size_store, page_size);
+#else
 	free(p);
+#endif
 #endif
 }
 

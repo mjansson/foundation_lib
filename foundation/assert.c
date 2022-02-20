@@ -21,6 +21,7 @@ static mutex_t* assert_mutex;
 static assert_handler_fn assert_handler_current;
 static char assert_buffer[ASSERT_BUFFER_SIZE];
 static bool assert_has_force_continue;
+static bool assert_has_force_abort;
 
 #if BUILD_ENABLE_ASSERT
 #define ASSERT_STACKTRACE_MAX_DEPTH 128U
@@ -44,6 +45,11 @@ assert_set_handler(assert_handler_fn new_handler) {
 void
 assert_force_continue(bool continue_execution) {
 	assert_has_force_continue = continue_execution;
+}
+
+void
+assert_force_abort(bool abort_execution) {
+	assert_has_force_abort = abort_execution;
 }
 
 int
@@ -100,7 +106,9 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	log_errorf(context, ERROR_ASSERT, STRING_CONST("%.*s"), STRING_FORMAT(messagestr));
 
 	bool abort = !system_message_box(STRING_CONST("Assert Failure"), STRING_ARGS(messagestr), true);
-	if (assert_has_force_continue)
+	if (assert_has_force_abort)
+		abort = true;
+	else if (assert_has_force_continue)
 		abort = false;
 	else if (environment_application()->flags & APPLICATION_UTILITY)
 		abort = system_debugger_attached();

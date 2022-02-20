@@ -81,6 +81,11 @@ assert_report_formatted(hash_t context, const char* condition, size_t cond_lengt
 FOUNDATION_API void
 assert_force_continue(bool continue_execution);
 
+/*! Override break/continue execution behaviour
+\param abort_execution Force termination of execution if true */
+FOUNDATION_API void
+assert_force_abort(bool abort_execution);
+
 #if BUILD_ENABLE_ASSERT
 
 /*! Assert the given condition. If assert fails, call the #assert_report function with

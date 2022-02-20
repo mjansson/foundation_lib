@@ -136,6 +136,8 @@ virtualarray_free_storage(uint flags, size_t size, void* storage) {
 
 void
 virtualarray_clear_and_free(virtualarray_t* array) {
+	if (!array)
+		return;
 	size_t size_allocated = array->capacity * array->element_size;
 	virtualarray_free_storage(array->flags, size_allocated, array->storage);
 	array->storage = 0;
