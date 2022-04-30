@@ -96,13 +96,13 @@ def codesign_ios():
   if not 'provisioning' in iosprefs:
     iosprefs['provisioning'] = options.provisioning
 
-  sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-path' ] ).strip().splitlines()[-1]
+  sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-path' ] ).decode().strip().splitlines()[-1]
   entitlements = os.path.join( sdkdir, 'Entitlements.plist' )
   plistpath = os.path.join( options.builddir, 'Entitlements.xcent' )
 
-  platformpath = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-platform-path' ] ).strip().splitlines()[-1]
+  platformpath = subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '--show-sdk-platform-path' ] ).decode().strip().splitlines()[-1]
   localpath = platformpath + "/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-  plutil = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '-f', 'plutil' ] ).strip().splitlines()[-1]
+  plutil = "PATH=" + localpath + " " + subprocess.check_output( [ 'xcrun', '--sdk', 'iphoneos', '-f', 'plutil' ] ).decode().strip().splitlines()[-1]
 
   shutil.copyfile( entitlements, plistpath )
   os.system( plutil + ' -convert xml1 ' + plistpath )
@@ -148,8 +148,8 @@ def codesign_macos():
   if not 'entitlements' in macosprefs:
     macosprefs['entitlements'] = options.entitlements
 
-  codesign_allocate = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '-f', 'codesign_allocate' ] ).strip().splitlines()[-1]
-  sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).strip().splitlines()[-1]
+  codesign_allocate = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '-f', 'codesign_allocate' ] ).decode().strip().splitlines()[-1]
+  sdkdir = subprocess.check_output( [ 'xcrun', '--sdk', 'macosx', '--show-sdk-path' ] ).decode().strip().splitlines()[-1]
   entitlements = os.path.join( sdkdir, 'Entitlements.plist' )
 
   if os.path.isfile( os.path.join( options.file, 'Contents', '_CodeSignature', 'CodeResources' ) ):
