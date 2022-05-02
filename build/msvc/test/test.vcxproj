@@ -17,7 +17,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <TargetName>test-$(ProjectName)</TargetName>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\test\test\test.c" />
