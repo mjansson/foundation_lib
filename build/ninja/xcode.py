@@ -181,12 +181,12 @@ class XCode(object):
           if self.target.is_ios():
             outfiles += [os.path.join(nibpath, 'objects.nib'), os.path.join(nibpath, 'objects-8.0+.nib'), os.path.join(nibpath, 'runtime.nib')]
           outfiles += [nibpath, plistpath]
-          builtres += writer.build(outfiles, 'xib', os.path.join(basepath, module, resource), variables = [('outpath', nibpath), ('outplist', plistpath), ('module', xibmodule)])
+          builtres += writer.build(outfiles, 'xib', os.path.join(os.getcwd(), basepath, module, resource), variables = [('outpath', nibpath), ('outplist', plistpath), ('module', xibmodule)])
           has_resources = True
         elif resource.endswith('.plist'):
-          plists += [os.path.join(basepath, module, resource)]
+          plists += [os.path.join(os.getcwd(), basepath, module, resource)]
         elif resource.endswith('.entitlements'):
-          entitlements += [os.path.join(basepath, module, resource)]
+          entitlements += [os.path.join(os.getcwd(), basepath, module, resource)]
 
       #Extra output files/directories
       outfiles = []
