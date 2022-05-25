@@ -92,6 +92,8 @@ typedef enum {
 	ERROR_ASSERT,
 	/*! A script generated an error */
 	ERROR_SCRIPT,
+	/*! Data was corrupted */
+	ERROR_CORRUPT_DATA,
 	/*! Marker, last reserved internal error identifier */
 	ERROR_LAST_BUILTIN = 0x0fff
 } error_t;
