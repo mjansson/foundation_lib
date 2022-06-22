@@ -531,11 +531,13 @@ fs_make_directory(const char* path, size_t length) {
 #error Not implemented
 #endif
 			if (!result) {
-				int err = system_error();
-				string_const_t errmsg = system_error_message(err);
-				log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed to create directory '%.*s': %.*s (%d)"),
-				          STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
-				goto end;
+				if (!fs_is_directory(STRING_ARGS(localpath))) {
+					int err = system_error();
+					string_const_t errmsg = system_error_message(err);
+					log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed to create directory '%.*s': %.*s (%d)"),
+					          STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
+					goto end;
+				}
 			}
 		} else {
 			result = true;

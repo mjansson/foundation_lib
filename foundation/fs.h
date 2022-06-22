@@ -59,7 +59,8 @@ fs_remove_file(const char* path, size_t length);
 FOUNDATION_API bool
 fs_is_file(const char* path, size_t length);
 
-/*! Create path in the file system. Will recursively create directories making up the path
+/*! Create path in the file system. Will recursively create directories making up the path.
+Success includes case where all paths already exists.
 \param path   Path
 \param length Length of path
 \return       true if success, false if not */
