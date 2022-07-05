@@ -45,7 +45,7 @@ static const bool radixsort_data_signed[] = {
 static bool
 radixsort_create_histograms(radixsort_t* sort, const void* input_raw, size_t count) {
 	const radixsort_data_t data_type = sort->type;
-	const size_t data_size = radixsort_data_size[data_type];
+	const size_t data_size = (data_type != RADIXSORT_CUSTOM) ? radixsort_data_size[data_type] : sort->custom_data_size;
 
 	const unsigned char* loop = input_raw;
 	const unsigned char* loop_end = loop + (count * data_size);
@@ -55,14 +55,17 @@ radixsort_create_histograms(radixsort_t* sort, const void* input_raw, size_t cou
 
 	/*lint -e771 */
 	// Histograms for all passes
-	void* histogram_raw[8];
+	void* histogram_base[8];
+	void** histogram_raw = histogram_base;
+	if (data_size > 8)
+		histogram_raw = memory_allocate(0, sizeof(void*) * data_size, 0, MEMORY_PERSISTENT);
 	memset(sort->histogram, 0, 256 * data_size * indexsize);
 	for (size_t ih = 0; ih < data_size; ++ih)
 		histogram_raw[ih] = pointer_offset(sort->histogram, indexsize * (ih << 8));
 
 	// Read values in previous sorted order and check if already sorted
 	// Don't allow temporal coherence if increasing in size as it might introduce duplicate indices
-	if (count <= sort->lastused)
+	if ((count <= sort->lastused) && (data_type != RADIXSORT_CUSTOM)) {
 		switch (data_type) {
 			case RADIXSORT_INT32: {
 				const int32_t* input = (const int32_t*)input_raw;
@@ -435,7 +438,12 @@ radixsort_create_histograms(radixsort_t* sort, const void* input_raw, size_t cou
 
 				break;
 			}
+
+			case RADIXSORT_CUSTOM:
+			default:
+				break;
 		}
+	}
 
 	if (loop == loop_end)
 		return true;
@@ -545,7 +553,37 @@ radixsort_create_histograms(radixsort_t* sort, const void* input_raw, size_t cou
 			}
 
 			break;
+
+		default:
+			if (indexsize == RADIXSORT_INDEX16) {
+				while (loop != loop_end) {
+					for (uint ibyte = 0; ibyte < data_size; ++ibyte) {
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
+						uint16_t* histogram = (uint16_t*)histogram_raw[ibyte];
+#else
+						uint16_t* histogram = (uint16_t*)histogram_raw[data_size - (ibyte + 1)];
+#endif
+						++(histogram[*loop++]);
+					}
+				}
+			} else {
+				while (loop != loop_end) {
+					for (uint ibyte = 0; ibyte < data_size; ++ibyte) {
+#if FOUNDATION_ARCH_ENDIAN_LITTLE
+						uint32_t* histogram = (uint32_t*)histogram_raw[ibyte];
+#else
+						uint32_t* histogram = (uint32_t*)histogram_raw[data_size - (ibyte + 1)];
+#endif
+						++(histogram[*loop++]);
+					}
+				}
+			}
+
+			break;
 	}
+
+	if (histogram_raw != histogram_base)
+		memory_deallocate(histogram_raw);
 
 	return false;
 }
@@ -554,8 +592,9 @@ static const void*
 radixsort_int_index16(radixsort_t* sort, const void* input, size_t count) {
 	const radixsort_data_t data_type = sort->type;
 
-	const unsigned int data_size = radixsort_data_size[data_type];
-	const bool data_signed = radixsort_data_signed[data_type];
+	const unsigned int data_size =
+	    (data_type != RADIXSORT_CUSTOM) ? radixsort_data_size[data_type] : (uint)sort->custom_data_size;
+	const bool data_signed = (data_type != RADIXSORT_CUSTOM) ? radixsort_data_signed[data_type] : false;
 	const unsigned int data_shift = radixsort_data_shift[data_type];
 	const size_t indexsize = (size_t)sort->indextype;
 	uint16_t negatives = 0;
@@ -575,7 +614,7 @@ radixsort_int_index16(radixsort_t* sort, const void* input, size_t count) {
 			negatives += histogram[ival];
 	}
 
-	// Radix sort, j is the pass number (LSB is first histogram since
+	// Radix sort, ipass is the pass number (LSB is first histogram since
 	// radixsort_create_histograms takes system byte order into account)
 	for (ipass = 0; ipass < data_size; ++ipass) {
 		uint16_t* current_count = pointer_offset(sort->histogram, indexsize * (ipass << 8));
@@ -628,10 +667,17 @@ radixsort_int_index16(radixsort_t* sort, const void* input, size_t count) {
 				uint16_t* indices_end = indices + count;
 				uint16_t* offset = sort->offset;
 
-				do {
-					uint16_t id = *indices++;
-					indices_next[offset[input_bytes[id << data_shift]]++] = id;
-				} while (indices != indices_end);
+				if (data_type != RADIXSORT_CUSTOM) {
+					do {
+						uint16_t id = *indices++;
+						indices_next[offset[input_bytes[id << data_shift]]++] = id;
+					} while (indices != indices_end);
+				} else {
+					do {
+						uint16_t id = *indices++;
+						indices_next[offset[input_bytes[id * data_size]]++] = id;
+					} while (indices != indices_end);
+				}
 			}
 
 			// After this swap, the valid indices (most recent) are in
@@ -651,8 +697,9 @@ static const void*
 radixsort_int_index32(radixsort_t* sort, const void* input, size_t count) {
 	const radixsort_data_t data_type = sort->type;
 
-	const unsigned int data_size = radixsort_data_size[data_type];
-	const bool data_signed = radixsort_data_signed[data_type];
+	const unsigned int data_size =
+	    (data_type != RADIXSORT_CUSTOM) ? radixsort_data_size[data_type] : (uint)sort->custom_data_size;
+	const bool data_signed = (data_type != RADIXSORT_CUSTOM) ? radixsort_data_signed[data_type] : false;
 	const unsigned int data_shift = radixsort_data_shift[data_type];
 	const size_t indexsize = (size_t)sort->indextype;
 	uint32_t negatives = 0;
@@ -725,10 +772,17 @@ radixsort_int_index32(radixsort_t* sort, const void* input, size_t count) {
 				uint32_t* indices_end = indices + count;
 				uint32_t* offset = sort->offset;
 
-				do {
-					uint32_t id = *indices++;
-					indices_next[offset[input_bytes[id << data_shift]]++] = id;
-				} while (indices != indices_end);
+				if (data_type != RADIXSORT_CUSTOM) {
+					do {
+						uint32_t id = *indices++;
+						indices_next[offset[input_bytes[id << data_shift]]++] = id;
+					} while (indices != indices_end);
+				} else {
+					do {
+						uint32_t id = *indices++;
+						indices_next[offset[input_bytes[id * data_size]]++] = id;
+					} while (indices != indices_end);
+				}
 			}
 
 			// After this swap, the valid indices (most recent) are in
@@ -1073,6 +1127,31 @@ radixsort_sort(radixsort_t* sort, const void* input, size_t count) {
 }
 
 radixsort_t*
+radixsort_allocate_custom(size_t data_size, size_t count) {
+	radixsort_t* sort;
+	radixsort_indextype_t indextype = RADIXSORT_INDEX16;
+	if (count > 0xFFFF)
+		indextype = RADIXSORT_INDEX32;
+
+	size_t indexsize = (size_t)indextype;
+	sort = memory_allocate(0,
+	                       sizeof(radixsort_t) +
+	                           /* 2 index tables */ (2 * indexsize * count) +
+	                           /* histograms */ (256 * data_size * indexsize) +
+	                           /* offset table */ (256 * indexsize),
+	                       0, MEMORY_PERSISTENT);
+	sort->custom_data_size = data_size;
+	sort->indices[0] = pointer_offset(sort, sizeof(radixsort_t));
+	sort->indices[1] = pointer_offset(sort->indices[0], indexsize * count);
+	sort->histogram = pointer_offset(sort->indices[1], indexsize * count);
+	sort->offset = pointer_offset(sort->histogram, indexsize * 256 * data_size);
+
+	radixsort_initialize_custom(sort, data_size, count);
+
+	return sort;
+}
+
+radixsort_t*
 radixsort_allocate(radixsort_data_t type, size_t count) {
 	radixsort_t* sort;
 	radixsort_indextype_t indextype = RADIXSORT_INDEX16;
@@ -1097,10 +1176,39 @@ radixsort_allocate(radixsort_data_t type, size_t count) {
 }
 
 void
+radixsort_initialize_custom(radixsort_t* sort, size_t data_size, size_t count) {
+	sort->type = RADIXSORT_CUSTOM;
+	sort->size = count;
+	sort->lastused = count;
+	sort->custom_data_size = data_size;
+
+	FOUNDATION_ASSERT(count <= 0xFFFFFFFF);
+	if (count >= 0xFFFFFFFF)
+		count = 0xFFFFFFFE;
+
+	if (count > 0xFFFF) {
+		uint32_t* indices[2] = {sort->indices[0], sort->indices[1]};
+		sort->indextype = RADIXSORT_INDEX32;
+		for (uint32_t i = 0; i < count; ++i) {
+			indices[0][i] = i;
+			indices[1][i] = i;
+		}
+	} else {
+		uint16_t* indices[2] = {sort->indices[0], sort->indices[1]};
+		sort->indextype = RADIXSORT_INDEX16;
+		for (uint32_t i = 0; i < count; ++i) {
+			indices[0][i] = (uint16_t)i;
+			indices[1][i] = (uint16_t)i;
+		}
+	}
+}
+
+void
 radixsort_initialize(radixsort_t* sort, radixsort_data_t type, size_t count) {
 	sort->type = type;
 	sort->size = count;
 	sort->lastused = count;
+	sort->custom_data_size = radixsort_data_size[type];
 
 	FOUNDATION_ASSERT(count <= 0xFFFFFFFF);
 	if (count >= 0xFFFFFFFF)

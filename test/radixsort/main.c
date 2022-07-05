@@ -887,9 +887,201 @@ DECLARE_TEST(radixsort, sort_real_index32) {
 	return 0;
 }
 
+DECLARE_TEST(radixsort, sort_custom_index16) {
+	int bits = 0;
+	uint256_t* arr_uint;
+	uint32_t* uint_index_count;
+	radixsort_t* sort_uint;
+
+	sort_uint = radixsort_allocate_custom(32, 0xFFFF);
+
+	EXPECT_EQ(sort_uint->indextype, RADIXSORT_INDEX16);
+
+	for (bits = 1; bits <= 16; ++bits) {
+		uint32_t ival;
+		uint32_t num = (uint32_t)((1ULL << (uint64_t)bits) - 1);
+		const uint16_t* FOUNDATION_RESTRICT sindex_uint;
+
+		arr_uint = memory_allocate(0, sizeof(uint256_t) * num, 0, MEMORY_PERSISTENT);
+
+		for (ival = 0; ival < num; ++ival)
+			arr_uint[ival] = uint256_make(random64(), random64(), random64(), random64());
+
+		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
+
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+
+		++uint_index_count[sindex_uint[0]];
+		if (num == 1) {
+			EXPECT_EQ(sindex_uint[0], 0);
+		} else {
+			for (ival = 1; ival < num; ++ival) {
+				++uint_index_count[sindex_uint[ival]];
+
+				for (uint iword = 4; iword > 0; ++iword) {
+					bool less_than =
+					    (arr_uint[sindex_uint[ival - 1]].word[iword - 1] < arr_uint[sindex_uint[ival]].word[iword - 1]);
+					if (less_than)
+						break;
+					EXPECT_EQ(arr_uint[sindex_uint[ival - 1]].word[iword - 1],
+					          arr_uint[sindex_uint[ival]].word[iword - 1]);
+				}
+			}
+		}
+
+		for (ival = 0; ival < num; ++ival) {
+			EXPECT_EQ(uint_index_count[ival], 1);
+		}
+		memory_deallocate(uint_index_count);
+
+		memory_deallocate(arr_uint);
+	}
+
+	for (--bits; bits >= 1; --bits) {
+		uint32_t ival;
+		uint32_t num = (uint32_t)((1ULL << (uint64_t)bits) - 1);
+		const uint16_t* FOUNDATION_RESTRICT sindex_uint;
+
+		arr_uint = memory_allocate(0, sizeof(uint256_t) * num, 0, MEMORY_PERSISTENT);
+
+		for (ival = 0; ival < num; ++ival)
+			arr_uint[ival] = uint256_make(random64(), random64(), random64(), random64());
+
+		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
+
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+
+		++uint_index_count[sindex_uint[0]];
+		if (num == 1) {
+			EXPECT_EQ(sindex_uint[0], 0);
+		} else {
+			for (ival = 1; ival < num; ++ival) {
+				++uint_index_count[sindex_uint[ival]];
+
+				for (uint iword = 4; iword > 0; ++iword) {
+					bool less_than =
+					    (arr_uint[sindex_uint[ival - 1]].word[iword - 1] < arr_uint[sindex_uint[ival]].word[iword - 1]);
+					if (less_than)
+						break;
+					EXPECT_EQ(arr_uint[sindex_uint[ival - 1]].word[iword - 1],
+					          arr_uint[sindex_uint[ival]].word[iword - 1]);
+				}
+			}
+		}
+
+		for (ival = 0; ival < num; ++ival) {
+			EXPECT_EQ(uint_index_count[ival], 1);
+		}
+		memory_deallocate(uint_index_count);
+
+		memory_deallocate(arr_uint);
+	}
+
+	radixsort_deallocate(sort_uint);
+
+	return 0;
+}
+
+DECLARE_TEST(radixsort, sort_custom_index32) {
+	int bits = 0;
+	uint256_t* arr_uint;
+	uint32_t* uint_index_count;
+	radixsort_t* sort_uint;
+
+	sort_uint = radixsort_allocate_custom(32, (size_t)((1ULL << 22ULL) - 1));
+
+	EXPECT_EQ(sort_uint->indextype, RADIXSORT_INDEX32);
+
+	for (bits = 1; bits <= 22; ++bits) {
+		uint32_t ival;
+		uint32_t num = (uint32_t)((1ULL << (uint64_t)bits) - 1);
+		const uint32_t* FOUNDATION_RESTRICT sindex_uint;
+
+		arr_uint = memory_allocate(0, sizeof(uint256_t) * num, 0, MEMORY_PERSISTENT);
+
+		for (ival = 0; ival < num; ++ival)
+			arr_uint[ival] = uint256_make(random64(), random64(), random64(), random64());
+
+		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
+
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+
+		++uint_index_count[sindex_uint[0]];
+		if (num == 1) {
+			EXPECT_EQ(sindex_uint[0], 0);
+		} else {
+			for (ival = 1; ival < num; ++ival) {
+				++uint_index_count[sindex_uint[ival]];
+
+				for (uint iword = 4; iword > 0; ++iword) {
+					bool less_than =
+					    (arr_uint[sindex_uint[ival - 1]].word[iword - 1] < arr_uint[sindex_uint[ival]].word[iword - 1]);
+					if (less_than)
+						break;
+					EXPECT_EQ(arr_uint[sindex_uint[ival - 1]].word[iword - 1],
+					          arr_uint[sindex_uint[ival]].word[iword - 1]);
+				}
+			}
+		}
+
+		for (ival = 0; ival < num; ++ival) {
+			EXPECT_EQ(uint_index_count[ival], 1);
+		}
+		memory_deallocate(uint_index_count);
+
+		memory_deallocate(arr_uint);
+	}
+
+	for (--bits; bits >= 1; --bits) {
+		uint32_t ival;
+		uint32_t num = (uint32_t)((1ULL << (uint64_t)bits) - 1);
+		const uint32_t* FOUNDATION_RESTRICT sindex_uint;
+
+		arr_uint = memory_allocate(0, sizeof(uint256_t) * num, 0, MEMORY_PERSISTENT);
+
+		for (ival = 0; ival < num; ++ival)
+			arr_uint[ival] = uint256_make(random64(), random64(), random64(), random64());
+
+		sindex_uint = radixsort_sort(sort_uint, arr_uint, num);
+
+		uint_index_count = memory_allocate(0, sizeof(uint32_t) * num, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
+
+		++uint_index_count[sindex_uint[0]];
+		if (num == 1) {
+			EXPECT_EQ(sindex_uint[0], 0);
+		} else {
+			for (ival = 1; ival < num; ++ival) {
+				++uint_index_count[sindex_uint[ival]];
+
+				for (uint iword = 4; iword > 0; ++iword) {
+					bool less_than =
+					    (arr_uint[sindex_uint[ival - 1]].word[iword - 1] < arr_uint[sindex_uint[ival]].word[iword - 1]);
+					if (less_than)
+						break;
+					EXPECT_EQ(arr_uint[sindex_uint[ival - 1]].word[iword - 1],
+					          arr_uint[sindex_uint[ival]].word[iword - 1]);
+				}
+			}
+		}
+
+		for (ival = 0; ival < num; ++ival) {
+			EXPECT_EQ(uint_index_count[ival], 1);
+		}
+		memory_deallocate(uint_index_count);
+
+		memory_deallocate(arr_uint);
+	}
+
+	radixsort_deallocate(sort_uint);
+
+	return 0;
+}
+
 static void
 test_radixsort_declare(void) {
 	ADD_TEST(radixsort, allocation);
+	ADD_TEST(radixsort, sort_custom_index16);
+	ADD_TEST(radixsort, sort_custom_index32);
 	ADD_TEST(radixsort, sort_int32_index16);
 	ADD_TEST(radixsort, sort_int32_index32);
 	ADD_TEST(radixsort, sort_int64_index16);

@@ -298,7 +298,9 @@ typedef enum {
 	/*! 32-bit floating point */
 	RADIXSORT_FLOAT32,
 	/*! 64-bit floating point */
-	RADIXSORT_FLOAT64
+	RADIXSORT_FLOAT64,
+	/*! Custom opaque data type */
+	RADIXSORT_CUSTOM,
 } radixsort_data_t;
 
 /*! Radix sort index types */
@@ -1340,6 +1342,8 @@ struct radixsort_t {
 	radixsort_data_t type;
 	/*! Index size */
 	radixsort_indextype_t indextype;
+	/*! Custom data size */
+	size_t custom_data_size;
 	/*! Maximum number of elements that can be sorted */
 	size_t size;
 	/*! Number of elements in last call to #radixsort_sort */

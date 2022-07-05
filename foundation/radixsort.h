@@ -29,6 +29,15 @@ including sort buckets and resulting index arrays. Deallocate the sort object wi
 FOUNDATION_API radixsort_t*
 radixsort_allocate(radixsort_data_t type, size_t count);
 
+/*! Allocate a radix sort object for opaque custom data. All data is stored in a single continuous memory block,
+including sort buckets and resulting index arrays. Deallocate the sort object with a call to
+#radixsort_deallocate.
+\param data_size Size of data type in bytes
+\param count Number of elements to sort
+\return New radix sort object */
+FOUNDATION_API radixsort_t*
+radixsort_allocate_custom(size_t data_size, size_t count);
+
 /*! Deallocate a radix sort object previously allocated with a call to #radixsort_allocate.
 \param sort Radix sort object to deallocate */
 FOUNDATION_API void
@@ -41,6 +50,14 @@ the sort object with a call to #radixsort_finalize.
 \param count Number of elements to sort */
 FOUNDATION_API void
 radixsort_initialize(radixsort_t* sort, radixsort_data_t type, size_t count);
+
+/*! Initialize a radix sort object for custom opaque data. All data pointers should be set by the caller. Finalize
+the sort object with a call to #radixsort_finalize.
+\param sort Radix sort object
+\param data_size Size of data type in bytes
+\param count Number of elements to sort */
+FOUNDATION_API void
+radixsort_initialize_custom(radixsort_t* sort, size_t data_size, size_t count);
 
 /*! Finalize a radix sort object previously initialized with a call to #radixsort_initialize.
 \param sort Radix sort object to finalize */
