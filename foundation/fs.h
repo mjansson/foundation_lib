@@ -52,6 +52,15 @@ fs_copy_file(const char* source, size_t source_length, const char* dest, size_t 
 FOUNDATION_API bool
 fs_remove_file(const char* path, size_t length);
 
+/*! Move a file in the file system
+\param path_source   Source path
+\param length_source Length of source path
+\param path_dest     Destination path
+\param length_dest   Length of destination path
+\return              true if file was moved, false if not */
+FOUNDATION_API bool
+fs_move_file(const char* path_source, size_t length_source, const char* path_dest, size_t length_dest);
+
 /*! Check if the given file exists in the file system
 \param path   Path
 \param length Length of path

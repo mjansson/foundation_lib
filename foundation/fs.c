@@ -403,6 +403,43 @@ fs_files(const char* path, size_t length) {
 }
 
 bool
+fs_move_file(const char* path_source, size_t length_source, const char* path_dest, size_t length_dest) {
+	bool result;
+	string_const_t fspath_source, fspath_dest;
+#if FOUNDATION_PLATFORM_WINDOWS
+	wchar_t* wpath;
+#endif
+
+	fspath_source = fs_strip_protocol(path_source, length_source);
+	if (!fspath_source.length)
+		return false;
+	fspath_dest = fs_strip_protocol(path_dest, length_dest);
+	if (!fspath_dest.length)
+		return false;
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	result = false;
+	/*
+	wpath = wstring_allocate_from_string(fspath.str, fspath.length);
+	result = DeleteFileW(wpath);
+	wstring_deallocate(wpath);
+	*/
+#elif FOUNDATION_PLATFORM_POSIX
+
+	char buffer_source[BUILD_MAX_PATHLEN];
+	char buffer_dest[BUILD_MAX_PATHLEN];
+	string_t finalpath_source = string_copy(buffer_source, sizeof(buffer_source), STRING_ARGS(fspath_source));
+	string_t finalpath_dest = string_copy(buffer_dest, sizeof(buffer_dest), STRING_ARGS(fspath_dest));
+	result = (rename(finalpath_source.str, finalpath_dest.str) == 0);
+
+#else
+#error Not implemented
+#endif
+
+	return result;
+}
+
+bool
 fs_remove_file(const char* path, size_t length) {
 	bool result;
 	string_const_t fspath;
@@ -1238,6 +1275,10 @@ fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc)
 	} else {
 		return INVALID_HANDLE_VALUE;
 	}
+	if ((mode & STREAM_CREATE_EXCLUSIVE) == STREAM_CREATE_EXCLUSIVE) {
+		create = CREATE_NEW;
+		share = FILE_SHARE_READ;
+	}
 #else
 #if FOUNDATION_PLATFORM_LINUX
 #define MODESTRING(x) x "e"
@@ -1248,7 +1289,9 @@ fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc)
 #endif
 	if (mode & STREAM_IN) {
 		if (mode & STREAM_OUT) {
-			if (mode & STREAM_CREATE) {
+			if ((mode & STREAM_CREATE_EXCLUSIVE) == STREAM_CREATE_EXCLUSIVE) {
+				modestr = MODESTRING("w+bx");
+			} else if (mode & STREAM_CREATE) {
 				if (mode & STREAM_TRUNCATE)
 					modestr = MODESTRING("w+b");
 				else {
@@ -1262,7 +1305,10 @@ fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc)
 			}
 		} else {
 			// truncate is ignored for read-only files
-			if (mode & STREAM_CREATE) {
+			if ((mode & STREAM_CREATE_EXCLUSIVE) == STREAM_CREATE_EXCLUSIVE) {
+				modestr = MODESTRING("r+bx");
+				retry = 1;
+			} else if (mode & STREAM_CREATE) {
 				modestr = MODESTRING("r+b");
 				retry = 1;
 			} else
@@ -1270,15 +1316,21 @@ fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc)
 		}
 	} else if (mode & STREAM_OUT) {
 		if (mode & STREAM_TRUNCATE) {
-			if (mode & STREAM_CREATE)
+			if ((mode & STREAM_CREATE_EXCLUSIVE) == STREAM_CREATE_EXCLUSIVE) {
+				modestr = MODESTRING("w+bx");
+			} else if (mode & STREAM_CREATE) {
 				modestr = MODESTRING("w+b");
-			else {
+			} else {
 				modestr = MODESTRING("r+b");
 				if (dotrunc)
 					*dotrunc = true;
 			}
 		} else {
-			modestr = MODESTRING("r+b");
+			if ((mode & STREAM_CREATE_EXCLUSIVE) == STREAM_CREATE_EXCLUSIVE) {
+				modestr = MODESTRING("w+bx");
+			} else {
+				modestr = MODESTRING("r+b");
+			}
 			if (mode & STREAM_CREATE)
 				retry = 1;
 		}
@@ -1303,9 +1355,15 @@ fs_file_fopen(const char* path, size_t length, unsigned int mode, bool* dotrunc)
 		// writing to end of file. Try first with r+b to avoid truncation, then if it fails
 		// i.e file does not exist, create it with w+b
 #if FOUNDATION_PLATFORM_WINDOWS
-		create = CREATE_ALWAYS;
+		if ((mode & STREAM_CREATE_EXCLUSIVE) == STREAM_CREATE_EXCLUSIVE)
+			create = CREATE_NEW;
+		else
+			create = CREATE_ALWAYS;
 #else
-		modestr = MODESTRING("w+b");
+		if ((mode & STREAM_CREATE_EXCLUSIVE) == STREAM_CREATE_EXCLUSIVE)
+			modestr = MODESTRING("w+bx");
+		else
+			modestr = MODESTRING("w+b");
 #endif
 	} while (!FD_VALID(fd) && (retry-- > 0));
 

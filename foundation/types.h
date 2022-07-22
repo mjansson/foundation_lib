@@ -380,6 +380,8 @@ a normal windowing system interaction loop */
 #define STREAM_BINARY (1U << 5)
 /*! Stream flag, stream is synchronized on each write */
 #define STREAM_SYNC (1U << 6)
+/*! Stream flag, create exclusively, fail if file already exists */
+#define STREAM_CREATE_EXCLUSIVE (STREAM_CREATE | (1U << 7))
 
 /*! Process flag, spawn method will block until process ends and then return
 process exit code */
