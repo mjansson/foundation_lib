@@ -43,6 +43,7 @@ static bool log_prefix = true;
 static log_handler_fn log_handler_user;
 static hashtable64_t* log_suppress_table;
 static error_level_t log_suppress_default;
+static bool log_auto_newline = true;
 
 #define LOG_WARNING_NAMES 10
 static char* log_warning_name[LOG_WARNING_NAMES] = {"performance", "deprecated", "invalid value",    "memory",
@@ -153,7 +154,8 @@ FOUNDATION_PRINTFCALL(5, 0)
 
 		if ((more > -1) && (more < remain)) {
 			int endl = need + more;
-			buffer[endl++] = '\n';
+			if (log_auto_newline)
+				buffer[endl++] = '\n';
 			buffer[endl] = 0;
 
 #if FOUNDATION_PLATFORM_WINDOWS
@@ -171,8 +173,11 @@ FOUNDATION_PRINTFCALL(5, 0)
 			if (log_stdout_enabled)
 				dlog_print(DLOG_DEBUG + severity - 1, environment_application()->short_name.str, "%s", buffer);
 #else
-			if (log_stdout_enabled && std)
+			if (log_stdout_enabled && std) {
 				fprintf(std, "%s", buffer);
+				if (!log_auto_newline)
+					fflush(std);
+			}
 #endif
 
 			if (log_handler_user)
@@ -355,6 +360,11 @@ log_set_handler(log_handler_fn handler) {
 void
 log_enable_prefix(bool enable) {
 	log_prefix = enable;
+}
+
+void
+log_enable_auto_newline(bool enable) {
+	log_auto_newline = enable;
 }
 
 void

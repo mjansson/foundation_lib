@@ -154,6 +154,11 @@ log_stdout(void);
 FOUNDATION_API void
 log_enable_prefix(bool enable);
 
+/*! Control automatic newline
+\param enable Flag to enable/disable automatic newline */
+FOUNDATION_API void
+log_enable_auto_newline(bool enable);
+
 /*! Control log suppression based on severity level. Any messages at the
 given severity level or lower will be filtered and discarded. If a log context
 has no explicit supression level the default (0) context supression level will be used.
