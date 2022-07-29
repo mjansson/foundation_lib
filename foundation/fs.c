@@ -406,9 +406,6 @@ bool
 fs_move_file(const char* path_source, size_t length_source, const char* path_dest, size_t length_dest) {
 	bool result;
 	string_const_t fspath_source, fspath_dest;
-#if FOUNDATION_PLATFORM_WINDOWS
-	wchar_t* wpath;
-#endif
 
 	fspath_source = fs_strip_protocol(path_source, length_source);
 	if (!fspath_source.length)
@@ -418,12 +415,13 @@ fs_move_file(const char* path_source, size_t length_source, const char* path_des
 		return false;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	result = false;
-	/*
-	wpath = wstring_allocate_from_string(fspath.str, fspath.length);
-	result = DeleteFileW(wpath);
-	wstring_deallocate(wpath);
-	*/
+
+	wchar_t* wpath_source = wstring_allocate_from_string(fspath_source.str, fspath_source.length);
+	wchar_t* wpath_dest = wstring_allocate_from_string(fspath_dest.str, fspath_dest.length);
+	result = MoveFileW(wpath_source, wpath_dest);
+	wstring_deallocate(wpath_source);
+	wstring_deallocate(wpath_dest);
+
 #elif FOUNDATION_PLATFORM_POSIX
 
 	char buffer_source[BUILD_MAX_PATHLEN];
