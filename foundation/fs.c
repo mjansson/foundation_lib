@@ -203,64 +203,12 @@ fs_unmonitor(const char* path, size_t length) {
 
 bool
 fs_is_file(const char* path, size_t length) {
-#if FOUNDATION_PLATFORM_WINDOWS
-
-	string_const_t pathstr = fs_strip_protocol(path, length);
-	if (pathstr.length) {
-		wchar_t* wpath = wstring_allocate_from_string(pathstr.str, pathstr.length);
-		unsigned int attribs = GetFileAttributesW(wpath);
-		wstring_deallocate(wpath);
-		if ((attribs != 0xFFFFFFFF) && !(attribs & FILE_ATTRIBUTE_DIRECTORY))
-			return true;
-	}
-
-#elif FOUNDATION_PLATFORM_POSIX
-
-	string_const_t pathstr = fs_strip_protocol(path, length);
-	if (pathstr.length) {
-		char buffer[BUILD_MAX_PATHLEN];
-		struct stat st;
-		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(pathstr));
-		if (!stat(finalpath.str, &st) && S_ISREG(st.st_mode))
-			return true;
-	}
-
-#else
-#error Not implemented
-#endif
-
-	return false;
+	return fs_stat(path, length).is_file;
 }
 
 bool
 fs_is_directory(const char* path, size_t length) {
-#if FOUNDATION_PLATFORM_WINDOWS
-
-	string_const_t pathstr = fs_strip_protocol(path, length);
-	if (pathstr.length) {
-		wchar_t* wpath = wstring_allocate_from_string(pathstr.str, pathstr.length);
-		unsigned int attr = GetFileAttributesW(wpath);
-		wstring_deallocate(wpath);
-		if ((attr != 0xFFFFFFFF) && (attr & FILE_ATTRIBUTE_DIRECTORY))
-			return true;
-	}
-
-#elif FOUNDATION_PLATFORM_POSIX
-
-	string_const_t pathstr = fs_strip_protocol(path, length);
-	if (pathstr.length) {
-		char buffer[BUILD_MAX_PATHLEN];
-		struct stat st;
-		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(pathstr));
-		if (!stat(finalpath.str, &st) && S_ISDIR(st.st_mode))
-			return true;
-	}
-
-#else
-#error Not implemented
-#endif
-
-	return false;
+	return fs_stat(path, length).is_directory;
 }
 
 string_t*
@@ -628,71 +576,64 @@ fs_copy_file(const char* source, size_t srclen, const char* dest, size_t destlen
 
 tick_t
 fs_last_modified(const char* path, size_t length) {
-#if FOUNDATION_PLATFORM_WINDOWS
-
-	// This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan
-	// 1601" was a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date
-	// for unix time, 1 Jan 1970, is 116444736000000000
-	const int64_t ms_offset_time = 116444736000000000LL;
-	tick_t last_write_time;
-	uint64_t high_time, low_time;
-	wchar_t* wpath;
-	WIN32_FILE_ATTRIBUTE_DATA attrib;
-	BOOL success = 0;
-	string_const_t cpath;
-	memset(&attrib, 0, sizeof(attrib));
-
-	cpath = fs_strip_protocol(path, length);
-	if (cpath.length) {
-		wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
-		success = GetFileAttributesExW(wpath, GetFileExInfoStandard, &attrib);
-		wstring_deallocate(wpath);
-	}
-
-	/*SYSTEMTIME stime;
-	memset( &stime, 0, sizeof( stime ) );
-	stime.wYear  = 1970;
-	stime.wDay   = 1;
-	stime.wMonth = 1;
-	SystemTimeToFileTime( &stime, &basetime );
-	int64_t ms_offset_time = (*(int64_t*)&basetime);*/
-
-	if (!success)
-		return 0;
-
-	high_time = (uint64_t)attrib.ftLastWriteTime.dwHighDateTime;
-	low_time = (uint64_t)attrib.ftLastWriteTime.dwLowDateTime;
-	last_write_time = (tick_t)((high_time << 32ULL) + low_time);
-
-	return (last_write_time > ms_offset_time) ? ((last_write_time - ms_offset_time) / 10000LL) : 0;
-
-#elif FOUNDATION_PLATFORM_POSIX
-
-	tick_t tstamp = 0;
-	string_const_t fspath = fs_strip_protocol(path, length);
-	if (fspath.length) {
-		char buffer[BUILD_MAX_PATHLEN];
-		struct stat st;
-		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
-		if (!stat(finalpath.str, &st))
-			tstamp = (tick_t)st.st_mtime * 1000LL;
-	}
-	return tstamp;
-
-#else
-#error Not implemented
-#endif
+	return (tick_t)fs_stat(path, length).last_modified;
 }
 
 size_t
 fs_size(const char* path, size_t length) {
-	size_t size = 0;
-	stream_t* file = fs_open_file(path, length, STREAM_IN | STREAM_BINARY);
-	if (file) {
-		size = stream_size(file);
-		stream_deallocate(file);
+	return fs_stat(path, length).size;
+}
+
+fs_stat_t
+fs_stat(const char* path, size_t length) {
+	fs_stat_t fsstat = {0};
+#if FOUNDATION_PLATFORM_WINDOWS
+	WIN32_FILE_ATTRIBUTE_DATA attrib;
+	memset(&attrib, 0, sizeof(attrib));
+
+	BOOL success = 0;
+	string_const_t cpath = fs_strip_protocol(path, length);
+	if (cpath.length) {
+		wchar_t* wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
+		success = GetFileAttributesExW(wpath, GetFileExInfoStandard, &attrib);
+		wstring_deallocate(wpath);
 	}
-	return size;
+	if (success) {
+		fsstat.size = ((uint64_t)attrib.nFileSizeHigh << 32ULL) + attrib.nFileSizeLow;
+		fsstat.is_directory = (attrib.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+		fsstat.is_file = !fsstat.is_directory;
+		fsstat.mode = (attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY) ? 0644 : 0664;
+
+		// This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan
+		// 1601" was a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date
+		// for unix time, 1 Jan 1970, is 116444736000000000
+		const int64_t ms_offset_time = 116444736000000000LL;
+		uint64_t high_time = (uint64_t)attrib.ftLastWriteTime.dwHighDateTime;
+		uint64_t low_time = (uint64_t)attrib.ftLastWriteTime.dwLowDateTime;
+		uint64_t last_write_time = ((high_time << 32ULL) + low_time);
+		fsstat.last_modified = (last_write_time > ms_offset_time) ? ((last_write_time - ms_offset_time) / 10000LL) : 0;
+	}
+#else
+	string_const_t fspath = fs_strip_protocol(path, length);
+	if (fspath.length) {
+		char buffer[BUILD_MAX_PATHLEN];
+		string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
+#if FOUNDATION_PLATFORM_MACOS
+		struct stat st;
+		if (stat(finalpath.str, &st) == 0) {
+#else
+		struct stat64 st;
+		if (stat64(finalpath.str, &st) == 0) {
+#endif
+			fsstat.size = (uint64_t)st.st_size;
+			fsstat.last_modified = (uint64_t)st.st_mtime * 1000LL;
+			fsstat.mode = st.st_mode & 0777;
+			fsstat.is_file = S_ISREG(st.st_mode);
+			fsstat.is_directory = S_ISDIR(st.st_mode);
+		}
+	}
+#endif
+	return fsstat;
 }
 
 uint128_t

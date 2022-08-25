@@ -111,6 +111,13 @@ fs_touch(const char* path, size_t length);
 FOUNDATION_API size_t
 fs_size(const char* path, size_t length);
 
+/*! Get file stats
+\param path   File path
+\param length Length of path
+\return       File stats */
+FOUNDATION_API fs_stat_t
+fs_stat(const char* path, size_t length);
+
 /*! Get file MD5 digest. Will read and digest the file contents on each call
 of this function (slow)
 \param path   File path

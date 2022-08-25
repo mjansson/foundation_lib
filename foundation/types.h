@@ -493,6 +493,8 @@ typedef struct event_t event_t;
 typedef struct event_block_t event_block_t;
 /*! Event stream instance producing event blocks of events */
 typedef struct event_stream_t event_stream_t;
+/*! Stats for a filesystem node */
+typedef struct fs_stat_t fs_stat_t;
 /*! Payload for a file system event */
 typedef struct fs_event_payload_t fs_event_payload_t;
 /*! Node in a hash map */
@@ -1157,6 +1159,20 @@ FOUNDATION_ALIGNED_STRUCT(event_stream_t, 16) {
 	event_block_t block[2];
 	/*! Optional beacon */
 	beacon_t* beacon;
+};
+
+/*! Stat for filesystem node */
+struct fs_stat_t {
+	/*! Size of file */
+	uint64_t size;
+	/*! Last modified timestamp */
+	uint64_t last_modified;
+	/*! Protect mode */
+	uint32_t mode;
+	/*! File flag */
+	bool is_file;
+	/*! Directory flag */
+	bool is_directory;
 };
 
 /*! Payload layout for a file system event */
