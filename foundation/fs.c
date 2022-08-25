@@ -1385,11 +1385,11 @@ fs_file_tell(stream_t* stream) {
 	if (!FD_VALID(GET_FILE(stream)->fd))
 		return 0;
 #if FOUNDATION_PLATFORM_WINDOWS
-	LONG high_word = 0;
-	LONG low_word = SetFilePointer(GET_FILE(stream)->fd, 0, &high_word, FILE_CURRENT);
+	LARGE_INTEGER large_offset = {0};
+	LONG low_word = SetFilePointerEx(GET_FILE(stream)->fd, large_offset, &large_offset, FILE_CURRENT);
 	if (low_word == INVALID_SET_FILE_POINTER)
 		return 0;
-	return (size_t)(((uint64_t)high_word << 32ULL) | (uint64_t)low_word);
+	return (size_t)large_offset.QuadPart;
 #else
 	off_t pos = ftello(GET_FILE(stream)->fd);
 	return (size_t)(pos < 0 ? 0 : pos);
@@ -1399,18 +1399,20 @@ fs_file_tell(stream_t* stream) {
 static void
 fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 #if FOUNDATION_PLATFORM_WINDOWS
-	if (SetFilePointer(GET_FILE(stream)->fd, (LONG)offset, 0,
-	                   (direction == STREAM_SEEK_BEGIN) ?
-	                       FILE_BEGIN :
-                           ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"), (int)offset,
+	LARGE_INTEGER large_offset;
+	large_offset.QuadPart = (LONGLONG)offset;
+	if (SetFilePointerEx(GET_FILE(stream)->fd, large_offset, 0,
+	                     (direction == STREAM_SEEK_BEGIN) ?
+	                         FILE_BEGIN :
+                             ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %" PRId64 ":%d in stream '%.*s'"), (int64_t)offset,
 		          (int)direction, STRING_FORMAT(stream->path));
 	}
 #else
 	/*lint -esym(970,long) */
 	if (fseek(GET_FILE(stream)->fd, (long)offset,
 	          (direction == STREAM_SEEK_BEGIN) ? SEEK_SET : ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR))) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %d:%d in stream '%.*s'"), (int)offset,
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %" PRId64 ":%d in stream '%.*s'"), (int64_t)offset,
 		          (int)direction, STRING_FORMAT(stream->path));
 	}
 #endif
@@ -1459,16 +1461,11 @@ fs_file_truncate(stream_t* stream, size_t length) {
 		return;
 
 #if FOUNDATION_PLATFORM_WINDOWS
-	bool success = false;
-	if ((int64_t)length < 0x7FFFFFFFULL) {
-		success = (SetFilePointer(GET_FILE(stream)->fd, (LONG)length, 0, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
-	} else {
-		LONG high = (LONG)((int64_t)length >> 32LL);
-		success = (SetFilePointer(GET_FILE(stream)->fd, (LONG)length, &high, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
-	}
+	LARGE_INTEGER large_offset;
+	large_offset.QuadPart = (LONGLONG)length;
+	bool success = (SetFilePointerEx(GET_FILE(stream)->fd, large_offset, 0, FILE_BEGIN) != INVALID_SET_FILE_POINTER);
 	if (success)
 		success = (SetEndOfFile(GET_FILE(stream)->fd) != 0);
-
 	if (!success) {
 		string_const_t errstr = system_error_message(0);
 		string_const_t fspath = fs_strip_protocol(STRING_ARGS(stream->path));
