@@ -154,7 +154,7 @@ FOUNDATION_PRINTFCALL(5, 0)
 
 		if ((more > -1) && (more < remain)) {
 			int endl = need + more;
-			if (log_auto_newline)
+			if (log_auto_newline || (severity >= ERRORLEVEL_WARNING))
 				buffer[endl++] = '\n';
 			buffer[endl] = 0;
 
