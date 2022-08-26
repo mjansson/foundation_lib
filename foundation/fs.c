@@ -217,38 +217,30 @@ fs_subdirs(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	// Windows specific implementation of directory listing
-	HANDLE find;
-	WIN32_FIND_DATAW data;
-	wchar_t* wpattern;
-	size_t wsize = length;
-	size_t capacity = length + 4;
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t cleanpath = string_copy(buffer, sizeof(buffer) - 2, path, length);
 
-	memory_context_push(HASH_STREAM);
+	if (cleanpath.length && (cleanpath.str[cleanpath.length - 1] != '/'))
+		cleanpath.str[cleanpath.length++] = '/';
+	cleanpath.str[cleanpath.length++] = '*';
+	cleanpath.str[cleanpath.length] = 0;
 
-	wpattern = memory_allocate(0, sizeof(wchar_t) * capacity, 0, MEMORY_TEMPORARY);
-	wstring_from_string(wpattern, capacity, path, length);
-	if (length && (path[length - 1] != '/'))
-		wpattern[wsize++] = L'/';
-	wpattern[wsize++] = L'*';
-	wpattern[wsize] = 0;
-
-	find = FindFirstFileW(wpattern, &data);
-	if (find != INVALID_HANDLE_VALUE)
+	WIN32_FIND_DATAA data;
+	HANDLE find = FindFirstFileA(cleanpath.str, &data);
+	if (find != INVALID_HANDLE_VALUE) {
 		do {
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 				string_t filename;
-				if (data.cFileName[0] == L'.') {
-					if (!data.cFileName[1] || (data.cFileName[1] == L'.'))
+				if (data.cFileName[0] == '.') {
+					if (!data.cFileName[1] || (data.cFileName[1] == '.'))
 						continue;  // Don't include . and .. directories
 				}
-				filename = string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName));
+				filename = string_clone(data.cFileName, string_length(data.cFileName));
 				array_push(arr, filename);
 			}
-		} while (FindNextFileW(find, &data));
+		} while (FindNextFileA(find, &data));
+	}
 	FindClose(find);
-
-	memory_deallocate(wpattern);
-	memory_context_pop();
 
 #elif FOUNDATION_PLATFORM_POSIX
 
@@ -292,31 +284,30 @@ fs_files(const char* path, size_t length) {
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	// Windows specific implementation of directory listing
-	HANDLE find;
-	WIN32_FIND_DATAW data;
-	wchar_t* wpattern;
-	size_t wsize = length;
-	size_t capacity = length + 4;
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t cleanpath = string_copy(buffer, sizeof(buffer) - 2, path, length);
 
-	memory_context_push(HASH_STREAM);
+	if (cleanpath.length && (cleanpath.str[cleanpath.length - 1] != '/'))
+		cleanpath.str[cleanpath.length++] = '/';
+	cleanpath.str[cleanpath.length++] = '*';
+	cleanpath.str[cleanpath.length] = 0;
 
-	wpattern = memory_allocate(0, sizeof(wchar_t) * capacity, 0, MEMORY_TEMPORARY);
-	wstring_from_string(wpattern, capacity, path, length);
-	if (length && (path[length - 1] != '/'))
-		wpattern[wsize++] = L'/';
-	wpattern[wsize++] = L'*';
-	wpattern[wsize] = 0;
-
-	find = FindFirstFileW(wpattern, &data);
-	if (find != INVALID_HANDLE_VALUE)
+	WIN32_FIND_DATAA data;
+	HANDLE find = FindFirstFileA(cleanpath.str, &data);
+	if (find != INVALID_HANDLE_VALUE) {
 		do {
-			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-				array_push(arr, string_allocate_from_wstring(data.cFileName, wstring_length(data.cFileName)));
-		} while (FindNextFileW(find, &data));
+			if (!(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+				string_t filename;
+				if (data.cFileName[0] == '.') {
+					if (!data.cFileName[1] || (data.cFileName[1] == '.'))
+						continue;  // Don't include . and .. directories
+				}
+				filename = string_clone(data.cFileName, string_length(data.cFileName));
+				array_push(arr, filename);
+			}
+		} while (FindNextFileA(find, &data));
+	}
 	FindClose(find);
-
-	memory_deallocate(wpattern);
-	memory_context_pop();
 
 #elif FOUNDATION_PLATFORM_POSIX
 
@@ -594,20 +585,30 @@ fs_stat(const char* path, size_t length) {
 	BOOL success = 0;
 	string_const_t cpath = fs_strip_protocol(path, length);
 	if (cpath.length) {
+		/*
 		wchar_t* wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
 		success = GetFileAttributesExW(wpath, GetFileExInfoStandard, &attrib);
 		wstring_deallocate(wpath);
+		*/
+		char buffer[BUILD_MAX_PATHLEN];
+		string_t cleanpath = string_copy(buffer, sizeof(buffer), path, length);
+		success = GetFileAttributesExA(cleanpath.str, GetFileExInfoStandard, &attrib);
 	}
 	if (success) {
 		fsstat.size = ((uint64_t)attrib.nFileSizeHigh << 32ULL) + attrib.nFileSizeLow;
+		fsstat.is_valid = true;
 		fsstat.is_directory = (attrib.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 		fsstat.is_file = !fsstat.is_directory;
-		fsstat.mode = (attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY) ? 0644 : 0664;
+		// Set some reasonable defaults for file mode since Windows does not have it
+		if (fsstat.is_directory)
+			fsstat.mode = (attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY) ? 0555 : 0755;
+		else
+			fsstat.mode = (attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY) ? 0444 : 0644;
 
 		// This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan
 		// 1601" was a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date
 		// for unix time, 1 Jan 1970, is 116444736000000000
-		const int64_t ms_offset_time = 116444736000000000LL;
+		const uint64_t ms_offset_time = 116444736000000000ULL;
 		uint64_t high_time = (uint64_t)attrib.ftLastWriteTime.dwHighDateTime;
 		uint64_t low_time = (uint64_t)attrib.ftLastWriteTime.dwLowDateTime;
 		uint64_t last_write_time = ((high_time << 32ULL) + low_time);
@@ -628,6 +629,7 @@ fs_stat(const char* path, size_t length) {
 			fsstat.size = (uint64_t)st.st_size;
 			fsstat.last_modified = (uint64_t)st.st_mtime * 1000LL;
 			fsstat.mode = st.st_mode & 0777;
+			fsstat.is_valid = true;
 			fsstat.is_file = S_ISREG(st.st_mode);
 			fsstat.is_directory = S_ISDIR(st.st_mode);
 		}

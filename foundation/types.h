@@ -1169,6 +1169,8 @@ struct fs_stat_t {
 	uint64_t last_modified;
 	/*! Protect mode */
 	uint32_t mode;
+	/*! Exists */
+	bool is_valid;
 	/*! File flag */
 	bool is_file;
 	/*! Directory flag */
