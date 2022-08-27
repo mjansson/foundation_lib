@@ -104,6 +104,13 @@ will NOT create the file if it does not exist.
 FOUNDATION_API void
 fs_touch(const char* path, size_t length);
 
+/*! Set file mode
+\param path   File path
+\param length Length of path
+\param mode   New file mode */
+FOUNDATION_API void
+fs_set_mode(const char* path, size_t length, uint mode);
+
 /*! Get file size
 \param path   File path
 \param length Length of path

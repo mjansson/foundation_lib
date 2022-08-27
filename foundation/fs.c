@@ -376,6 +376,32 @@ fs_move_file(const char* path_source, size_t length_source, const char* path_des
 	return result;
 }
 
+void
+fs_set_mode(const char* path, size_t length, uint mode) {
+	string_const_t fspath = fs_strip_protocol(path, length);
+	if (!fspath.length)
+		return;
+
+#if FOUNDATION_PLATFORM_WINDOWS
+
+	wchar_t* wpath = wstring_allocate_from_string(fspath.str, fspath.length);
+	if (mode & 0200)
+		SetFileAttributesW(wpath, FILE_ATTRIBUTE_ARCHIVE);
+	else
+		SetFileAttributesW(wpath, FILE_ATTRIBUTE_READONLY);
+	wstring_deallocate(wpath);
+
+#elif FOUNDATION_PLATFORM_POSIX
+
+	char buffer[BUILD_MAX_PATHLEN];
+	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
+	chmod(finalpath.str, mode);
+
+#else
+#error Not implemented
+#endif
+}
+
 bool
 fs_remove_file(const char* path, size_t length) {
 	bool result;
@@ -388,9 +414,14 @@ fs_remove_file(const char* path, size_t length) {
 	if (!fspath.length)
 		return false;
 
+	fs_stat_t stat = fs_stat(STRING_ARGS(fspath));
+	if (!stat.is_file)
+		return false;
+
 #if FOUNDATION_PLATFORM_WINDOWS
 
 	wpath = wstring_allocate_from_string(fspath.str, fspath.length);
+	SetFileAttributesW(wpath, FILE_ATTRIBUTE_NORMAL);
 	result = DeleteFileW(wpath);
 	wstring_deallocate(wpath);
 
@@ -398,6 +429,8 @@ fs_remove_file(const char* path, size_t length) {
 
 	char buffer[BUILD_MAX_PATHLEN];
 	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
+
+	chmod(finalpath.str, 0664);
 	result = (unlink(finalpath.str) == 0);
 
 #else
