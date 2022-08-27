@@ -395,7 +395,7 @@ fs_set_mode(const char* path, size_t length, uint mode) {
 
 	char buffer[BUILD_MAX_PATHLEN];
 	string_t finalpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(fspath));
-	chmod(finalpath.str, mode);
+	chmod(finalpath.str, (mode_t)mode);
 
 #else
 #error Not implemented
