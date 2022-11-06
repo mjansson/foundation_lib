@@ -206,9 +206,9 @@ and disabled in all other configurations.
 
 #ifndef BUILD_ENABLE_MEMORY_GUARD
 #if BUILD_DEBUG || BUILD_RELEASE
-//#define BUILD_ENABLE_MEMORY_GUARD 1
+#define BUILD_ENABLE_MEMORY_GUARD 1
 // Set to > 1 for allocating new pages for each block with hazard page guards (extremely slow)
-#define BUILD_ENABLE_MEMORY_GUARD 2
+//#define BUILD_ENABLE_MEMORY_GUARD 2
 #else
 #define BUILD_ENABLE_MEMORY_GUARD 0
 #endif
