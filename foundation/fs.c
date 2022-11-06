@@ -511,7 +511,7 @@ fs_make_directory(const char* path, size_t length) {
 	localpath = string_copy(abspath_buffer, sizeof(abspath_buffer), path, length);
 	fspath = fs_strip_protocol(STRING_ARGS(localpath));
 	if (!fspath.length)
-		return false;
+		return true;
 	localpath = (string_t){localpath.str + pointer_diff(fspath.str, localpath.str), fspath.length};
 	offset = 1;
 
@@ -1381,15 +1381,15 @@ fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	                     (direction == STREAM_SEEK_BEGIN) ?
 	                         FILE_BEGIN :
                              ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %" PRId64 ":%d in stream '%.*s'"), (int64_t)offset,
-		          (int)direction, STRING_FORMAT(stream->path));
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %" PRId64 ":%d in stream '%.*s'"),
+		          (int64_t)offset, (int)direction, STRING_FORMAT(stream->path));
 	}
 #else
 	/*lint -esym(970,long) */
 	if (fseek(GET_FILE(stream)->fd, (long)offset,
 	          (direction == STREAM_SEEK_BEGIN) ? SEEK_SET : ((direction == STREAM_SEEK_END) ? SEEK_END : SEEK_CUR))) {
-		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %" PRId64 ":%d in stream '%.*s'"), (int64_t)offset,
-		          (int)direction, STRING_FORMAT(stream->path));
+		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %" PRId64 ":%d in stream '%.*s'"),
+		          (int64_t)offset, (int)direction, STRING_FORMAT(stream->path));
 	}
 #endif
 }
