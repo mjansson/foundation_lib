@@ -89,3 +89,8 @@ uuidmap_size(uuidmap_t* map);
 \param map UUID map */
 FOUNDATION_API void
 uuidmap_clear(uuidmap_t* map);
+
+/*! Call function for each value in hashmap
+\param fn Function to call */
+FOUNDATION_API void
+uuidmap_foreach(uuidmap_t* map, void (*fn)(void*, void*), void* context);

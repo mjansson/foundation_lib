@@ -133,3 +133,12 @@ uuidmap_clear(uuidmap_t* map) {
 		array_clear(map->bucket[ibucket]);
 	map->node_count = 0;
 }
+
+void
+uuidmap_foreach(uuidmap_t* map, void (*fn)(void*, void*), void* context) {
+	for (size_t ibucket = 0; ibucket < map->bucket_count; ++ibucket) {
+		uuidmap_node_t* bucket = map->bucket[ibucket];
+		for (size_t inode = 0, nsize = array_size(bucket); inode < nsize; ++inode)
+			fn(bucket[inode].value, context);
+	}
+}
