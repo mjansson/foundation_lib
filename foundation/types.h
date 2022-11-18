@@ -365,6 +365,8 @@ a normal windowing system interaction loop */
 #define APPLICATION_UTILITY (1U << 0)
 /*! Application flag, application is a daemon/service */
 #define APPLICATION_DAEMON (1U << 1)
+/*! Application flag, application is unattended */
+#define APPLICATION_UNATTENDED (1U << 2)
 
 /*! Stream mode/flag, stream is readable */
 #define STREAM_IN 1U
