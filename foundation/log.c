@@ -401,6 +401,17 @@ log_suppress_clear(hash_t context) {
 
 #endif
 
+#if FOUNDATION_PLATFORM_WINDOWS && BUILD_ENABLE_LOG
+
+static void
+enable_vt100(HANDLE stream) {
+	DWORD current_mode = 0;
+	GetConsoleMode(stream, &current_mode);
+	SetConsoleMode(stream, current_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN);
+}
+
+#endif
+
 int
 internal_log_initialize(void) {
 #if BUILD_ENABLE_LOG
@@ -416,6 +427,12 @@ internal_log_initialize(void) {
 	else
 		log_hwthread_width = 8;
 	log_tid_width = 4;
+
+#if FOUNDATION_PLATFORM_WINDOWS
+	// In Windows 10 and later we can use VT100 controls if we enable it
+	enable_vt100(GetStdHandle(STD_OUTPUT_HANDLE));
+	enable_vt100(GetStdHandle(STD_ERROR_HANDLE));
+#endif
 #endif
 	return 0;
 }
