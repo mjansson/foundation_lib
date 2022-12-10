@@ -964,13 +964,13 @@ struct memory_tracker_t {
 /*! Memory statistics */
 struct memory_statistics_t {
 	/*! Number of allocations in total, running counter */
-	uint32_t allocations_total;
+	uint64_t allocations_total;
 	/*! Number fo allocations, current */
-	uint32_t allocations_current;
+	uint64_t allocations_current;
 	/*! Number of allocated bytes in total, running counter */
-	uint32_t allocated_total;
+	uint64_t allocated_total;
 	/*! Number of allocated bytes, current */
-	uint32_t allocated_current;
+	uint64_t allocated_current;
 };
 
 /*! Version identifier expressed as an 128-bit integer with major, minor,
