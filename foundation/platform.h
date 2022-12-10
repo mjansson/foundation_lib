@@ -80,6 +80,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #define FOUNDATION_ARCH_SSE3 0
 #define FOUNDATION_ARCH_SSE4 0
 #define FOUNDATION_ARCH_SSE4_FMA3 0
+#define FOUNDATION_ARCH_AVX 0
 #define FOUNDATION_ARCH_NEON 0
 #define FOUNDATION_ARCH_THUMB 0
 
@@ -613,6 +614,11 @@ thread local storage to ensure maximum portability across supported platforms */
 #ifdef __SSE4_1__
 #undef FOUNDATION_ARCH_SSE4
 #define FOUNDATION_ARCH_SSE4 1
+#endif
+
+#ifdef __AVX__
+#undef FOUNDATION_ARCH_AVX
+#define FOUNDATION_ARCH_AVX 1
 #endif
 
 #ifdef __ARM_NEON__
