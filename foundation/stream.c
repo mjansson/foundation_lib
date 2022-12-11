@@ -864,8 +864,8 @@ stream_available_read(stream_t* stream) {
 	return (unsigned int)(stream_size(stream) - stream_tell(stream));
 }
 
-static bool
-stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t), void* data) {
+bool
+stream_digest(stream_t* stream, void* (*digester)(void*, const void*, size_t), void* data) {
 	size_t cur, ic, lastc, size, limit;
 	unsigned char buf[1025];
 	bool ignore_lf = false;
@@ -883,9 +883,10 @@ stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t),
 		size = stream->vtable->read(stream, buf, limit);
 		if (!size)
 			continue;
-		if (stream->mode & STREAM_BINARY)
-			digester(data, buf, size);
-		else {
+		if (stream->mode & STREAM_BINARY) {
+			if (!digester(data, buf, size))
+				return false;
+		} else {
 			// If last buffer ended with CR, ignore a leading LF
 			lastc = 0;
 			if (ignore_lf && (buf[0] == '\n'))
@@ -905,14 +906,19 @@ stream_digester(stream_t* stream, void* (*digester)(void*, const void*, size_t),
 					if (was_cr && (ic == limit - 1))
 						ignore_lf = true;  // Make next buffer ignore leading LF as it is part of CR+LF
 					buf[ic] = '\n';
-					digester(data, buf + lastc, (size_t)((ic - lastc) + 1));  // Include the LF
-					if (was_cr && (buf[ic + 1] == '\n'))                      // Check for CR+LF
+					// Include the LF
+					if (!digester(data, buf + lastc, (size_t)((ic - lastc) + 1)))
+						return false;
+					// Check for CR+LF
+					if (was_cr && (buf[ic + 1] == '\n'))
 						++ic;
 					lastc = ic + 1;
 				}
 			}
-			if (lastc < size)
-				digester(data, buf + lastc, size - lastc);
+			if (lastc < size) {
+				if (!digester(data, buf + lastc, size - lastc))
+					return false;
+			}
 		}
 	}
 
@@ -929,7 +935,7 @@ stream_md5(stream_t* stream) {
 		return stream->vtable->md5(stream);
 
 	md5_initialize(&md5);
-	if (stream_digester(stream, (void* (*)(void*, const void*, size_t))md5_digest, &md5)) {
+	if (stream_digest(stream, (void* (*)(void*, const void*, size_t))md5_digest, &md5)) {
 		md5_digest_finalize(&md5);
 		ret = md5_get_digest_raw(&md5);
 	}
@@ -947,7 +953,7 @@ stream_sha256(stream_t* stream) {
 		return stream->vtable->sha256(stream);
 
 	sha256_initialize(&sha);
-	if (stream_digester(stream, (void* (*)(void*, const void*, size_t))sha256_digest, &sha)) {
+	if (stream_digest(stream, (void* (*)(void*, const void*, size_t))sha256_digest, &sha)) {
 		sha256_digest_finalize(&sha);
 		ret = sha256_get_digest_raw(&sha);
 	}
@@ -965,7 +971,7 @@ stream_sha512(stream_t* stream) {
 		return stream->vtable->sha512(stream);
 
 	sha512_initialize(&sha);
-	if (stream_digester(stream, (void* (*)(void*, const void*, size_t))sha512_digest, &sha)) {
+	if (stream_digest(stream, (void* (*)(void*, const void*, size_t))sha512_digest, &sha)) {
 		sha512_digest_finalize(&sha);
 		ret = sha512_get_digest_raw(&sha);
 	}

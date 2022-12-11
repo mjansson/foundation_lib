@@ -493,3 +493,12 @@ stream_set_protocol_handler(const char* protocol, size_t length, stream_open_fn 
 \return Handler function, 0 if none registered */
 FOUNDATION_API stream_open_fn
 stream_protocol_handler(const char* protocol, size_t length);
+
+/*! Read and digest the stream content. Will do line ending unification for ascii
+mode streams.
+\param stream Stream to digest
+\param digester Digestion function
+\param data User data pointer passed
+\return true if digestion succeeded, false if not */
+FOUNDATION_API bool
+stream_digest(stream_t* stream, void* (*digester)(void*, const void*, size_t), void* data);
