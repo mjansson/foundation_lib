@@ -54,7 +54,8 @@ memory block (maximum size of array).
 number of currently stored elements.
 \param array    Array pointer
 \param capacity New capacity */
-#define array_reserve(array, capacity) ((void)_array_maybegrowfixed(array, (capacity)-array_capacity(array)))
+#define array_reserve(array, capacity) \
+	((void)_array_maybegrowfixed(array, (int)(capacity) - (int)array_capacity(array)))
 
 /*!  Get number of currently stored elements.
 \param array Array pointer */
@@ -86,7 +87,7 @@ capacity. Value of the expression is the size of the destination array after cop
 #define array_copy(dst, src)                                                                                          \
 	((_array_verify(src) && _array_elementsize(src) == _array_elementsize(dst) &&                                     \
 	  _array_maybegrowfixed((dst), (_array_rawsize_const(src) - (_array_verify(dst) ? (_array_rawsize(dst)) : 0)))) ? \
-         (memcpy((dst), (src), (_array_rawsize_const(src)) * _array_elementsize(src)),                                \
+	     (memcpy((dst), (src), (_array_rawsize_const(src)) * _array_elementsize(src)),                                \
 	      (_array_rawsize(dst) = _array_rawsize_const(src))) :                                                        \
          array_clear(dst))
 
@@ -102,7 +103,7 @@ is new array pointer.
 \param elementptr Pointer to new element */
 #define array_push_memcpy(array, elementptr) /*lint -e{506,522}*/                               \
 	(_array_maybegrow(array, 1) ?                                                               \
-         (memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array)) : \
+	     (memcpy((array) + _array_rawsize(array)++, (elementptr), sizeof(*(array))), (array)) : \
          (array))
 
 /*! Add element at given position in array with assignment. Position is NOT range checked.
@@ -173,8 +174,8 @@ using memcpy. Position is NOT ranged checked.
 \param pos   Position */
 #define array_erase_memcpy(array, pos)                                                                     \
 	(_array_verify(array) ?                                                                                \
-         (((uint32_t)(pos) != (_array_rawsize(array) - 1) ?                                                \
-               memcpy((array) + (pos), (array) + (_array_rawsize(array) - 1), _array_elementsize(array)) : \
+	     (((uint32_t)(pos) != (_array_rawsize(array) - 1) ?                                                \
+	           memcpy((array) + (pos), (array) + (_array_rawsize(array) - 1), _array_elementsize(array)) : \
                0),                                                                                         \
 	      --_array_rawsize(array)) :                                                                       \
          0)
@@ -217,7 +218,7 @@ in array. Position and number of elements are NOT ranged checked
 \param count      Number of elements to erase */
 #define array_erase_ordered_range(array, pos, count)                                 \
 	(_array_verify(array) && (/*lint -e506 */ (count) > 0) ?                         \
-     memmove((array) + (pos), (array) + (pos) + (count),                             \
+	 memmove((array) + (pos), (array) + (pos) + (count),                             \
 	         (_array_rawsize(array) - (pos) - (count)) * _array_elementsize(array)), \
 	 (_array_rawsize(array) -= (count)) : 0)
 
@@ -257,11 +258,11 @@ in array. Position and number of elements ARE ranged checked
 #define _array_rawsize_const(a) _array_raw_const(a)[1]
 #define _array_elementsize(a) ((size_t)(pointer_diff(&(a)[1], &(a)[0])))
 #define _array_needgrow(a, n) /*lint -e506 */ \
-	(((n) > 0) && (!_array_verify(a) || (_array_rawsize_const(a) + (n)) > _array_rawcapacity_const(a)))
+	(((n) > 0) && (!_array_verify(a) || (_array_rawsize_const(a) + (uint)(n)) > _array_rawcapacity_const(a)))
 #define _array_maybegrow(a, n) (_array_needgrow(a, (n)) ? _array_grow(a, n, 2) : (a))
-#define _array_maybegrowfixed(a, n) (_array_needgrow(a, (n)) ? _array_grow(a, n, 1) : (a))
-#define _array_grow(a, n, f) (internal_array_growfn((void**)&(a), (n), (f), _array_elementsize(a)))
-#define _array_resize(a, n) (internal_array_resizefn((void**)&(a), (n), _array_elementsize(a)))
+#define _array_maybegrowfixed(a, n) (_array_needgrow(a, (n)) ? _array_grow(a, (uint)(n), 1) : (a))
+#define _array_grow(a, n, f) (internal_array_growfn((void**)&(a), (uint)(n), (f), _array_elementsize(a)))
+#define _array_resize(a, n) (internal_array_resizefn((void**)&(a), (uint)(n), _array_elementsize(a)))
 
 #define _array_verify_index(a, n) ((uint32_t)(n) < _array_rawsize(a))
 
