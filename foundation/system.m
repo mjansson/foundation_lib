@@ -31,6 +31,11 @@ system_process_info_processor_count(void) {
 int
 system_show_alert(const char* title, size_t title_length, const char* message, size_t message_length,
                   int cancel_button) {
+	if (environment_application()->flags & (APPLICATION_UTILITY | APPLICATION_UNATTENDED)) {
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("%.*s\n%.*s"), (int)title_length, title, (int)message_length,
+		          message);
+		return 0;
+	}
 	// TODO: Use cancel_button control
 	FOUNDATION_UNUSED(cancel_button);
 	@autoreleasepool {
