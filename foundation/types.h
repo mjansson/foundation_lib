@@ -94,6 +94,8 @@ typedef enum {
 	ERROR_SCRIPT,
 	/*! Data was corrupted */
 	ERROR_CORRUPT_DATA,
+	/*! Network or server side error */
+	ERROR_NETWORK,
 	/*! Marker, last reserved internal error identifier */
 	ERROR_LAST_BUILTIN = 0x0fff
 } error_t;
@@ -121,6 +123,8 @@ typedef enum {
 	WARNING_SCRIPT,
 	/*! Resource was missing or corrupt */
 	WARNING_RESOURCE,
+	/*! Network issue */
+	WARNING_NETWORK,
 	/*! Marker, last reserved inernal warning identifier */
 	WARNING_LAST_BUILTIN = 0x0fff
 } warning_t;

@@ -45,12 +45,12 @@ static hashtable64_t* log_suppress_table;
 static error_level_t log_suppress_default;
 static bool log_auto_newline = true;
 
-#define LOG_WARNING_NAMES 10
+#define LOG_WARNING_NAMES 11
 static char* log_warning_name[LOG_WARNING_NAMES] = {"performance", "deprecated", "invalid value",    "memory",
                                                     "unsupported", "suspicious", "system call fail", "deadlock",
-                                                    "script",      "resource"};
+                                                    "script",      "resource",   "network"};
 
-#define LOG_ERROR_NAMES 17
+#define LOG_ERROR_NAMES 18
 static char* log_error_name[LOG_ERROR_NAMES] = {"none",
                                                 "invalid value",
                                                 "unsupported",
@@ -67,7 +67,8 @@ static char* log_error_name[LOG_ERROR_NAMES] = {"none",
                                                 "deprecated",
                                                 "assert",
                                                 "script",
-                                                "corrupt data"};
+                                                "corrupt data",
+                                                "network"};
 
 struct log_timestamp_t {
 	int hours;
