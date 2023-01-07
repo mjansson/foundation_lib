@@ -123,7 +123,7 @@ memory_guard_initialize(void* memory, size_t size, size_t align) {
 		align = FOUNDATION_MIN_ALIGN * 2;
 	void* start = pointer_offset(memory, align);
 	uint32_t* guard_header = pointer_offset(start, -FOUNDATION_MIN_ALIGN * 2);
-	uint32_t* guard_footer = pointer_offset(start, size - (align * 2));
+	uint32_t* guard_footer = pointer_offset(start, size);
 	for (int guard_loop = 0; guard_loop < (FOUNDATION_MIN_ALIGN * 2) / 4; ++guard_loop) {
 		*(guard_header + guard_loop) = MEMORY_GUARD_VALUE;
 		*(guard_footer + guard_loop) = MEMORY_GUARD_VALUE;
@@ -138,7 +138,7 @@ memory_guard_verify(void* memory) {
 	uint32_t* guard_header = pointer_offset(memory, -FOUNDATION_MIN_ALIGN * 2);
 	uint32_t align = *guard_header;
 	uint32_t size = *(guard_header + 1);
-	uint32_t* guard_footer = pointer_offset(memory, size - (align * 2));
+	uint32_t* guard_footer = pointer_offset(memory, size);
 	for (int guard_loop = 0; guard_loop < (FOUNDATION_MIN_ALIGN * 2) / 4; ++guard_loop) {
 		if ((guard_loop > 1) && (*(guard_header + guard_loop) != MEMORY_GUARD_VALUE)) {
 			FOUNDATION_ASSERT_MSG(*guard_header == MEMORY_GUARD_VALUE, "Memory underwrite");
@@ -281,6 +281,7 @@ memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
 		align = FOUNDATION_MIN_ALIGN;
 #endif
 #if BUILD_ENABLE_MEMORY_GUARD
+	size_t actual_size = size;
 	if (align < (FOUNDATION_MIN_ALIGN * 2))
 		size += FOUNDATION_MIN_ALIGN * 4;
 	else
@@ -324,7 +325,7 @@ memory_allocate_malloc_raw(size_t size, unsigned int align, unsigned int hint) {
 #endif
 #endif
 #if BUILD_ENABLE_MEMORY_GUARD
-	memory = memory_guard_initialize(memory, size, align);
+	memory = memory_guard_initialize(memory, actual_size, align);
 #endif
 	if (!memory) {
 		log_errorf(HASH_MEMORY, ERROR_OUT_OF_MEMORY, STRING_CONST("Unable to allocate %" PRIsize " bytes of memory"),
