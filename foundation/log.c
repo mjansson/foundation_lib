@@ -43,7 +43,7 @@ static bool log_prefix = true;
 static log_handler_fn log_handler_user;
 static hashtable64_t* log_suppress_table;
 static error_level_t log_suppress_default;
-static bool log_auto_newline = true;
+static bool FOUNDATION_THREADLOCAL log_auto_newline = true;
 
 #define LOG_WARNING_NAMES 11
 static char* log_warning_name[LOG_WARNING_NAMES] = {"performance", "deprecated", "invalid value",    "memory",
