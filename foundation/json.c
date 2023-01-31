@@ -292,6 +292,7 @@ parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens,
 	unsigned int owner;
 	size_t string;
 	bool simple_string;
+	json_type_t type;
 
 	pos = skip_whitespace(buffer, length, pos);
 	while (pos < length) {
@@ -328,10 +329,15 @@ parse_value(const char* buffer, size_t length, size_t pos, json_token_t* tokens,
 			case '8':
 			case '9':
 			case '.':
+				type = JSON_PRIMITIVE;
 				string = parse_number(buffer, length, pos - 1);
+				if ((string == STRING_NPOS) && simple) {
+					type = JSON_STRING;
+					string = parse_string(buffer, length, pos - 1, false, true);
+				}
 				if (string == STRING_NPOS)
 					return STRING_NPOS;
-				set_token_primitive(tokens, capacity, *current, JSON_PRIMITIVE, pos - 1, string);
+				set_token_primitive(tokens, capacity, *current, type, pos - 1, string);
 				++(*current);
 				return pos + string - 1;
 
