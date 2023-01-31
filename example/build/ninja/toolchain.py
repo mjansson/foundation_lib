@@ -14,6 +14,16 @@ import version
 import android
 import xcode
 
+
+def check_output(args):
+  import subprocess
+  return subprocess.check_output(args).decode().strip()
+
+def check_last_output(args):
+  import subprocess
+  output = subprocess.check_output(args).decode().strip()
+  return output.splitlines()[-1]
+
 def supported_toolchains():
   return ['msvc', 'gcc', 'clang', 'intel']
 
@@ -44,10 +54,12 @@ class Toolchain(object):
     self.target = target
     self.toolchain = toolchain
     self.subninja = ''
+    self.buildprefs = ''
 
     #Set default values
     self.build_monolithic = False
     self.build_coverage = False
+    self.build_lto = False
     self.support_lua = False
     self.internal_deps = False
     self.python = 'python'
@@ -126,7 +138,7 @@ class Toolchain(object):
   def initialize_default_archs(self):
     if self.target.is_windows():
       self.archs = ['x86-64']
-    elif self.target.is_linux() or self.target.is_bsd():
+    elif self.target.is_linux() or self.target.is_bsd() or self.target.is_sunos() or self.target.is_haiku():
       localarch = subprocess.check_output(['uname', '-m']).decode().strip()
       if localarch == 'x86_64' or localarch == 'amd64':
         self.archs = ['x86-64']
@@ -135,7 +147,7 @@ class Toolchain(object):
       else:
         self.archs = [localarch]
     elif self.target.is_macos():
-      self.archs = ['x86-64']
+      self.archs = ['x86-64', 'arm64']
     elif self.target.is_ios():
       self.archs = ['arm7', 'arm64']
     elif self.target.is_raspberrypi():
@@ -202,6 +214,8 @@ class Toolchain(object):
         self.build_monolithic = get_boolean_flag(val)
       elif key == 'coverage':
         self.build_coverage = get_boolean_flag(val)
+      elif key == 'lto':
+        self.build_lto = get_boolean_flag(val)
       elif key == 'support_lua':
         self.support_lua = get_boolean_flag(val)
       elif key == 'internal_deps':
@@ -212,6 +226,8 @@ class Toolchain(object):
   def read_build_prefs(self):
     self.read_prefs('build.json')
     self.read_prefs(os.path.join('build', 'ninja', 'build.json'))
+    if self.buildprefs != '':
+      self.read_prefs(self.buildprefs)
 
   def read_prefs(self, filename):
     if not os.path.isfile( filename ):
@@ -226,6 +242,8 @@ class Toolchain(object):
       self.build_monolithic = get_boolean_flag(prefs['monolithic'])
     if 'coverage' in prefs:
       self.build_coverage = get_boolean_flag( prefs['coverage'] )
+    if 'lto' in prefs:
+      self.build_lto = get_boolean_flag( prefs['lto'] )
     if 'support_lua' in prefs:
       self.support_lua = get_boolean_flag(prefs['support_lua'])
     if 'python' in prefs:
@@ -249,6 +267,9 @@ class Toolchain(object):
 
   def use_coverage(self):
     return self.build_coverage
+
+  def use_lto(self):
+    return self.build_lto
 
   def write_variables(self, writer):
     writer.variable('buildpath', self.buildpath)
