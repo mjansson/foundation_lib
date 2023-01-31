@@ -182,7 +182,7 @@ memory_size(const void* p) {
 
 bool
 memory_verify(const void* p) {
-	return memory_system_current.verify(p);
+	return memory_system_current.verify ? memory_system_current.verify(p) : true;
 }
 
 memory_statistics_t
