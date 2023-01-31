@@ -472,7 +472,7 @@ static void* stacktrace_psapi_dll;
 #endif
 
 static bool
-initialize_symbol_resolve() {
+initialize_symbol_resolve(void) {
 	if (symbol_resolve_initialized)
 		return true;
 
@@ -575,7 +575,7 @@ initialize_symbol_resolve() {
 }
 
 static void
-finalize_symbol_resolve() {
+finalize_symbol_resolve(void) {
 #if FOUNDATION_PLATFORM_ANDROID
 	memory_deallocate(_process_modules);
 	_process_modules = 0;

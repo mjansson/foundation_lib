@@ -112,7 +112,7 @@ static const platform_info_t platform_info = {
 };
 
 static char*
-system_buffer() {
+system_buffer(void) {
 	char* buffer = get_thread_system_buffer();
 	if (!buffer) {
 		buffer = memory_allocate(0, SYSTEM_BUFFER_SIZE + 1, 0, MEMORY_PERSISTENT | MEMORY_ZERO_INITIALIZED);
@@ -122,17 +122,17 @@ system_buffer() {
 }
 
 platform_t
-system_platform() {
+system_platform(void) {
 	return platform_info.platform;
 }
 
 architecture_t
-system_architecture() {
+system_architecture(void) {
 	return platform_info.architecture;
 }
 
 byteorder_t
-system_byteorder() {
+system_byteorder(void) {
 	return platform_info.byteorder;
 }
 
