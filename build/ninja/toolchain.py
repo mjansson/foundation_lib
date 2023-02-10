@@ -5,15 +5,17 @@
 import sys
 import os
 import subprocess
-import platform
 import random
 import string
 import json
 import zlib
+
+import platform
 import version
 import android
 import xcode
 
+created_directories = {}
 
 def check_output(args):
   import subprocess
@@ -119,9 +121,6 @@ class Toolchain(object):
 
     #Builders
     self.builders = {}
-
-    #Paths created
-    self.paths_created = {}
 
   def initialize_subninja(self, path):
     self.subninja = path
@@ -295,13 +294,21 @@ class Toolchain(object):
   def mkdircmd(self):
     return self.mkdircmd
 
-  def mkdir(self, writer, path, implicit = None, order_only = None):
-    if path in self.paths_created:
-      return self.paths_created[path]
+  def mkdir(self, writer, path, implicit = None, order_only = None, build_all = False, subninja = False):
     if self.subninja != '':
-      return
+      if not subninja:
+        return
+    while path.endswith('/') or path.endswith('\\'):
+      path = path[:-1]
+    if path in created_directories:
+      return created_directories[path]
+    if build_all:
+      head_tail = os.path.split(path)
+      if len(head_tail[0]):
+        subcmd = self.mkdir(writer, head_tail[0], implicit, order_only, build_all)
+        implicit = writer._as_list(implicit) + writer._as_list(subcmd)
     cmd = writer.build(path, 'mkdir', None, implicit = implicit, order_only = order_only)
-    self.paths_created[path] = cmd
+    created_directories[path] = cmd
     return cmd
 
   def copy(self, writer, src, dst, implicit = None, order_only = None):
@@ -309,7 +316,6 @@ class Toolchain(object):
 
   def builder_multicopy(self, writer, config, archs, targettype, infiles, outpath, variables):
     output = []
-    rootdir = self.mkdir(writer, outpath)
     for file in infiles:
       path, targetfile = os.path.split(file)
       archpath = outpath
@@ -326,8 +332,7 @@ class Toolchain(object):
           break
       targetpath = os.path.join(archpath, targetfile)
       if os.path.normpath(file) != os.path.normpath(targetpath):
-        archdir = self.mkdir(writer, archpath, implicit = rootdir)
-        output += self.copy(writer, file, targetpath, order_only = archdir)
+        output += self.copy(writer, file, targetpath)
     return output
 
   def path_escape(self, path):
@@ -386,10 +391,12 @@ class Toolchain(object):
     return []
 
   def build_sources(self, writer, nodetype, multitype, module, sources, binfile, basepath, outpath, configs, includepaths, libpaths, dependlibs, libs, implicit_deps, variables, frameworks):
+    pathprefix = ""
+    if basepath != '':
+      pathprefix = basepath + "-"
     if module != '':
-      decoratedmodule = module + make_pathhash(self.subninja + module + binfile, nodetype)
-    else:
-      decoratedmodule = basepath + make_pathhash(self.subninja + basepath + binfile, nodetype)
+      pathprefix += module + "-"
+    decoratedmodule = pathprefix[:-1] + make_pathhash(self.subninja + pathprefix + binfile, nodetype)
     built = {}
     if includepaths is None:
       includepaths = []
@@ -415,8 +422,7 @@ class Toolchain(object):
       built[config] = []
       for arch in self.archs:
         objs = []
-        buildpath = os.path.join('$buildpath', config, arch)
-        modulepath = os.path.join(buildpath, basepath, decoratedmodule)
+        modulepath = os.path.join('$buildpath', config, arch, decoratedmodule)
         sourcevariables['modulepath'] = modulepath
         nodevariables['modulepath'] = modulepath
         #Make per-arch-and-config list of final implicit deps, including dependent libs
@@ -433,7 +439,7 @@ class Toolchain(object):
             outfile = os.path.join(modulepath, os.path.splitext(os.path.basename(name))[0] + make_pathhash(infile, nodetype) + self.objext)
           else:
             infile = os.path.join(basepath, module, name)
-            outfile = os.path.join(modulepath, os.path.splitext(name)[0] + make_pathhash(infile, nodetype) + self.objext)
+            outfile = os.path.join(modulepath, os.path.splitext(os.path.basename(name))[0] + make_pathhash(infile, nodetype) + self.objext)
             if self.subninja != '':
               infile = os.path.join(self.subninja, infile)
           objs += self.compile_file(writer, config, arch, nodetype, infile, outfile, sourcevariables)
