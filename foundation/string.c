@@ -1083,6 +1083,21 @@ string_glyphs(const char* str, size_t length) {
 	return num;
 }
 
+int
+string_glyph_length(const char* str, size_t length) {
+	if (!length)
+		return -1;
+	const uint8_t* byte = (const uint8_t*)str;
+	size_t byte_count = get_utf8_bytes_count(*byte);
+	if (byte_count > length)
+		return -1;
+	for (uint ibyte = 1; ibyte < byte_count; ++ibyte) {
+		if ((byte[ibyte] & 0xC0) != 0x80)
+			return -1;
+	}
+	return (int)byte_count;
+}
+
 wchar_t*
 wstring_allocate_from_string(const char* cstr, size_t length) {
 	wchar_t* buffer;

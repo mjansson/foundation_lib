@@ -164,6 +164,15 @@ invalid utf-8 sequences, even with incomplete sequences at end of string.
 FOUNDATION_API size_t
 string_glyphs(const char* str, size_t length);
 
+/*! Get number of bytes used by the ut-8 encoded character. This method is safe to call with
+invalid utf-8 sequences, even with incomplete sequences at end of string. Returns -1 if invalid
+utf-8 sequence.
+\param str String in utf-8 encoding
+\param length Length of string
+\return Number of bytes used by the first unicode glyph in string */
+FOUNDATION_API int
+string_glyph_length(const char* str, size_t length);
+
 /*! Calculate hash of string.
 \param str String
 \param length Length of string
