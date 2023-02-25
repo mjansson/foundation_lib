@@ -544,6 +544,8 @@ fs_make_directory(const char* path, size_t length) {
 					log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Failed to create directory '%.*s': %.*s (%d)"),
 					          STRING_FORMAT(localpath), STRING_FORMAT(errmsg), err);
 					goto end;
+				} else {
+					result = true;
 				}
 			}
 		} else {
@@ -634,9 +636,9 @@ fs_stat(const char* path, size_t length) {
 		fsstat.is_file = !fsstat.is_directory;
 		// Set some reasonable defaults for file mode since Windows does not have it
 		if (fsstat.is_directory)
-			fsstat.mode = (attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY) ? 0555 : 0755;
+			fsstat.mode = (attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY) ? 0555 : 0775;
 		else
-			fsstat.mode = (attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY) ? 0444 : 0644;
+			fsstat.mode = (attrib.dwFileAttributes & FILE_ATTRIBUTE_READONLY) ? 0444 : 0664;
 
 		// This is retarded beyond belief, Microsoft decided that "100-nanosecond intervals since 1 Jan
 		// 1601" was a nice basis for a timestamp... wtf? Anyway, number of such intervals to base date
@@ -1091,7 +1093,7 @@ fs_monitor_thread(void* monitorptr) {
 
 					info = info->NextEntryOffset ?
 					           (PFILE_NOTIFY_INFORMATION)(pointer_offset(info, info->NextEntryOffset)) :
-                               nullptr;
+					           nullptr;
 				} while (info);
 			}
 		}
@@ -1154,9 +1156,9 @@ fs_monitor_thread(void* monitorptr) {
 
 		keep_running = false;
 
-		//#elif FOUNDATION_PLATFORM_BSD
-		//  TODO: Implement using kqueue and directory watching using open with O_EVTONLY
-		//        https://github.com/emcrisostomo/fswatch/blob/master/libfswatch/src/libfswatch/c%2B%2B/kqueue_monitor.cpp
+		// #elif FOUNDATION_PLATFORM_BSD
+		//   TODO: Implement using kqueue and directory watching using open with O_EVTONLY
+		//         https://github.com/emcrisostomo/fswatch/blob/master/libfswatch/src/libfswatch/c%2B%2B/kqueue_monitor.cpp
 
 #else
 		// log_debug(0, STRING_CONST("Filesystem watcher not implemented on this platform"));
@@ -1380,7 +1382,7 @@ fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	if (SetFilePointerEx(GET_FILE(stream)->fd, large_offset, 0,
 	                     (direction == STREAM_SEEK_BEGIN) ?
 	                         FILE_BEGIN :
-                             ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
+	                         ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %" PRId64 ":%d in stream '%.*s'"),
 		          (int64_t)offset, (int)direction, STRING_FORMAT(stream->path));
 	}
