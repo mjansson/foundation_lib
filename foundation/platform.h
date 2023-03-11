@@ -621,7 +621,7 @@ thread local storage to ensure maximum portability across supported platforms */
 #define FOUNDATION_ARCH_AVX 1
 #endif
 
-#ifdef __ARM_NEON__
+#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 #undef FOUNDATION_ARCH_NEON
 #define FOUNDATION_ARCH_NEON 1
 #endif
@@ -1211,18 +1211,18 @@ typedef volatile _Atomic(void*) atomicptr_t;
 #define FOUNDATION_UNUSED_VARARGS_IMPL(n, ...) \
 	FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_PREPROCESSOR_JOIN(FOUNDATION_UNUSED_ARGS_, n)(__VA_ARGS__, ), )
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init)            \
-	static FOUNDATION_THREADLOCAL type internal_thread_##name = init;        \
-	static FOUNDATION_FORCEINLINE void set_thread_##name(type val) { \
-		internal_thread_##name = val;                                        \
-	}                                                                \
-	static FOUNDATION_FORCEINLINE type get_thread_##name(void) {     \
-		return internal_thread_##name;                                       \
+#define FOUNDATION_DECLARE_THREAD_LOCAL(type, name, init)             \
+	static FOUNDATION_THREADLOCAL type internal_thread_##name = init; \
+	static FOUNDATION_FORCEINLINE void set_thread_##name(type val) {  \
+		internal_thread_##name = val;                                 \
+	}                                                                 \
+	static FOUNDATION_FORCEINLINE type get_thread_##name(void) {      \
+		return internal_thread_##name;                                \
 	}
 
-#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize)    \
+#define FOUNDATION_DECLARE_THREAD_LOCAL_ARRAY(type, name, arrsize)            \
 	static FOUNDATION_THREADLOCAL type internal_thread_##name[arrsize] = {0}; \
-	static FOUNDATION_FORCEINLINE type* get_thread_##name(void) {     \
+	static FOUNDATION_FORCEINLINE type* get_thread_##name(void) {             \
 		return internal_thread_##name;                                        \
 	}
 
