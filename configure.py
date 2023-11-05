@@ -37,8 +37,7 @@ includepaths = ['test']
 test_lib = generator.lib(module = 'test', basepath = 'test', sources = ['test.c', 'test.m'], includepaths = includepaths)
 mock_lib = generator.lib(module = 'mock', basepath = 'test', sources = ['mock.c'], includepaths = includepaths)
 
-#No test cases if we're a submodule
-if generator.is_subninja():
+if generator.skip_tests():
   sys.exit()
 
 test_cases = [

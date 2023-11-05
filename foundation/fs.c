@@ -620,14 +620,14 @@ fs_stat(const char* path, size_t length) {
 	BOOL success = 0;
 	string_const_t cpath = fs_strip_protocol(path, length);
 	if (cpath.length) {
-		/*
-		wchar_t* wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
-		success = GetFileAttributesExW(wpath, GetFileExInfoStandard, &attrib);
-		wstring_deallocate(wpath);
-		*/
 		char buffer[BUILD_MAX_PATHLEN];
-		string_t cleanpath = string_copy(buffer, sizeof(buffer), path, length);
+		string_t cleanpath = string_copy(buffer, sizeof(buffer), STRING_ARGS(cpath));
 		success = GetFileAttributesExA(cleanpath.str, GetFileExInfoStandard, &attrib);
+		if (!success) {
+			wchar_t* wpath = wstring_allocate_from_string(STRING_ARGS(cpath));
+			success = GetFileAttributesExW(wpath, GetFileExInfoStandard, &attrib);
+			wstring_deallocate(wpath);
+		}
 	}
 	if (success) {
 		fsstat.size = ((uint64_t)attrib.nFileSizeHigh << 32ULL) + attrib.nFileSizeLow;
@@ -1093,7 +1093,7 @@ fs_monitor_thread(void* monitorptr) {
 
 					info = info->NextEntryOffset ?
 					           (PFILE_NOTIFY_INFORMATION)(pointer_offset(info, info->NextEntryOffset)) :
-					           nullptr;
+                               nullptr;
 				} while (info);
 			}
 		}
@@ -1382,7 +1382,7 @@ fs_file_seek(stream_t* stream, ssize_t offset, stream_seek_mode_t direction) {
 	if (SetFilePointerEx(GET_FILE(stream)->fd, large_offset, 0,
 	                     (direction == STREAM_SEEK_BEGIN) ?
 	                         FILE_BEGIN :
-	                         ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
+                             ((direction == STREAM_SEEK_END) ? FILE_END : FILE_CURRENT)) == INVALID_SET_FILE_POINTER) {
 		log_warnf(0, WARNING_SYSTEM_CALL_FAIL, STRING_CONST("Unable to seek to %" PRId64 ":%d in stream '%.*s'"),
 		          (int64_t)offset, (int)direction, STRING_FORMAT(stream->path));
 	}

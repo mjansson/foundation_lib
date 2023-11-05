@@ -43,6 +43,9 @@ class Generator(object):
     parser.add_argument('--subninja', action='store',
                         help = 'Build as subproject (exclude rules and pools) with the given subpath',
                         default = '')
+    parser.add_argument('--notests', action='store_true',
+                        help = 'Skip building the internal tests',
+                        default = False)
     parser.add_argument('--buildprefs', action='store',
                         help = 'Read the given build preferences file',
                         default = '')
@@ -58,6 +61,7 @@ class Generator(object):
     self.target = platform.Platform(options.target)
     self.host = platform.Platform(options.host)
     self.subninja = options.subninja
+    self.notests = options.notests
     archs = options.arch
     configs = options.config
     if includepaths is None:
@@ -126,6 +130,9 @@ class Generator(object):
 
   def is_subninja(self):
     return self.subninja != ''
+
+  def skip_tests(self):
+    return self.notests
 
   def lib(self, module, sources, libname = None, basepath = None, configs = None, includepaths = None, variables = None):
     return self.toolchain.lib(self.writer, module, sources, libname, basepath, configs, includepaths, variables)
