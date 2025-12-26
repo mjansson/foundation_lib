@@ -1876,7 +1876,7 @@ DECLARE_TEST(string, format) {
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("-1")));
 		string_deallocate(teststr.str);
 
-		teststr = string_allocate_format(STRING_CONST("0x%" PRIx64), ival);
+		teststr = string_allocate_format(STRING_CONST("0x%" PRIx64), (uint64_t)ival);
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("0xffffffffffffffff")));
 		string_deallocate(teststr.str);
 
@@ -1940,7 +1940,7 @@ DECLARE_TEST(string, format) {
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("-1")));
 		string_deallocate(teststr.str);
 
-		teststr = string_allocate_vformat_wrapper(STRING_CONST("0x%" PRIx64), ival);
+		teststr = string_allocate_vformat_wrapper(STRING_CONST("0x%" PRIx64), (uint64_t)ival);
 		EXPECT_STRINGEQ(teststr, string_const(STRING_CONST("0xffffffffffffffff")));
 		string_deallocate(teststr.str);
 
@@ -2003,7 +2003,7 @@ DECLARE_TEST(string, format) {
 		teststr1 = string_format(buffer, sizeof(buffer), STRING_CONST("%" PRId64), ival);
 		EXPECT_STRINGEQ(teststr1, string_const(STRING_CONST("-1")));
 
-		teststr2 = string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIx64), ival);
+		teststr2 = string_format(buffer, sizeof(buffer), STRING_CONST("0x%" PRIx64), (uint64_t)ival);
 		EXPECT_STRINGEQ(teststr2, string_const(STRING_CONST("0xffffffffffffffff")));
 
 		teststr3 = string_format(buffer, 8, STRING_CONST("%016" PRIX64), uval);

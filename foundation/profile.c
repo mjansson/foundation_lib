@@ -381,7 +381,7 @@ profile_finalize(void) {
 			if (block->sibling)
 				log_errorf(0, ERROR_INTERNAL_FAILURE,
 				           STRING_CONST("Profile module state inconsistent on finalize, "
-				                        "block %d has sibling set"),
+				                        "block %u has sibling set"),
 				           free_block);
 			++block_count;
 			free_block = GET_BLOCK(free_block)->child;
@@ -620,9 +620,9 @@ profile_thread_finalize(void) {
 #if BUILD_ENABLE_PROFILE
 	int32_t block_index, last_block = 0;
 	while ((block_index = get_thread_profile_block())) {
-		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Profile thread cleanup, free block %u"), block_index);
+		log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Profile thread cleanup, free block %d"), block_index);
 		if (last_block == block_index) {
-			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unrecoverable error, self reference in block %u"),
+			log_warnf(0, WARNING_SUSPICIOUS, STRING_CONST("Unrecoverable error, self reference in block %d"),
 			          block_index);
 			break;
 		}

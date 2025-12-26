@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Locate Visual Studio installations with Visual Studio Setup Configuration utility DLL"""
 

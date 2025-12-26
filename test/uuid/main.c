@@ -173,7 +173,7 @@ DECLARE_TEST(uuid, generate) {
 	EXPECT_TRUE(uuid_equal(uuid_ref, uuid_ref));
 
 	for (iloop = 0; iloop < 10000; ++iloop) {
-		string_t str = string_format(name_str, 40, STRING_CONST("com.maniccoder.foundation.uuid.%05u"), iloop);
+		string_t str = string_format(name_str, 40, STRING_CONST("com.maniccoder.foundation.uuid.%05u"), (uint32_t)iloop);
 
 		uuid_ref = uuid;
 		uuid = uuid_generate_name(UUID_DNS, str.str, str.length);

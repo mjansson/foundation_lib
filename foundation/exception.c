@@ -200,7 +200,7 @@ create_mini_dump(void* context, string_const_t name, string_t dump_file) {
 	uuid_str = string_from_uuid_static(environment_application()->instance);
 	dump_file = string_format(dump_file.str, dump_file.length, STRING_CONST("%.*s/%.*s%s%.*s-%" PRIx64 ".dmp"),
 	                          STRING_FORMAT(tmp_dir), STRING_FORMAT(name), name.length ? "-" : "",
-	                          STRING_FORMAT(uuid_str), time_system());
+	                          STRING_FORMAT(uuid_str), (uint64_t)time_system());
 	fs_make_directory(tmp_dir.str, tmp_dir.length);
 
 	// TODO: Write dump file

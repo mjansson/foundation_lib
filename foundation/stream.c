@@ -926,6 +926,18 @@ stream_digest(stream_t* stream, void* (*digester)(void*, const void*, size_t), v
 	return true;
 }
 
+static void* stream_md5_digest(void* digest, const void* buffer, size_t size) {
+    return md5_digest(digest, buffer, size);
+}
+
+static void* stream_sha256_digest(void* digest, const void* buffer, size_t size) {
+    return sha256_digest(digest, buffer, size);
+}
+
+static void* stream_sha512_digest(void* digest, const void* buffer, size_t size) {
+    return sha512_digest(digest, buffer, size);
+}
+
 uint128_t
 stream_md5(stream_t* stream) {
 	md5_t md5;
@@ -935,7 +947,7 @@ stream_md5(stream_t* stream) {
 		return stream->vtable->md5(stream);
 
 	md5_initialize(&md5);
-	if (stream_digest(stream, (void* (*)(void*, const void*, size_t))md5_digest, &md5)) {
+	if (stream_digest(stream, stream_md5_digest, &md5)) {
 		md5_digest_finalize(&md5);
 		ret = md5_get_digest_raw(&md5);
 	}
@@ -953,7 +965,7 @@ stream_sha256(stream_t* stream) {
 		return stream->vtable->sha256(stream);
 
 	sha256_initialize(&sha);
-	if (stream_digest(stream, (void* (*)(void*, const void*, size_t))sha256_digest, &sha)) {
+	if (stream_digest(stream, stream_sha256_digest, &sha)) {
 		sha256_digest_finalize(&sha);
 		ret = sha256_get_digest_raw(&sha);
 	}
@@ -971,7 +983,7 @@ stream_sha512(stream_t* stream) {
 		return stream->vtable->sha512(stream);
 
 	sha512_initialize(&sha);
-	if (stream_digest(stream, (void* (*)(void*, const void*, size_t))sha512_digest, &sha)) {
+	if (stream_digest(stream, stream_sha512_digest, &sha)) {
 		sha512_digest_finalize(&sha);
 		ret = sha512_get_digest_raw(&sha);
 	}

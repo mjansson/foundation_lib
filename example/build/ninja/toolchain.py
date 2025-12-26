@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Ninja toolchain abstraction"""
 
@@ -62,7 +62,7 @@ class Toolchain(object):
     self.build_lto = False
     self.support_lua = False
     self.internal_deps = False
-    self.python = 'python'
+    self.python = 'python3'
     self.objext = '.o'
     if target.is_windows():
       self.libprefix = ''
@@ -247,7 +247,7 @@ class Toolchain(object):
     if 'support_lua' in prefs:
       self.support_lua = get_boolean_flag(prefs['support_lua'])
     if 'python' in prefs:
-      self.python = prefs['python']
+      self.python = prefs['python3']
     if self.android != None:
       self.android.parse_prefs(prefs)
     if self.xcode != None:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Ninja toolchain abstraction for GCC compiler suite"""
 

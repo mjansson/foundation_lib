@@ -250,7 +250,7 @@ log_warnf(hash_t context, warning_t warn, const char* format, size_t length, ...
 	if (warn < LOG_WARNING_NAMES)
 		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("WARNING [%s]: "), log_warning_name[warn]);
 	else
-		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("WARNING [%d]: "), warn);
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("WARNING [%u]: "), warn);
 
 	va_start(list, length);
 	log_outputf(context, ERRORLEVEL_WARNING, prefix.str, prefix.length, format, length, list, stdout);
@@ -278,7 +278,7 @@ log_errorf(hash_t context, error_t err, const char* format, size_t length, ...) 
 	if (err < LOG_ERROR_NAMES)
 		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("ERROR [%s]: "), log_error_name[err]);
 	else
-		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("ERROR [%d]: "), err);
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("ERROR [%u]: "), err);
 
 	va_start(list, length);
 	log_outputf(context, ERRORLEVEL_ERROR, prefix.str, prefix.length, format, length, list, stderr);
@@ -303,7 +303,7 @@ log_panicf(hash_t context, error_t err, const char* format, size_t length, ...) 
 	if (err < LOG_ERROR_NAMES)
 		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("PANIC [%s]: "), log_error_name[err]);
 	else
-		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("PANIC [%d]: "), err);
+		prefix = string_format(buffer, sizeof(buffer), STRING_CONST("PANIC [%u]: "), err);
 
 	va_start(list, length);
 	log_outputf(context, ERRORLEVEL_PANIC, prefix.str, prefix.length, format, length, list, stderr);

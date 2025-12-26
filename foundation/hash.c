@@ -163,6 +163,8 @@ hash(const void* key, size_t len) {
 		case 1:
 			k1 ^= ((uint64_t)tail[0]);
 			bmix64(h1, h2, k1, k2, c1, c2);
+        default:
+            break;
 	} /*lint -restore */
 
 	//----------

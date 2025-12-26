@@ -16,12 +16,12 @@
 extern int
 app_main(void* arg);
 
-extern volatile int _delegate_dummy;
-volatile int _delegate_dummy;
+extern volatile int delegate_dummy;
+volatile int delegate_dummy;
 
 FOUNDATION_NOINLINE void
 delegate_reference_classes(void) {
-	_delegate_dummy = 1;
+	delegate_dummy = 1;
 	[FoundationAppDelegate referenceClass];
 }
 
@@ -29,25 +29,25 @@ delegate_reference_classes(void) {
 + (void)startMainThread:(void*)arg;
 @end
 
-static volatile bool _delegate_main_thread_running = false;
-static volatile bool _delegate_received_start = false;
-static volatile bool _delegate_received_terminate = false;
+static volatile bool delegate_main_thread_running = false;
+static volatile bool delegate_received_start = false;
+static volatile bool delegate_received_terminate = false;
 
 @implementation FoundationMainThread
 
 + (void)startMainThread:(void*)arg {
 	FOUNDATION_UNUSED(arg);
-	if (_delegate_main_thread_running)
+	if (delegate_main_thread_running)
 		return;
 
 	thread_enter();
 
-	_delegate_main_thread_running = true;
+	delegate_main_thread_running = true;
 	log_debug(0, STRING_CONST("Started main thread"));
 
-	if (!_delegate_received_start) {
+	if (!delegate_received_start) {
 		log_debug(0, STRING_CONST("Waiting for application init"));
-		while (!_delegate_received_start)
+		while (!delegate_received_start)
 			thread_sleep(50);
 		thread_sleep(1);
 	}
@@ -85,10 +85,10 @@ static volatile bool _delegate_received_terminate = false;
 #endif
 		log_debug(0, STRING_CONST("Main thread exiting"));
 
-		_delegate_main_thread_running = false;
+		delegate_main_thread_running = false;
 
 #if FOUNDATION_PLATFORM_IOS
-		if (!_delegate_received_terminate) {
+		if (!delegate_received_terminate) {
 			if ((environment_application()->flags & APPLICATION_UTILITY) == 0)
 				log_warn(0, WARNING_SUSPICIOUS,
 				         STRING_CONST("Main loop terminated without applicationWillTerminate - "
@@ -115,13 +115,13 @@ delegate_start_main_ns_thread(void) {
 
 #if FOUNDATION_PLATFORM_MACOS
 
-static __weak NSApplication* _delegate_app;
-static __weak FoundationAppDelegate* _delegate;
+static __weak NSApplication* delegate_app;
+static __weak FoundationAppDelegate* delegate;
 
 void*
 delegate_window(void) {
-	__strong FoundationAppDelegate* delegate = _delegate;
-	return (__bridge void*)(delegate ? [delegate window] : 0);
+	__strong FoundationAppDelegate* delegate_ref = delegate;
+	return (__bridge void*)(delegate_ref ? [delegate_ref window] : 0);
 }
 
 @implementation FoundationAppDelegate
@@ -129,13 +129,13 @@ delegate_window(void) {
 @synthesize window;
 
 + (void)referenceClass {
-	_delegate_dummy = 2;
+	delegate_dummy = 2;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification {
 	FOUNDATION_UNUSED(notification);
-	_delegate = self;
-	_delegate_received_start = true;
+	delegate = self;
+	delegate_received_start = true;
 
 	log_debug(0, STRING_CONST("Application finished launching"));
 	system_post_event(FOUNDATIONEVENT_START);
@@ -149,13 +149,13 @@ delegate_window(void) {
 
 - (void)applicationDidBecomeActive:(NSNotification*)notification {
 	log_debug(0, STRING_CONST("Application became active"));
-	_delegate_app = [notification object];
+	delegate_app = [notification object];
 	system_post_event(FOUNDATIONEVENT_RESUME);
 }
 
 - (void)applicationWillTerminate:(NSNotification*)notification {
 	FOUNDATION_UNUSED(notification);
-	_delegate_received_terminate = true;
+	delegate_received_terminate = true;
 
 	if (foundation_is_initialized()) {
 		log_debug(0, STRING_CONST("Application will terminate"));
@@ -166,8 +166,8 @@ delegate_window(void) {
 - (void)dealloc {
 	log_debug(0, STRING_CONST("Application dealloc"));
 
-	_delegate_app = 0;
-	_delegate = 0;
+	delegate_app = 0;
+	delegate = 0;
 }
 
 @end
@@ -176,13 +176,13 @@ delegate_window(void) {
 
 #import <Foundation/NSNotification.h>
 
-static __weak UIApplication* _delegate_app;
-static __weak FoundationAppDelegate* _delegate;
+static __weak UIApplication* delegate_app;
+static __weak FoundationAppDelegate* delegate;
 
 void*
 delegate_window(void) {
-	__strong FoundationAppDelegate* delegate = _delegate;
-	return (__bridge void*)(delegate ? [delegate window] : 0);
+	__strong FoundationAppDelegate* delegate_ref = delegate;
+	return (__bridge void*)(delegate_ref ? [delegate_ref window] : 0);
 }
 
 @implementation FoundationAppDelegate
@@ -190,13 +190,13 @@ delegate_window(void) {
 @synthesize window;
 
 + (void)referenceClass {
-	_delegate_dummy = 2;
+	delegate_dummy = 2;
 }
 
 - (void)applicationDidFinishLaunching:(UIApplication*)application {
 	FOUNDATION_UNUSED(application);
-	_delegate = self;
-	_delegate_received_start = true;
+	delegate = self;
+	delegate_received_start = true;
 
 	log_debug(HASH_FOUNDATION, STRING_CONST("Application finished launching"));
 	system_post_event(FOUNDATIONEVENT_START);
@@ -218,14 +218,14 @@ delegate_window(void) {
 - (void)applicationDidBecomeActive:(UIApplication*)application {
 	FOUNDATION_UNUSED(application);
 	log_debug(HASH_FOUNDATION, STRING_CONST("Application became active"));
-	_delegate_app = application;
+	delegate_app = application;
 	system_post_event(FOUNDATIONEVENT_RESUME);
 	system_post_event(FOUNDATIONEVENT_FOCUS_GAIN);
 }
 
 - (void)applicationWillTerminate:(UIApplication*)application {
 	FOUNDATION_UNUSED(application);
-	_delegate_received_terminate = true;
+	delegate_received_terminate = true;
 
 	log_debug(HASH_FOUNDATION, STRING_CONST("Application will terminate"));
 	system_post_event(FOUNDATIONEVENT_TERMINATE);
@@ -233,7 +233,7 @@ delegate_window(void) {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 
-	while (_delegate_main_thread_running)
+	while (delegate_main_thread_running)
 		thread_sleep(1);
 }
 
@@ -281,8 +281,8 @@ delegate_window(void) {
 - (void)dealloc {
 	log_debug(0, STRING_CONST("Application dealloc"));
 
-	_delegate_app = 0;
-	_delegate = 0;
+	delegate_app = 0;
+	delegate = 0;
 }
 
 @end

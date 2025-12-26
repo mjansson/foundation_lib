@@ -83,7 +83,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) == (expect))) {                                                                               \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s (at %s:%u)"),       \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s (at %s:%d)"),       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__);                                                                                 \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -93,7 +93,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (((var) == (expect))) {                                                                                \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s == %s (at %s:%u)"),       \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s == %s (at %s:%d)"),       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__);                                                                                 \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -103,7 +103,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) >= (expect))) {                                                                               \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s < %s (at %s:%u)"),        \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s < %s (at %s:%d)"),        \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__);                                                                                 \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -113,7 +113,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) > (expect))) {                                                                                \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s <= %s (at %s:%u)"),       \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s <= %s (at %s:%d)"),       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__);                                                                                 \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -123,7 +123,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) <= (expect))) {                                                                               \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s > %s (at %s:%u)"),        \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s > %s (at %s:%d)"),        \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__);                                                                                 \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -133,7 +133,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) < (expect))) {                                                                                \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s >= %s (at %s:%u)"),       \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s >= %s (at %s:%d)"),       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__);                                                                                 \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -143,7 +143,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                       \
 		if (!(var)) {                                                                                          \
 			test_prefail();                                                                                    \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is false (at %s:%u)"), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is false (at %s:%d)"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__);                             \
 			RETURN_FAILED_TEST;                                                                                \
 		}                                                                                                      \
@@ -152,7 +152,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                      \
 		if ((var)) {                                                                                          \
 			test_prefail();                                                                                   \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is true (at %s:%u)"), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is true (at %s:%d)"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__);                            \
 			RETURN_FAILED_TEST;                                                                               \
 		}                                                                                                     \
@@ -162,7 +162,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) == (expect))) {                                                                               \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s (at %s:%u) : %s"),  \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s (at %s:%d) : %s"),  \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, msg);                                                                            \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -172,7 +172,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (((var) == (expect))) {                                                                                \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s == %s (at %s:%u) : %s"),  \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s == %s (at %s:%d) : %s"),  \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, msg);                                                                            \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -182,7 +182,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) >= (expect))) {                                                                               \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s < %s (at %s:%u) : %s"),   \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s < %s (at %s:%d) : %s"),   \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, msg);                                                                            \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -192,7 +192,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) > (expect))) {                                                                                \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s <= %s (at %s:%u) : %s"),  \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s <= %s (at %s:%d) : %s"),  \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, msg);                                                                            \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -202,7 +202,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) <= (expect))) {                                                                               \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s > %s (at %s:%u) : %s"),   \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s > %s (at %s:%d) : %s"),   \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, msg);                                                                            \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -212,7 +212,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                          \
 		if (!((var) < (expect))) {                                                                                \
 			test_prefail();                                                                                       \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s >= %s (at %s:%u) : %s"),  \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s >= %s (at %s:%d) : %s"),  \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, msg);                                                                            \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -222,7 +222,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                            \
 		if (!(var)) {                                                                                               \
 			test_prefail();                                                                                         \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is false (at %s:%u) : %s"), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is false (at %s:%d) : %s"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, msg);                             \
 			RETURN_FAILED_TEST;                                                                                     \
 		}                                                                                                           \
@@ -231,7 +231,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                           \
 		if ((var)) {                                                                                               \
 			test_prefail();                                                                                        \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is true (at %s:%u) : %s"), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s is true (at %s:%d) : %s"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, msg);                            \
 			RETURN_FAILED_TEST;                                                                                    \
 		}                                                                                                          \
@@ -241,7 +241,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                              \
 		if (!((var) == (expect))) {                                                                                   \
 			test_prefail();                                                                                           \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s (at %s:%u) : " format), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s != %s (at %s:%d) : " format), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__,     \
 			           __LINE__, __VA_ARGS__);                                                                        \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -251,7 +251,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                              \
 		if (((var) == (expect))) {                                                                                    \
 			test_prefail();                                                                                           \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s == %s (at %s:%u) : " format), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s == %s (at %s:%d) : " format), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__,     \
 			           __LINE__, __VA_ARGS__);                                                                        \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -261,7 +261,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                             \
 		if (!((var) >= (expect))) {                                                                                  \
 			test_prefail();                                                                                          \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s < %s (at %s:%u) : " format), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s < %s (at %s:%d) : " format), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__,    \
 			           __LINE__, __VA_ARGS__);                                                                       \
 			RETURN_FAILED_TEST;                                                                                      \
@@ -271,7 +271,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                              \
 		if (!((var) > (expect))) {                                                                                    \
 			test_prefail();                                                                                           \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s <= %s (at %s:%u) : " format), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s <= %s (at %s:%d) : " format), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__,     \
 			           __LINE__, __VA_ARGS__);                                                                        \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -281,7 +281,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                             \
 		if (!((var) <= (expect))) {                                                                                  \
 			test_prefail();                                                                                          \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s > %s (at %s:%u) : " format), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s > %s (at %s:%d) : " format), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__,    \
 			           __LINE__, __VA_ARGS__);                                                                       \
 			RETURN_FAILED_TEST;                                                                                      \
@@ -291,7 +291,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 	do {                                                                                                              \
 		if (!((var) < (expect))) {                                                                                    \
 			test_prefail();                                                                                           \
-			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s >= %s (at %s:%u) : " format), \
+			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE, STRING_CONST("Test failed, %s >= %s (at %s:%d) : " format), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__,     \
 			           __LINE__, __VA_ARGS__);                                                                        \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -302,7 +302,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!(var)) {                                                                           \
 			test_prefail();                                                                     \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                       \
-			           STRING_CONST("Test failed, %s is false (at %s:%u) : " format),           \
+			           STRING_CONST("Test failed, %s is false (at %s:%d) : " format),           \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, __VA_ARGS__); \
 			RETURN_FAILED_TEST;                                                                 \
 		}                                                                                       \
@@ -312,7 +312,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if ((var)) {                                                                            \
 			test_prefail();                                                                     \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                       \
-			           STRING_CONST("Test failed, %s is true (at %s:%u) : " format),            \
+			           STRING_CONST("Test failed, %s is true (at %s:%d) : " format),            \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, __VA_ARGS__); \
 			RETURN_FAILED_TEST;                                                                 \
 		}                                                                                       \
@@ -325,7 +325,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!(lvar_ == rvar_)) {                                                                                      \
 			test_prefail();                                                                                           \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                             \
-			           STRING_CONST("Test failed, %s != %s (%" fmt " != %" fmt ") (at %s:%u)"),                       \
+			           STRING_CONST("Test failed, %s != %s (%" fmt " != %" fmt ") (at %s:%d)"),                       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), lvar_, rvar_, \
 			           __FILE__, __LINE__);                                                                           \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -338,7 +338,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!(lvar_ != rvar_)) {                                                                                      \
 			test_prefail();                                                                                           \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                             \
-			           STRING_CONST("Test failed, %s == %s (%" fmt " == %" fmt ") (at %s:%u)"),                       \
+			           STRING_CONST("Test failed, %s == %s (%" fmt " == %" fmt ") (at %s:%d)"),                       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), lvar_, rvar_, \
 			           __FILE__, __LINE__);                                                                           \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -351,7 +351,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!(lvar_ >= rvar_)) {                                                                                      \
 			test_prefail();                                                                                           \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                             \
-			           STRING_CONST("Test failed, %s < %s (%" fmt " < %" fmt ") (at %s:%u)"),                         \
+			           STRING_CONST("Test failed, %s < %s (%" fmt " < %" fmt ") (at %s:%d)"),                         \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), lvar_, rvar_, \
 			           __FILE__, __LINE__);                                                                           \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -364,7 +364,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!(lvar_ > rvar_)) {                                                                                       \
 			test_prefail();                                                                                           \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                             \
-			           STRING_CONST("Test failed, %s <= %s (%" fmt " <= %" fmt ") (at %s:%u)"),                       \
+			           STRING_CONST("Test failed, %s <= %s (%" fmt " <= %" fmt ") (at %s:%d)"),                       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), lvar_, rvar_, \
 			           __FILE__, __LINE__);                                                                           \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -377,7 +377,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!(lvar_ <= rvar_)) {                                                                                      \
 			test_prefail();                                                                                           \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                             \
-			           STRING_CONST("Test failed, %s > %s (%" fmt " > %" fmt ") (at %s:%u)"),                         \
+			           STRING_CONST("Test failed, %s > %s (%" fmt " > %" fmt ") (at %s:%d)"),                         \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), lvar_, rvar_, \
 			           __FILE__, __LINE__);                                                                           \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -390,7 +390,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!(lvar_ < rvar_)) {                                                                                       \
 			test_prefail();                                                                                           \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                             \
-			           STRING_CONST("Test failed, %s >= %s (%" fmt " >= %" fmt ") (at %s:%u)"),                       \
+			           STRING_CONST("Test failed, %s >= %s (%" fmt " >= %" fmt ") (at %s:%d)"),                       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), lvar_, rvar_, \
 			           __FILE__, __LINE__);                                                                           \
 			RETURN_FAILED_TEST;                                                                                       \
@@ -456,7 +456,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!string_equal(STRING_ARGS(lhs), STRING_ARGS(rhs))) {                                                    \
 			test_prefail();                                                                                         \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                           \
-			           STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u)"), \
+			           STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d)"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect),             \
 			           STRING_FORMAT(lhs), lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__);         \
 			RETURN_FAILED_TEST;                                                                                     \
@@ -470,7 +470,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 			test_prefail();                                                                                          \
 			log_errorf(                                                                                              \
 			    HASH_TEST, ERROR_INTERNAL_FAILURE,                                                                   \
-			    STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : %s"),    \
+			    STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d) : %s"),    \
 			    FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT(lhs), \
 			    lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__, msg);                                \
 			RETURN_FAILED_TEST;                                                                                      \
@@ -484,7 +484,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 			test_prefail();                                                                                            \
 			log_errorf(                                                                                                \
 			    HASH_TEST, ERROR_INTERNAL_FAILURE,                                                                     \
-			    STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : " format), \
+			    STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d) : " format), \
 			    FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT(lhs),   \
 			    lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__, __VA_ARGS__);                          \
 			RETURN_FAILED_TEST;                                                                                        \
@@ -498,7 +498,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (string_equal(STRING_ARGS((lhs)), STRING_ARGS((rhs)))) {                                                 \
 			test_prefail();                                                                                         \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                           \
-			           STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u)"), \
+			           STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d)"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect),             \
 			           STRING_FORMAT(lhs), lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__);         \
 			RETURN_FAILED_TEST;                                                                                     \
@@ -512,7 +512,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 			test_prefail();                                                                                          \
 			log_errorf(                                                                                              \
 			    HASH_TEST, ERROR_INTERNAL_FAILURE,                                                                   \
-			    STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : %s"),    \
+			    STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d) : %s"),    \
 			    FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT(lhs), \
 			    lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__, msg);                                \
 			RETURN_FAILED_TEST;                                                                                      \
@@ -526,7 +526,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 			test_prefail();                                                                                            \
 			log_errorf(                                                                                                \
 			    HASH_TEST, ERROR_INTERNAL_FAILURE,                                                                     \
-			    STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : " format), \
+			    STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d) : " format), \
 			    FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT(lhs),   \
 			    lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__, __VA_ARGS__);                          \
 			RETURN_FAILED_TEST;                                                                                        \
@@ -540,7 +540,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!string_equal(STRING_ARGS(lhs), STRING_ARGS(rhs))) {                                                    \
 			test_prefail();                                                                                         \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                           \
-			           STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u)"), \
+			           STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d)"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect),             \
 			           STRING_FORMAT(lhs), lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__);         \
 			RETURN_FAILED_TEST;                                                                                     \
@@ -554,7 +554,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 			test_prefail();                                                                                          \
 			log_errorf(                                                                                              \
 			    HASH_TEST, ERROR_INTERNAL_FAILURE,                                                                   \
-			    STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : %s"),    \
+			    STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d) : %s"),    \
 			    FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT(lhs), \
 			    lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__, msg);                                \
 			RETURN_FAILED_TEST;                                                                                      \
@@ -568,7 +568,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 			test_prefail();                                                                                            \
 			log_errorf(                                                                                                \
 			    HASH_TEST, ERROR_INTERNAL_FAILURE,                                                                     \
-			    STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : " format), \
+			    STRING_CONST("Test failed, %s != %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d) : " format), \
 			    FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT(lhs),   \
 			    lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__, __VA_ARGS__);                          \
 			RETURN_FAILED_TEST;                                                                                        \
@@ -582,7 +582,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (string_equal(STRING_ARGS((lhs)), STRING_ARGS((rhs)))) {                                                 \
 			test_prefail();                                                                                         \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                           \
-			           STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u)"), \
+			           STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d)"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect),             \
 			           STRING_FORMAT(lhs), lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__);         \
 			RETURN_FAILED_TEST;                                                                                     \
@@ -596,7 +596,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 			test_prefail();                                                                                          \
 			log_errorf(                                                                                              \
 			    HASH_TEST, ERROR_INTERNAL_FAILURE,                                                                   \
-			    STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : %s"),    \
+			    STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d) : %s"),    \
 			    FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT(lhs), \
 			    lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__, msg);                                \
 			RETURN_FAILED_TEST;                                                                                      \
@@ -610,7 +610,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 			test_prefail();                                                                                            \
 			log_errorf(                                                                                                \
 			    HASH_TEST, ERROR_INTERNAL_FAILURE,                                                                     \
-			    STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%u) : " format), \
+			    STRING_CONST("Test failed, %s == %s ('%.*s':%" PRIsize ", '%.*s':%" PRIsize ") (at %s:%d) : " format), \
 			    FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), STRING_FORMAT(lhs),   \
 			    lhs.length, STRING_FORMAT(rhs), rhs.length, __FILE__, __LINE__, __VA_ARGS__);                          \
 			RETURN_FAILED_TEST;                                                                                        \
@@ -623,7 +623,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_real_is_zero(rval_)) {                                                              \
 			test_prefail();                                                                           \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                             \
-			           STRING_CONST("Test failed, %s is not zero real (at %s:%u): %.8" PRIreal),      \
+			           STRING_CONST("Test failed, %s is not zero real (at %s:%d): %.8" PRIreal),      \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(rval_), __FILE__, __LINE__, (double)((var))); \
 			RETURN_FAILED_TEST;                                                                       \
 		}                                                                                             \
@@ -634,7 +634,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_real_is_epsilon_zero(rval_)) {                                                                     \
 			test_prefail();                                                                                          \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                            \
-			           STRING_CONST("Test failed, %s is not zero real (at %s:%u): %.8" PRIreal " (%.8" PRIreal ")"), \
+			           STRING_CONST("Test failed, %s is not zero real (at %s:%d): %.8" PRIreal " (%.8" PRIreal ")"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, (double)rval_, REAL_EPSILON);      \
 			RETURN_FAILED_TEST;                                                                                      \
 		}                                                                                                            \
@@ -645,7 +645,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_real_is_one(rval_)) {                                                           \
 			test_prefail();                                                                       \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                         \
-			           STRING_CONST("Test failed, %s is not one real (at %s:%u): %.8" PRIreal),   \
+			           STRING_CONST("Test failed, %s is not one real (at %s:%d): %.8" PRIreal),   \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, (double)rval_); \
 			RETURN_FAILED_TEST;                                                                   \
 		}                                                                                         \
@@ -657,7 +657,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (math_real_eq(rval_, eval_, 10)) {                                                                     \
 			test_prefail();                                                                                       \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
-			           STRING_CONST("Test failed, %s == %s real (at %s:%u): %.8" PRIreal " : %.8" PRIreal),       \
+			           STRING_CONST("Test failed, %s == %s real (at %s:%d): %.8" PRIreal " : %.8" PRIreal),       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, (double)rval_, (double)eval_);                                                   \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -670,7 +670,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_real_eq(rval_, eval_, 10)) {                                                                    \
 			test_prefail();                                                                                       \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
-			           STRING_CONST("Test failed, %s != %s real (at %s:%u): %.8" PRIreal " : %.8" PRIreal),       \
+			           STRING_CONST("Test failed, %s != %s real (at %s:%d): %.8" PRIreal " : %.8" PRIreal),       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, (double)rval_, (double)eval_);                                                   \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -683,7 +683,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_real_eq(rval_, eval_, (ulps))) {                                                                \
 			test_prefail();                                                                                       \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
-			           STRING_CONST("Test failed, %s != %s real (at %s:%u): %.8" PRIreal " : %.8" PRIreal),       \
+			           STRING_CONST("Test failed, %s != %s real (at %s:%d): %.8" PRIreal " : %.8" PRIreal),       \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, (double)rval_, (double)eval_);                                                   \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -700,7 +700,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_double_is_zero(rval_)) {                                                   \
 			test_prefail();                                                                  \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                    \
-			           STRING_CONST("Test failed, %s is not zero double (at %s:%u): %.10f"), \
+			           STRING_CONST("Test failed, %s is not zero double (at %s:%d): %.10f"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(rval_), __FILE__, __LINE__, rval_);  \
 			RETURN_FAILED_TEST;                                                              \
 		}                                                                                    \
@@ -711,7 +711,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_double_is_epsilon_zero(rval_)) {                                                     \
 			test_prefail();                                                                            \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                              \
-			           STRING_CONST("Test failed, %s is not zero double (at %s:%u): %.10f (%.10f)"),   \
+			           STRING_CONST("Test failed, %s is not zero double (at %s:%d): %.10f (%.10f)"),   \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, rval_, DBL_EPSILON); \
 			RETURN_FAILED_TEST;                                                                        \
 		}                                                                                              \
@@ -722,7 +722,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_double_is_one(rval_)) {                                                  \
 			test_prefail();                                                                \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                  \
-			           STRING_CONST("Test failed, %s is not one double (at %s:%u): %10f"), \
+			           STRING_CONST("Test failed, %s is not one double (at %s:%d): %10f"), \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), __FILE__, __LINE__, rval_);  \
 			RETURN_FAILED_TEST;                                                            \
 		}                                                                                  \
@@ -734,7 +734,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (math_double_eq(rval_, eval_, 10)) {                                                                   \
 			test_prefail();                                                                                       \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
-			           STRING_CONST("Test failed, %s == %s double (at %s:%u): %.10f : %.10f"),                    \
+			           STRING_CONST("Test failed, %s == %s double (at %s:%d): %.10f : %.10f"),                    \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, rval_, eval_);                                                                   \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -747,7 +747,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_double_eq(rval_, eval_, 10)) {                                                                  \
 			test_prefail();                                                                                       \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
-			           STRING_CONST("Test failed, %s != %s double (at %s:%u): %.10f : %.10f"),                    \
+			           STRING_CONST("Test failed, %s != %s double (at %s:%d): %.10f : %.10f"),                    \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, rval_, eval_);                                                                   \
 			RETURN_FAILED_TEST;                                                                                   \
@@ -760,7 +760,7 @@ test_text_view_append(void* window, int tag, const char* msg, size_t length);
 		if (!math_double_eq(rval_, eval_, (ulps))) {                                                              \
 			test_prefail();                                                                                       \
 			log_errorf(HASH_TEST, ERROR_INTERNAL_FAILURE,                                                         \
-			           STRING_CONST("Test failed, %s != %s double (at %s:%u): %.10f : %.10f"),                    \
+			           STRING_CONST("Test failed, %s != %s double (at %s:%d): %.10f : %.10f"),                    \
 			           FOUNDATION_PREPROCESSOR_TOSTRING(var), FOUNDATION_PREPROCESSOR_TOSTRING(expect), __FILE__, \
 			           __LINE__, rval_, eval_);                                                                   \
 			RETURN_FAILED_TEST;                                                                                   \

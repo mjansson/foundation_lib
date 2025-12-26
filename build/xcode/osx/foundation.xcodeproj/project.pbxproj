@@ -507,7 +507,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "python ${PROJECT_DIR}/../../ninja/version.py foundation ${PROJECT_DIR}/../../../foundation";
+			shellScript = "python3 ${PROJECT_DIR}/../../ninja/version.py foundation ${PROJECT_DIR}/../../../foundation";
 		};
 /* End PBXShellScriptBuildPhase section */
 

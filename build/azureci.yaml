@@ -30,7 +30,7 @@ jobs:
     condition: succeeded()
 
   - script: |
-      python configure.py
+      python3 configure.py
     displayName: 'configure'
     condition: succeeded()
 
@@ -78,7 +78,7 @@ jobs:
     condition: succeeded()
 
   - script: |
-      python configure.py
+      python3 configure.py
     displayName: 'configure'
     condition: succeeded()
 
@@ -115,7 +115,7 @@ jobs:
     displayName: 'install ninja'
 
   - script: |
-      python configure.py
+      python3 configure.py
     displayName: 'configure'
 
   - script: |

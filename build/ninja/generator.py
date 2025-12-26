@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Ninja build generator"""
 
 import argparse
 import os
-import pipes
+import shlex
 import sys
 
 import platform
@@ -86,7 +86,7 @@ class Generator(object):
     env_keys = set(['CC', 'AR', 'LINK', 'CFLAGS', 'ARFLAGS', 'LINKFLAGS'])
     configure_env = dict((key, os.environ[key]) for key in os.environ if key in env_keys)
     if configure_env:
-      config_str = ' '.join([key + '=' + pipes.quote(configure_env[key]) for key in configure_env])
+      config_str = ' '.join([key + '=' + shlex.quote(configure_env[key]) for key in configure_env])
       self.writer.variable('configure_env', config_str + '$ ')
 
     if variables is None:

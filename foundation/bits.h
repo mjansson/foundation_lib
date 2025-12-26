@@ -41,7 +41,7 @@ byteorder_swap64(uint64_t arg);
 /*! Swap byte order, generic data.
 \param buffer Pointer to value, swapped in-place
 \param size   Number of bytes in data */
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
+static FOUNDATION_FORCEINLINE void
 byteorder_swap(void* buffer, const size_t size);
 
 /*! Convert from 16-bit native byte order to big endian byte order
@@ -69,7 +69,7 @@ byteorder_bigendian64(uint64_t arg);
 byte order (no-op for big endian systems).
 \param buffer Pointer to value, converted in-place to big endian
 \param size   Number of bytes in data */
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
+static FOUNDATION_FORCEINLINE void
 byteorder_bigendian(void* buffer, const size_t size);
 
 /*! Convert from 16-bit native byte order to little endian
@@ -97,7 +97,7 @@ byteorder_littleendian64(uint64_t arg);
 byte order (no-op for little endian systems)
 \param buffer Pointer to value, converted in-place to little endian
 \param size   Number of bytes in data */
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
+static FOUNDATION_FORCEINLINE void
 byteorder_littleendian(void* buffer, const size_t size);
 
 // Implementations
@@ -212,7 +212,7 @@ byteorder_swap64(uint64_t arg) {
 #endif
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
+static FOUNDATION_FORCEINLINE void
 byteorder_swap(void* buffer, const size_t size) {
 	size_t i, num;
 	char* src = (char*)buffer;
@@ -251,7 +251,7 @@ byteorder_bigendian64(uint64_t arg) {
 #endif
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
+static FOUNDATION_FORCEINLINE void
 byteorder_bigendian(void* buffer, const size_t size) {
 #if FOUNDATION_ARCH_ENDIAN_LITTLE
 	byteorder_swap(buffer, size);
@@ -288,7 +288,7 @@ byteorder_littleendian64(uint64_t arg) {
 #endif
 }
 
-static FOUNDATION_FORCEINLINE FOUNDATION_PURECALL void
+static FOUNDATION_FORCEINLINE void
 byteorder_littleendian(void* buffer, const size_t size) {
 #if FOUNDATION_ARCH_ENDIAN_BIG
 	byteorder_swap(buffer, size);

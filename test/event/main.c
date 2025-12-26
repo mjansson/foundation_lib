@@ -198,7 +198,7 @@ DECLARE_TEST(event, immediate) {
 		                buffer + 13, (size_t)24, nullptr);
 	assert_set_handler(prev_assert_handler);
 	log_enable_stdout(true);
-	EXPECT_TYPEEQ(error(), ERROR_OUT_OF_MEMORY, error_t, "d");
+	EXPECT_TYPEEQ(error(), ERROR_OUT_OF_MEMORY, error_t, "u");
 
 	block = event_stream_process(stream);
 	event = event_next(block, 0);
@@ -518,7 +518,7 @@ DECLARE_TEST(event, delay_threaded) {
 			++read[event->object];
 			memcpy(&payloadtime, event->payload, sizeof(tick_t));
 
-			string_format(msgbuf, 64, STRING_CONST("payload %" PRIu64 " - previous %" PRIu64 " (%dms)"), payloadtime,
+			string_format(msgbuf, 64, STRING_CONST("payload %" PRIi64 " - previous %" PRIi64 " (%dms)"), payloadtime,
 			              prevtime, (int)(time_ticks_to_seconds(time_diff(prevtime, payloadtime)) * REAL_C(1000.0)));
 
 			EXPECT_SIZEGE(event_payload_size(event), EXPECTED_EVENT_SIZE + 8 - sizeof(event_t));

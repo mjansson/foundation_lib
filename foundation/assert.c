@@ -59,7 +59,7 @@ assert_report(hash_t context, const char* condition, size_t cond_length, const c
 	static const char nofile[] = "<No file>";
 	static const char nomsg[] = "<No message>";
 	static const char assert_format[] =
-	    "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %d\n%.*s%s%.*s\n%.*s\n";
+	    "****** ASSERT FAILED ******\nCondition: %.*s\nFile/line: %.*s : %u\n%.*s%s%.*s\n%.*s\n";
 #if BUILD_ENABLE_ASSERT
 	string_t tracestr = {assert_stacktrace_buffer, sizeof(assert_stacktrace_buffer)};
 	string_t contextstr = {assert_context_buffer, sizeof(assert_context_buffer)};

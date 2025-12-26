@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Ninja toolchain abstraction for Android platform"""
 
@@ -29,7 +29,7 @@ class Android(object):
     self.codesigncmd = 'build/ninja/codesign.py --target $target --prefs codesign.json --zipfile $in --config $config --jarsigner $jarsigner $out'
 
     if host.is_windows():
-      self.codesigncmd = 'python ' + self.codesigncmd
+      self.codesigncmd = 'python3 ' + self.codesigncmd
 
   def initialize_toolchain(self):
     self.ndkpath = os.getenv('NDK_HOME', '')

@@ -130,8 +130,9 @@ fs_node_send_creations(file_node_t* node, const char* path, size_t pathlen) {
 
 static void
 fs_event_stream_callback(ConstFSEventStreamRef stream_ref, void* user_data, size_t events_count,
-                         const char* const event_paths[], const FSEventStreamEventFlags event_flags[],
+                         void* event_paths_raw, const FSEventStreamEventFlags event_flags[],
                          const FSEventStreamEventId event_ids[]) {
+	const char* const* event_paths = event_paths_raw;
 	file_node_t* root_node = user_data;
 	char pathbuf[BUILD_MAX_PATHLEN];
 	FOUNDATION_UNUSED(stream_ref);

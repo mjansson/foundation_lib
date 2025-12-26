@@ -217,6 +217,7 @@ uuidgen_generate(uuid_t** uuid, const uuid_instance_t input) {
 			break;
 		}
 
+        default:
 		case METHOD_TIME: {
 			size_t ii = 0;
 			for (; ii < input.num; ++ii)

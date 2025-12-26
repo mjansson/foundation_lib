@@ -223,7 +223,7 @@ DECLARE_TEST(atomic, cas) {
 		thread_finalize(&threads[ithread]);
 
 	EXPECT_INTEQ(atomic_load32(&val_32, memory_order_acquire), REFVAL32);
-	EXPECT_TYPEEQ(atomic_load64(&val_64, memory_order_acquire), REFVAL64, int64_t, PRIx64);
+	EXPECT_TYPEEQ(atomic_load64(&val_64, memory_order_acquire), REFVAL64, int64_t, PRIi64);
 	EXPECT_EQ(atomic_load_ptr(&val_ptr, memory_order_acquire), REFVALPTR);
 
 	return 0;
